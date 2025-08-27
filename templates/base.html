@@ -253,9 +253,19 @@
             border-top: 1px solid rgba(212,175,55,0.25) !important;
             border-bottom: 1px solid rgba(212,175,55,0.25) !important;
             box-shadow: none !important;
+            min-height: 60px;
         }
+        /* Raise navbar above all overlays */
+        body[data-theme="luxury"] .navbar { position: relative; z-index: 2000 !important; }
+        body[data-theme="luxury"] .navbar .dropdown-menu { position: absolute; z-index: 2002 !important; }
         body[data-theme="luxury"] .navbar .navbar-brand,
-        body[data-theme="luxury"] .navbar .nav-link,
+        body[data-theme="luxury"] .navbar .nav-link { position: relative; z-index: 2001; }
+        /* Navbar text color: gold for top-level links/brand */
+        body[data-theme="luxury"] .navbar .navbar-brand,
+        body[data-theme="luxury"] .navbar .nav-link { color: var(--lux-gold) !important; }
+        /* Fallback: any anchor directly inside navbar gets gold */
+        body[data-theme="luxury"] .navbar a:not(.dropdown-item) { color: var(--lux-gold) !important; }
+        /* Dropdown items keep normal text color for readability */
         body[data-theme="luxury"] .navbar .dropdown-item { color: var(--lux-text) !important; }
         body[data-theme="luxury"] .navbar .nav-link:hover,
         body[data-theme="luxury"] .navbar .dropdown-item:hover {
@@ -349,6 +359,8 @@
             animation: none !important;
             transition: none !important;
         }
+        /* Reset opacity/transform from base animated-navbar so content is visible */
+        body[data-theme="luxury"] .animated-navbar { opacity: 1 !important; transform: none !important; }
         body[data-theme="luxury"] .navbar .nav-link:hover i,
         body[data-theme="luxury"] .navbar .navbar-brand:hover i {
             animation: none !important;
@@ -374,6 +386,8 @@
         body[data-theme="luxury"] a:hover::after {
             width: 100%;
         }
+        /* Do not show underline effect on buttons */
+        body[data-theme="luxury"] .btn::after { display: none !important; }
         /* Buttons (solid gold) */
         body[data-theme="luxury"] .btn,
         body[data-theme="luxury"] .btn-primary,
@@ -463,38 +477,18 @@
         body[data-theme="luxury"] .feature-badge .title,
         body[data-theme="luxury"] .quick-feature .title,
         body[data-theme="luxury"] .floating-badge .title { color: var(--lux-text) !important; }
-        /* Topbar styling (solid black/gold) */
-        body[data-theme="luxury"] .topbar {
-            background: #0a0a0c !important;
-            color: var(--lux-gold) !important;
-            border-top: 2px solid var(--lux-gold) !important;
-            border-bottom: 1px solid rgba(212,175,55,0.25) !important;
-            font-size: 0.92rem;
-            min-height: 40px;
-        }
-        body[data-theme="luxury"] .topbar a { color: var(--lux-gold) !important; text-decoration: none; }
-        body[data-theme="luxury"] .topbar a:hover { filter: brightness(1.1); }
-        body[data-theme="luxury"] .topbar .separator { color: rgba(212,175,55,0.5); }
-        body[data-theme="luxury"] .topbar i { color: var(--lux-gold) !important; }
-        body[data-theme="luxury"] .topbar .icon-pill {
+        /* Reusable icon pill/bullet for navbar and elsewhere */
+        body[data-theme="luxury"] .icon-pill {
             display: inline-flex; align-items: center; justify-content: center;
             width: 28px; height: 28px; border-radius: 999px;
             border: 1px solid var(--lux-gold);
             color: var(--lux-gold); background: transparent;
             transition: background-color 120ms ease-in-out, color 120ms ease-in-out;
         }
-        body[data-theme="luxury"] .topbar .icon-pill:hover { background: var(--lux-gold); color: #111; }
-        body[data-theme="luxury"] .topbar .bullet {
+        body[data-theme="luxury"] .icon-pill:hover { background: var(--lux-gold); color: #111; }
+        body[data-theme="luxury"] .bullet {
             width: 6px; height: 6px; border-radius: 50%; background: var(--lux-gold); display: inline-block;
         }
-        body[data-theme="luxury"] .topbar .cta-link {
-            display: inline-flex; align-items: center; gap: .5rem;
-            padding: .25rem .6rem; border-radius: 999px;
-            border: 1px solid var(--lux-gold); color: #111;
-            background: var(--lux-gold);
-            font-weight: 600;
-        }
-        body[data-theme="luxury"] .topbar .cta-link:hover { filter: brightness(1.05); }
         /* Hero and sections: remove colored particles/gradients */
         body[data-theme="luxury"] .hero-section,
         body[data-theme="luxury"] .features-section,
@@ -553,6 +547,12 @@
             padding: .6rem 1.2rem !important;
             font-weight: 700 !important;
         }
+        /* Navbar context sizing for hero buttons */
+        body[data-theme="luxury"] .navbar .btn-hero-primary,
+        body[data-theme="luxury"] .navbar .btn-hero-secondary {
+            padding: .35rem .9rem !important;
+            line-height: 1.2;
+        }
         /* Forms */
         body[data-theme="luxury"] .form-control,
         body[data-theme="luxury"] .form-select {
@@ -610,27 +610,7 @@
     {% block extra_css %}{% endblock %}
 </head>
 <body data-theme="luxury">
-    <!-- Topbar -->
-    <div class="topbar py-2">
-        <div class="container d-flex justify-content-between align-items-center">
-            <div class="d-flex align-items-center gap-3">
-                <span class="d-none d-md-inline">مرحبا بك في نظام حجز القاعات</span>
-                <span class="bullet d-none d-md-inline"></span>
-                <a href="tel:+966000000000" class="d-flex align-items-center gap-2">
-                    <span class="icon-pill"><i class="fa-solid fa-phone"></i></span>
-                    <span class="d-none d-sm-inline">اتصل بنا</span>
-                </a>
-                <span class="separator">|</span>
-                <a href="mailto:info@example.com" class="d-flex align-items-center gap-2">
-                    <span class="icon-pill"><i class="fa-solid fa-envelope"></i></span>
-                    <span class="d-none d-sm-inline">البريد</span>
-                </a>
-            </div>
-            <div class="d-flex align-items-center gap-2">
-                <a href="{% url 'hall_booking:home' %}#booking" class="cta-link">احجز الآن</a>
-            </div>
-        </div>
-    </div>
+    <!-- Topbar removed; content merged into navbar -->
 
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark animated-navbar shadow-lg sticky-top glass-navbar">
@@ -667,8 +647,9 @@
                         </a>
                     </li>
                 </ul>
-                
-                <ul class="navbar-nav">
+                <!-- Right side: merged former topbar actions -->
+                <ul class="navbar-nav align-items-center gap-2">
+                    <li class="nav-item d-none d-lg-block text-muted small me-2">مرحبا بك</li>
                     {% if user.is_authenticated %}
                         {% if user.is_staff %}
                         <li class="nav-item">
@@ -713,12 +694,12 @@
                         </li>
                     {% else %}
                         <li class="nav-item me-2">
-                            <a class="btn btn-outline-light px-3" href="/login">
+                            <a class="btn btn-hero-secondary px-3" href="/login">
                                 <i class="fas fa-sign-in-alt me-1"></i>تسجيل الدخول
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="btn btn-warning text-dark px-3" href="/register">
+                            <a class="btn btn-hero-primary px-3" href="/register">
                                 <i class="fas fa-user-plus me-1"></i>تسجيل حساب جديد
                             </a>
                         </li>
