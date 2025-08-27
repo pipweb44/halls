@@ -96,13 +96,29 @@ def booking_form(request, hall_id):
         if form.is_valid():
             booking = form.save(commit=False)
             booking.hall = hall
+            # اربط الحجز بالبريد الإلكتروني للمستخدم المسجل لضمان ظهوره في الملف الشخصي
+            if request.user.is_authenticated and request.user.email:
+                booking.user = request.user
+                booking.customer_email = request.user.email
+                # إذا لم يملأ الاسم، استخدم اسم المستخدم
+                if not booking.customer_name:
+                    full_name = (request.user.get_full_name() or '').strip()
+                    booking.customer_name = full_name or request.user.username
             booking.total_price = booking.calculate_total_price()
             booking.save()
             
             messages.success(request, 'تم إرسال طلب الحجز بنجاح! سنتواصل معك قريباً.')
             return redirect('hall_booking:hall_detail', hall_id=hall_id)
     else:
-        form = BookingForm()
+        # تهيئة الحقول باسم وبريد المستخدم لتجربة أفضل
+        initial = {}
+        if request.user.is_authenticated:
+            if request.user.email:
+                initial['customer_email'] = request.user.email
+            full_name = (request.user.get_full_name() or '').strip()
+            if full_name:
+                initial['customer_name'] = full_name
+        form = BookingForm(initial=initial)
     
     context = {
         'form': form,
@@ -654,9 +670,12 @@ def auth_profile(request):
         messages.success(request, 'تم تحديث الملف الشخصي بنجاح')
         return redirect('hall_booking:auth_profile')
     
-    # جلب طلبات الحجز الخاصة بالمستخدم بناءً على بريده الإلكتروني
-    user_email = request.user.email
-    user_bookings = Booking.objects.filter(customer_email=user_email).order_by('-created_at') if user_email else Booking.objects.none()
+    # جلب طلبات الحجز الخاصة بالمستخدم: أولاً بعلاقة المستخدم، ثم كباك أب عبر البريد
+    user_bookings = Booking.objects.filter(user=request.user).order_by('-created_at')
+    if not user_bookings.exists():
+        user_email = request.user.email
+        if user_email:
+            user_bookings = Booking.objects.filter(customer_email=user_email).order_by('-created_at')
     context = {
         'bookings': user_bookings,
     }

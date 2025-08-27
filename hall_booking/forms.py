@@ -17,8 +17,8 @@ class BookingForm(forms.ModelForm):
             'customer_phone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'رقم الهاتف'}),
             'event_title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'عنوان الحدث'}),
             'event_description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'وصف الحدث'}),
-            'start_datetime': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'end_datetime': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'start_datetime': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
+            'end_datetime': forms.DateTimeInput(attrs={'class': 'form-control', 'type': 'datetime-local'}),
             'attendees_count': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'عدد الحضور'}),
         }
         labels = {
@@ -31,6 +31,13 @@ class BookingForm(forms.ModelForm):
             'end_datetime': 'تاريخ ووقت النهاية',
             'attendees_count': 'عدد الحضور',
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Accept the HTML5 datetime-local format (e.g. 2025-08-27T18:30)
+        dt_formats = ['%Y-%m-%dT%H:%M', '%Y-%m-%d %H:%M:%S', '%Y-%m-%d %H:%M']
+        self.fields['start_datetime'].input_formats = dt_formats
+        self.fields['end_datetime'].input_formats = dt_formats
 
     def clean(self):
         cleaned_data = super().clean()

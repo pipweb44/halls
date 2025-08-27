@@ -65,6 +65,7 @@ class Booking(models.Model):
     
     booking_id = models.UUIDField(default=uuid.uuid4, editable=False, verbose_name="رقم الحجز")
     hall = models.ForeignKey(Hall, on_delete=models.CASCADE, verbose_name="القاعة")
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='bookings', verbose_name="المستخدم")
     customer_name = models.CharField(max_length=200, verbose_name="اسم العميل")
     customer_email = models.EmailField(verbose_name="البريد الإلكتروني")
     customer_phone = models.CharField(max_length=20, verbose_name="رقم الهاتف")
