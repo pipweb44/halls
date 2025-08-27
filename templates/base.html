@@ -189,11 +189,449 @@
         .navbar, .glass-navbar, .animated-navbar, .sticky-top {
             border-radius: 0 !important;
         }
+        /*==================== Luxury Golden Black Theme ====================*/
+        body[data-theme="luxury"] {
+            /* Global palette overrides - SOLID only (Black/Gold) */
+            --primary-color: #d4af37; /* gold */
+            --secondary-color: #a88a2a; /* dark gold */
+            --accent-color: #d4af37; /* use gold only */
+            --success-color: #d4af37;
+            --warning-color: #d4af37;
+            --danger-color: #d4af37; /* unify accents to gold */
+            --dark-color: #f2f1ee;   /* text */
+            --light-color: #0f0f12;  /* surfaces */
+            --gradient-primary: #0b0b0d;   /* solid black */
+            --gradient-secondary: #d4af37; /* solid gold */
+            /* Bootstrap color variables to kill blues/purples */
+            --bs-primary: #d4af37;
+            --bs-primary-rgb: 212,175,55;
+            --bs-link-color: #d4af37;
+            --bs-link-hover-color: #d4af37;
+
+            /* Theme local vars */
+            --lux-bg: #0b0b0d;       /* page bg */
+            --lux-surface: #141418;  /* cards */
+            --lux-text: #f2f1ee;     /* text */
+            --lux-muted: #b9b5a9;    /* muted */
+            --lux-gold: #d4af37;     /* gold */
+            --lux-gold-2: #d4af37;   /* same gold (no gradient) */
+            --lux-gold-dark: #a88a2a;/* dark gold */
+            --lux-ring: 0 0 0 2px rgba(212,175,55,0.25);
+
+            background: #0b0b0d;
+            color: var(--lux-text);
+            font-family: 'El Messiri','Cairo','Tahoma','Segoe UI',system-ui,sans-serif;
+        }
+        /* Headings with luxury font */
+        body[data-theme="luxury"] h1,
+        body[data-theme="luxury"] h2,
+        body[data-theme="luxury"] h3,
+        body[data-theme="luxury"] h4,
+        body[data-theme="luxury"] h5,
+        body[data-theme="luxury"] h6 {
+            font-family: 'El Messiri','Cairo','Tahoma','Segoe UI',system-ui,sans-serif;
+            font-weight: 700;
+            letter-spacing: .2px;
+        }
+        body[data-theme="luxury"] .navbar .navbar-brand {
+            font-family: 'El Messiri','Cairo','Tahoma','Segoe UI',system-ui,sans-serif;
+            font-weight: 700;
+            letter-spacing: .3px;
+        }
+        /* Global effect reset for luxury */
+        body[data-theme="luxury"] *,
+        body[data-theme="luxury"] *::before,
+        body[data-theme="luxury"] *::after {
+            text-shadow: none !important;
+            box-shadow: none !important;
+        }
+        body[data-theme="luxury"] .navbar,
+        body[data-theme="luxury"] .glass-navbar,
+        body[data-theme="luxury"] .animated-navbar,
+        body[data-theme="luxury"] .sticky-top {
+            background: #0f0f14 !important; /* slightly lighter than page to stand out */
+            border-top: 1px solid rgba(212,175,55,0.25) !important;
+            border-bottom: 1px solid rgba(212,175,55,0.25) !important;
+            box-shadow: none !important;
+        }
+        body[data-theme="luxury"] .navbar .navbar-brand,
+        body[data-theme="luxury"] .navbar .nav-link,
+        body[data-theme="luxury"] .navbar .dropdown-item { color: var(--lux-text) !important; }
+        body[data-theme="luxury"] .navbar .nav-link:hover,
+        body[data-theme="luxury"] .navbar .dropdown-item:hover {
+            color: var(--lux-gold) !important;
+            background: transparent !important;
+        }
+        /* Force Font Awesome icons to gold by default */
+        body[data-theme="luxury"] i.fa,
+        body[data-theme="luxury"] i.fas,
+        body[data-theme="luxury"] i.far,
+        body[data-theme="luxury"] i.fal,
+        body[data-theme="luxury"] i.fab { color: var(--lux-gold) !important; }
+        /* Force Bootstrap Icons to gold */
+        body[data-theme="luxury"] .bi,
+        body[data-theme="luxury"] [class^="bi-"],
+        body[data-theme="luxury"] [class*=" bi-"] { color: var(--lux-gold) !important; }
+        /* Make icons gold in common blocks */
+        body[data-theme="luxury"] .hero-section i,
+        body[data-theme="luxury"] .features-section i,
+        body[data-theme="luxury"] .categories-section i,
+        body[data-theme="luxury"] .halls-section i { color: var(--lux-gold) !important; }
+        /* Inline SVGs: set fill/stroke to gold where applicable */
+        body[data-theme="luxury"] .hero-section svg path,
+        body[data-theme="luxury"] .hero-section svg rect,
+        body[data-theme="luxury"] .hero-section svg circle,
+        body[data-theme="luxury"] .features-section svg path,
+        body[data-theme="luxury"] .features-section svg rect,
+        body[data-theme="luxury"] .features-section svg circle,
+        body[data-theme="luxury"] .categories-section svg path,
+        body[data-theme="luxury"] .categories-section svg rect,
+        body[data-theme="luxury"] .categories-section svg circle,
+        body[data-theme="luxury"] .halls-section svg path,
+        body[data-theme="luxury"] .halls-section svg rect,
+        body[data-theme="luxury"] .halls-section svg circle,
+        body[data-theme="luxury"] .feature-card svg path,
+        body[data-theme="luxury"] .feature-card svg rect,
+        body[data-theme="luxury"] .feature-card svg circle {
+            fill: var(--lux-gold) !important; stroke: var(--lux-gold) !important;
+        }
+        /* Icons inside gold buttons should be dark for contrast */
+        body[data-theme="luxury"] .btn,
+        body[data-theme="luxury"] .btn-hero-primary,
+        body[data-theme="luxury"] .btn-primary { --btn-icon: #111; }
+        body[data-theme="luxury"] .btn i,
+        body[data-theme="luxury"] .btn svg { color: var(--btn-icon) !important; fill: var(--btn-icon) !important; }
+        /* Navbar pills like screenshot */
+        body[data-theme="luxury"] .navbar .nav-link {
+            border: 1px solid transparent;
+            border-radius: 999px;
+            padding: .35rem .85rem;
+        }
+        body[data-theme="luxury"] .navbar .nav-link.active,
+        body[data-theme="luxury"] .navbar .nav-link:focus,
+        body[data-theme="luxury"] .navbar .nav-link[aria-current="page"] {
+            color: #111 !important;
+            background: var(--lux-gold) !important;
+            border-color: var(--lux-gold) !important;
+        }
+        /* Map bootstrap utility classes to gold */
+        body[data-theme="luxury"] .text-primary { color: var(--lux-gold) !important; }
+        body[data-theme="luxury"] .bg-primary { background-color: var(--lux-gold) !important; color: #111 !important; }
+        body[data-theme="luxury"] .border-primary { border-color: var(--lux-gold) !important; }
+        /* Also map info utilities (commonly blue) to gold */
+        body[data-theme="luxury"] .text-info { color: var(--lux-gold) !important; }
+        body[data-theme="luxury"] .bg-info { background-color: var(--lux-gold) !important; color: #111 !important; }
+        body[data-theme="luxury"] .border-info { border-color: var(--lux-gold) !important; }
+        /* Toggler and icons */
+        body[data-theme="luxury"] .navbar .navbar-toggler { border-color: var(--lux-gold) !important; }
+        body[data-theme="luxury"] .navbar .navbar-toggler .navbar-toggler-icon {
+            background-image: none !important;
+            width: 1.5rem; height: 1.5rem; position: relative; display: inline-block;
+        }
+        body[data-theme="luxury"] .navbar .navbar-toggler .navbar-toggler-icon::before,
+        body[data-theme="luxury"] .navbar .navbar-toggler .navbar-toggler-icon::after {
+            content: ""; position: absolute; left: 0; right: 0; height: 2px; background: var(--lux-gold);
+        }
+        body[data-theme="luxury"] .navbar .navbar-toggler .navbar-toggler-icon::before { top: 6px; }
+        body[data-theme="luxury"] .navbar .navbar-toggler .navbar-toggler-icon::after { bottom: 6px; }
+        /* Dropdown menu */
+        body[data-theme="luxury"] .dropdown-menu {
+            background: #0f0f14 !important;
+            border: 1px solid rgba(212,175,55,0.25) !important;
+        }
+        body[data-theme="luxury"] .dropdown-item { color: var(--lux-text) !important; }
+        body[data-theme="luxury"] .dropdown-item:hover { color: var(--lux-gold) !important; }
+        /* Disable built-in animations */
+        body[data-theme="luxury"] .animated-navbar,
+        body[data-theme="luxury"] .dropdown-menu,
+        body[data-theme="luxury"] .floating-card,
+        body[data-theme="luxury"] .navbar .nav-link i {
+            animation: none !important;
+            transition: none !important;
+        }
+        body[data-theme="luxury"] .navbar .nav-link:hover i,
+        body[data-theme="luxury"] .navbar .navbar-brand:hover i {
+            animation: none !important;
+        }
+        /* Luxury nav/link underline effect */
+        body[data-theme="luxury"] .navbar .nav-link,
+        body[data-theme="luxury"] a {
+            position: relative;
+            text-decoration: none;
+        }
+        body[data-theme="luxury"] .navbar .nav-link::after,
+        body[data-theme="luxury"] a::after {
+            content: "";
+            position: absolute;
+            right: 0;
+            bottom: -2px;
+            width: 0;
+            height: 2px;
+            background: var(--lux-gold);
+            transition: width 120ms ease-in-out;
+        }
+        body[data-theme="luxury"] .navbar .nav-link:hover::after,
+        body[data-theme="luxury"] a:hover::after {
+            width: 100%;
+        }
+        /* Buttons (solid gold) */
+        body[data-theme="luxury"] .btn,
+        body[data-theme="luxury"] .btn-primary,
+        body[data-theme="luxury"] .btn-warning {
+            background: var(--lux-gold) !important;
+            border: 1px solid var(--lux-gold-dark) !important;
+            color: #111 !important;
+            box-shadow: none !important;
+        }
+        body[data-theme="luxury"] .btn:hover {
+            filter: brightness(1.05);
+            transform: none;
+        }
+        /* Outline buttons -> gold outline */
+        body[data-theme="luxury"] .btn-outline-light,
+        body[data-theme="luxury"] .btn-outline-primary,
+        body[data-theme="luxury"] .btn-outline-secondary {
+            background: transparent !important;
+            color: var(--lux-gold) !important;
+            border: 1px solid var(--lux-gold) !important;
+        }
+        body[data-theme="luxury"] .btn-outline-light:hover,
+        body[data-theme="luxury"] .btn-outline-primary:hover,
+        body[data-theme="luxury"] .btn-outline-secondary:hover {
+            background: rgba(212,175,55,0.12) !important;
+            color: var(--lux-gold) !important;
+        }
+        /* Remove hover lifts */
+        body[data-theme="luxury"] .feature-card:hover,
+        body[data-theme="luxury"] .category-card:hover,
+        body[data-theme="luxury"] .hall-card:hover,
+        body[data-theme="luxury"] .card:hover {
+            transform: none !important;
+        }
+        /* Cards */
+        body[data-theme="luxury"] .card {
+            background: var(--lux-surface) !important;
+            border: 1px solid rgba(212,175,55,0.25) !important;
+            box-shadow: none !important;
+            color: var(--lux-text) !important;
+        }
+        body[data-theme="luxury"] .card .card-title { color: var(--lux-gold); }
+        /* Custom section cards that used white explicitly */
+        body[data-theme="luxury"] .feature-card,
+        body[data-theme="luxury"] .category-card,
+        body[data-theme="luxury"] .hall-card {
+            background: var(--lux-surface) !important;
+            color: var(--lux-text) !important;
+            border: 1px solid rgba(212,175,55,0.25) !important;
+            box-shadow: none !important;
+        }
+        body[data-theme="luxury"] .feature-icon,
+        body[data-theme="luxury"] .category-icon {
+            background: transparent !important;
+            border: 1px solid rgba(212,175,55,0.35) !important;
+            color: var(--lux-gold) !important;
+        }
+        /* Floating hero feature badges/cards */
+        body[data-theme="luxury"] .hero-badge,
+        body[data-theme="luxury"] .feature-badge,
+        body[data-theme="luxury"] .quick-feature,
+        body[data-theme="luxury"] .floating-badge {
+            background: var(--lux-surface) !important;
+            color: var(--lux-text) !important;
+            border: 1px solid rgba(212,175,55,0.35) !important;
+            box-shadow: 0 0 0 1px rgba(212,175,55,0.18), 0 0 28px rgba(212,175,55,0.08) !important;
+            border-radius: 18px !important;
+        }
+        /* Icons inside badges */
+        body[data-theme="luxury"] .hero-badge i,
+        body[data-theme="luxury"] .feature-badge i,
+        body[data-theme="luxury"] .quick-feature i,
+        body[data-theme="luxury"] .floating-badge i {
+            color: var(--lux-gold) !important;
+        }
+        /* SVG icons inside badges */
+        body[data-theme="luxury"] .hero-badge svg,
+        body[data-theme="luxury"] .feature-badge svg,
+        body[data-theme="luxury"] .quick-feature svg,
+        body[data-theme="luxury"] .floating-badge svg { fill: var(--lux-gold) !important; color: var(--lux-gold) !important; }
+        body[data-theme="luxury"] .hero-badge svg path,
+        body[data-theme="luxury"] .feature-badge svg path,
+        body[data-theme="luxury"] .quick-feature svg path,
+        body[data-theme="luxury"] .floating-badge svg path { fill: var(--lux-gold) !important; stroke: var(--lux-gold) !important; }
+        /* Badge text subtlety */
+        body[data-theme="luxury"] .hero-badge .title,
+        body[data-theme="luxury"] .feature-badge .title,
+        body[data-theme="luxury"] .quick-feature .title,
+        body[data-theme="luxury"] .floating-badge .title { color: var(--lux-text) !important; }
+        /* Topbar styling (solid black/gold) */
+        body[data-theme="luxury"] .topbar {
+            background: #0a0a0c !important;
+            color: var(--lux-gold) !important;
+            border-top: 2px solid var(--lux-gold) !important;
+            border-bottom: 1px solid rgba(212,175,55,0.25) !important;
+            font-size: 0.92rem;
+            min-height: 40px;
+        }
+        body[data-theme="luxury"] .topbar a { color: var(--lux-gold) !important; text-decoration: none; }
+        body[data-theme="luxury"] .topbar a:hover { filter: brightness(1.1); }
+        body[data-theme="luxury"] .topbar .separator { color: rgba(212,175,55,0.5); }
+        body[data-theme="luxury"] .topbar i { color: var(--lux-gold) !important; }
+        body[data-theme="luxury"] .topbar .icon-pill {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 28px; height: 28px; border-radius: 999px;
+            border: 1px solid var(--lux-gold);
+            color: var(--lux-gold); background: transparent;
+            transition: background-color 120ms ease-in-out, color 120ms ease-in-out;
+        }
+        body[data-theme="luxury"] .topbar .icon-pill:hover { background: var(--lux-gold); color: #111; }
+        body[data-theme="luxury"] .topbar .bullet {
+            width: 6px; height: 6px; border-radius: 50%; background: var(--lux-gold); display: inline-block;
+        }
+        body[data-theme="luxury"] .topbar .cta-link {
+            display: inline-flex; align-items: center; gap: .5rem;
+            padding: .25rem .6rem; border-radius: 999px;
+            border: 1px solid var(--lux-gold); color: #111;
+            background: var(--lux-gold);
+            font-weight: 600;
+        }
+        body[data-theme="luxury"] .topbar .cta-link:hover { filter: brightness(1.05); }
+        /* Hero and sections: remove colored particles/gradients */
+        body[data-theme="luxury"] .hero-section,
+        body[data-theme="luxury"] .features-section,
+        body[data-theme="luxury"] .categories-section,
+        body[data-theme="luxury"] .halls-section,
+        body[data-theme="luxury"] .cta-section {
+            background: #0b0b0d !important;
+        }
+        body[data-theme="luxury"] .hero-background,
+        body[data-theme="luxury"] .hero-overlay {
+            background: #0b0b0d !important;
+            opacity: 1 !important;
+        }
+        body[data-theme="luxury"] .hero-particles {
+            background: transparent !important;
+        }
+        body[data-theme="luxury"] .section-title,
+        body[data-theme="luxury"] .hero-title,
+        body[data-theme="luxury"] .gradient-text {
+            background: none !important;
+            -webkit-text-fill-color: var(--lux-gold) !important;
+            color: var(--lux-gold) !important;
+        }
+        /* Hero title look (as in screenshot): big, bold, slight gold glow */
+        body[data-theme="luxury"] .hero-title {
+            font-family: 'El Messiri','Cairo','Tahoma','Segoe UI',system-ui,sans-serif !important;
+            font-weight: 700 !important;
+            line-height: 1.15 !important;
+            letter-spacing: .2px;
+            text-shadow: 0 0 10px rgba(212,175,55,0.12) !important;
+        }
+        body[data-theme="luxury"] .section-subtitle,
+        body[data-theme="luxury"] .hero-subtitle {
+            color: var(--lux-muted) !important;
+        }
+        /* Light button variant in hero/cta */
+        body[data-theme="luxury"] .btn-light {
+            background: var(--lux-gold) !important;
+            color: #111 !important;
+            border: 1px solid var(--lux-gold-dark) !important;
+        }
+        /* Hero CTA buttons (solid gold primary + dark outline secondary) */
+        body[data-theme="luxury"] .btn-hero-primary {
+            background: var(--lux-gold) !important;
+            color: #111 !important;
+            border: 1px solid var(--lux-gold-dark) !important;
+            border-radius: 999px !important;
+            padding: .6rem 1.2rem !important;
+            font-weight: 700 !important;
+        }
+        body[data-theme="luxury"] .btn-hero-secondary {
+            background: transparent !important;
+            color: var(--lux-gold) !important;
+            border: 1px solid var(--lux-gold) !important;
+            border-radius: 999px !important;
+            padding: .6rem 1.2rem !important;
+            font-weight: 700 !important;
+        }
+        /* Forms */
+        body[data-theme="luxury"] .form-control,
+        body[data-theme="luxury"] .form-select {
+            background: #0f0f14;
+            color: var(--lux-text);
+            border: 1px solid rgba(212,175,55,0.25);
+        }
+        body[data-theme="luxury"] .form-control:focus,
+        body[data-theme="luxury"] .form-select:focus {
+            border-color: var(--lux-gold);
+            box-shadow: var(--lux-ring);
+        }
+        /* Tables */
+        body[data-theme="luxury"] .table {
+            color: var(--lux-text);
+            --bs-table-bg: transparent;
+            --bs-table-striped-bg: rgba(255,255,255,0.06);
+            --bs-table-striped-color: var(--lux-text);
+            --bs-table-hover-bg: rgba(212,175,55,0.12);
+            border-color: rgba(212,175,55,0.18);
+        }
+        body[data-theme="luxury"] .table thead th {
+            color: var(--lux-gold);
+            border-bottom: 1px solid rgba(212,175,55,0.35);
+        }
+        /* Links */
+        body[data-theme="luxury"] a { color: var(--lux-gold); }
+        body[data-theme="luxury"] a:hover { color: var(--lux-gold); filter: brightness(1.1); }
+        /* Footer */
+        body[data-theme="luxury"] footer.bg-dark {
+            background: #0a0a0c !important;
+            border-top: 1px solid rgba(212,175,55,0.25);
+        }
+        body[data-theme="luxury"] footer .text-muted { color: var(--lux-muted) !important; }
+        /* Alerts */
+        body[data-theme="luxury"] .alert {
+            background: rgba(212,175,55,0.08);
+            border: 1px solid rgba(212,175,55,0.35);
+            color: var(--lux-text);
+        }
+        /* Badges */
+        body[data-theme="luxury"] .badge {
+            background: var(--lux-gold) !important;
+            color: #111 !important;
+            border: 1px solid var(--lux-gold-dark) !important;
+        }
+        /* Dividers */
+        body[data-theme="luxury"] hr { border-top: 1px solid rgba(212,175,55,0.25); }
     </style>
-    
+    <!-- Luxury fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=El+Messiri:wght@400;600;700&family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+
     {% block extra_css %}{% endblock %}
 </head>
-<body>
+<body data-theme="luxury">
+    <!-- Topbar -->
+    <div class="topbar py-2">
+        <div class="container d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-3">
+                <span class="d-none d-md-inline">مرحبا بك في نظام حجز القاعات</span>
+                <span class="bullet d-none d-md-inline"></span>
+                <a href="tel:+966000000000" class="d-flex align-items-center gap-2">
+                    <span class="icon-pill"><i class="fa-solid fa-phone"></i></span>
+                    <span class="d-none d-sm-inline">اتصل بنا</span>
+                </a>
+                <span class="separator">|</span>
+                <a href="mailto:info@example.com" class="d-flex align-items-center gap-2">
+                    <span class="icon-pill"><i class="fa-solid fa-envelope"></i></span>
+                    <span class="d-none d-sm-inline">البريد</span>
+                </a>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <a href="{% url 'hall_booking:home' %}#booking" class="cta-link">احجز الآن</a>
+            </div>
+        </div>
+    </div>
+
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark animated-navbar shadow-lg sticky-top glass-navbar">
         <div class="container">
@@ -270,6 +708,7 @@
                                 <li><a class="dropdown-item theme-select" href="#" data-theme="dark"><i class="fas fa-moon theme-icon me-2"></i>ثيم الظلام</a></li>
                                 <li><a class="dropdown-item theme-select" href="#" data-theme="innovation"><i class="fas fa-lightbulb theme-icon me-2"></i>ثيم الابتكار</a></li>
                                 <li><a class="dropdown-item theme-select" href="#" data-theme="gourmet"><i class="fas fa-utensils theme-icon me-2"></i>ثيم قورميزى</a></li>
+                                <li><a class="dropdown-item theme-select" href="#" data-theme="luxury"><i class="fas fa-crown theme-icon me-2"></i>ثيم الذهبي الفاخر</a></li>
                             </ul>
                         </li>
                     {% else %}
@@ -351,8 +790,14 @@ function setTheme(theme) {
 }
 // عند تحميل الصفحة، استرجع الثيم المختار
 (function() {
-    const savedTheme = localStorage.getItem('site-theme') || 'gourmet';
-    setTheme(savedTheme);
+    // One-time migration to luxury theme so previous saved themes don't block the new default
+    const migrated = localStorage.getItem('theme-migrated-v1');
+    let savedTheme = localStorage.getItem('site-theme');
+    if (!migrated) {
+        savedTheme = 'luxury';
+        localStorage.setItem('theme-migrated-v1', '1');
+    }
+    setTheme(savedTheme || 'luxury');
 })();
 // عند اختيار ثيم من القائمة
 window.addEventListener('DOMContentLoaded', function() {
