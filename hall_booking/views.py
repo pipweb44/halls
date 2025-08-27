@@ -96,11 +96,13 @@ def booking_form(request, hall_id):
         if form.is_valid():
             booking = form.save(commit=False)
             booking.hall = hall
-            # اربط الحجز بالبريد الإلكتروني للمستخدم المسجل لضمان ظهوره في الملف الشخصي
-            if request.user.is_authenticated and request.user.email:
+            # اربط الحجز بالمستخدم المسجل دوماً لضمان ظهوره في الملف الشخصي
+            if request.user.is_authenticated:
                 booking.user = request.user
-                booking.customer_email = request.user.email
-                # إذا لم يملأ الاسم، استخدم اسم المستخدم
+                # إذا كان البريد في الحجز فارغاً ولدى المستخدم بريد، استخدم بريد المستخدم
+                if not booking.customer_email and request.user.email:
+                    booking.customer_email = request.user.email
+                # إذا لم يملأ الاسم، استخدم اسم المستخدم/الاسم الكامل
                 if not booking.customer_name:
                     full_name = (request.user.get_full_name() or '').strip()
                     booking.customer_name = full_name or request.user.username
@@ -777,4 +779,15 @@ def admin_user_delete(request, user_id):
 @user_passes_test(lambda u: u.is_superuser or u.is_staff)
 def admin_user_detail(request, user_id):
     user = get_object_or_404(User, id=user_id)
-    return render(request, 'hall_booking/admin/user_detail.html', {'user_obj': user}) 
+    # Fetch bookings linked to this user. Fallback to email-based match for legacy records.
+    user_bookings = Booking.objects.filter(user=user).order_by('-created_at')
+    if not user_bookings.exists() and user.email:
+        user_bookings = Booking.objects.filter(customer_email=user.email).order_by('-created_at')
+    return render(
+        request,
+        'hall_booking/admin/user_detail.html',
+        {
+            'user_obj': user,
+            'bookings': user_bookings,
+        },
+    )

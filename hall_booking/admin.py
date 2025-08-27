@@ -1,4 +1,7 @@
 from django.contrib import admin
+from django.contrib.auth.models import User
+from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
+from django.contrib import admin
 from django.contrib.admin import AdminSite
 from django.utils.html import format_html
 from django.urls import path
@@ -157,6 +160,33 @@ class BookingAdmin(admin.ModelAdmin):
         updated = queryset.update(status='completed')
         self.message_user(request, f'تم تحديد {updated} حجز كمكتمل بنجاح.')
     mark_as_completed.short_description = "تحديد الحجوزات كمكتملة"
+
+# Inline للحجوزات ضمن صفحة المستخدم في لوحة الإدارة
+class BookingInline(admin.TabularInline):
+    model = Booking
+    extra = 0
+    fields = (
+        'hall', 'event_title', 'start_datetime', 'end_datetime', 'status', 'total_price',
+    )
+    readonly_fields = ('total_price',)
+    show_change_link = True
+
+class UserAdmin(DjangoUserAdmin):
+    inlines = [BookingInline]
+
+# تسجيل التخصيص في لوحة الإدارة الافتراضية
+try:
+    admin.site.unregister(User)
+except admin.sites.NotRegistered:
+    pass
+admin.site.register(User, UserAdmin)
+
+# وتسجيله أيضاً في لوحة الإدارة المخصصة إن كنت تستخدمها
+try:
+    admin_site.unregister(User)
+except Exception:
+    pass
+admin_site.register(User, UserAdmin)
 
 # تخصيص نموذج التواصل
 @admin.register(Contact)
