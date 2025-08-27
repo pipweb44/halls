@@ -5,7 +5,7 @@
 
 {% block content %}
 <!-- Hall Details Section -->
-<section class="py-5">
+<section class="py-5 hall-detail">
     <div class="container">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
@@ -98,10 +98,10 @@
                         {% endif %}
 
                         <div class="d-flex gap-3">
-                            <a href="{% url 'hall_booking:booking_form' hall.id %}" class="btn btn-primary btn-lg">
+                            <a href="{% url 'hall_booking:booking_form' hall.id %}" class="btn btn-hero-primary btn-lg">
                                 <i class="fas fa-calendar-check me-2"></i>احجز الآن
                             </a>
-                            <button class="btn btn-outline-primary btn-lg" onclick="checkAvailability()">
+                            <button class="btn btn-hero-secondary btn-lg" onclick="checkAvailability()">
                                 <i class="fas fa-clock me-2"></i>تحقق من التوفر
                             </button>
                         </div>
@@ -129,7 +129,7 @@
                                 <input type="datetime-local" class="form-control" id="end_datetime" name="end_datetime" required>
                             </div>
                             
-                            <button type="submit" class="btn btn-primary w-100">
+                            <button type="submit" class="btn btn-hero-primary w-100">
                                 <i class="fas fa-search me-2"></i>تحقق من التوفر
                             </button>
                         </form>
@@ -199,7 +199,7 @@
                                            min="{{ today|date:'Y-m-d' }}" value="{{ selected_date|date:'Y-m-d' }}">
                                 </div>
                                 <div class="col-md-4 d-flex align-items-end">
-                                    <button type="submit" class="btn btn-primary">
+                                    <button type="submit" class="btn btn-hero-primary">
                                         <i class="fas fa-search me-2"></i>عرض التوفر
                                     </button>
                                 </div>
@@ -263,12 +263,12 @@
                                 <h5 class="card-title">{{ similar_hall.name }}</h5>
                                 <p class="card-text text-muted">{{ similar_hall.description|truncatewords:15 }}</p>
                                 <div class="d-flex justify-content-between align-items-center">
-                                    <span class="text-success fw-bold">{{ similar_hall.price_per_hour }} ريال/ساعة</span>
-                                    <span class="badge bg-primary">{{ similar_hall.capacity }} شخص</span>
+                                    <span class="price fw-bold">{{ similar_hall.price_per_hour }} ريال/ساعة</span>
+                                    <span class="badge capacity-badge">{{ similar_hall.capacity }} شخص</span>
                                 </div>
                             </div>
                             <div class="card-footer bg-transparent border-0">
-                                <a href="{% url 'hall_booking:hall_detail' similar_hall.id %}" class="btn btn-outline-primary w-100">
+                                <a href="{% url 'hall_booking:hall_detail' similar_hall.id %}" class="btn btn-hero-secondary w-100">
                                     <i class="fas fa-eye me-2"></i>عرض التفاصيل
                                 </a>
                             </div>
@@ -340,5 +340,47 @@ document.addEventListener('DOMContentLoaded', function() {
 .hall-gallery .swiper-pagination-bullet-active {
     background: #800000;
 }
+
+/* Luxury overrides for hall detail */
+body[data-theme="luxury"] .hall-detail .breadcrumb {
+    --bs-breadcrumb-divider-color: rgba(212,175,55,0.6);
+    color: var(--lux-text);
+}
+body[data-theme="luxury"] .hall-detail .breadcrumb a { color: var(--lux-gold); text-decoration: none; }
+body[data-theme="luxury"] .hall-detail .breadcrumb .active { color: var(--lux-text); }
+
+/* Cards and headers */
+body[data-theme="luxury"] .hall-detail .card { background: #0f0f14; border: 1px solid rgba(212,175,55,0.25); }
+body[data-theme="luxury"] .hall-detail .card-header { background: #0b0b0d; color: var(--lux-gold); border-bottom: 1px solid rgba(212,175,55,0.35); }
+body[data-theme="luxury"] .hall-detail .card-title { color: var(--lux-text); }
+body[data-theme="luxury"] .hall-detail .card-text.lead { color: var(--lux-text); opacity: .95; }
+
+/* Info rows */
+body[data-theme="luxury"] .hall-detail .fw-bold { color: var(--lux-text); }
+body[data-theme="luxury"] .hall-detail .text-success,
+body[data-theme="luxury"] .hall-detail .text-primary { color: var(--lux-gold) !important; }
+body[data-theme="luxury"] .hall-detail .badge { background: transparent; border: 1px solid var(--lux-gold); color: var(--lux-gold); }
+
+/* Quick info tiles */
+body[data-theme="luxury"] .hall-detail .bg-light { background: #121218 !important; }
+body[data-theme="luxury"] .hall-detail .text-muted { color: rgba(242,241,238,0.7) !important; }
+
+/* Table */
+body[data-theme="luxury"] .hall-detail .table { color: var(--lux-text); }
+body[data-theme="luxury"] .hall-detail .table-hover tbody tr:hover { background: rgba(212,175,55,0.06); }
+body[data-theme="luxury"] .hall-detail .table-light { background: #0b0b0d !important; color: var(--lux-gold) !important; border-bottom: 1px solid rgba(212,175,55,0.35); }
+
+/* Gallery (Swiper) */
+body[data-theme="luxury"] .hall-detail .hall-gallery .swiper { border-radius: 18px; background: #0b0b0d; margin-bottom: 1.5rem; border: 1px solid rgba(212,175,55,0.25); }
+body[data-theme="luxury"] .hall-detail .hall-gallery .swiper-slide img { border-radius: 18px; transition: transform 0.2s; box-shadow: none; }
+body[data-theme="luxury"] .hall-detail .hall-gallery .swiper-slide img:hover { transform: scale(1.03); }
+body[data-theme="luxury"] .hall-detail .hall-gallery .swiper-button-next,
+body[data-theme="luxury"] .hall-detail .hall-gallery .swiper-button-prev { color: var(--lux-gold); filter: none; }
+body[data-theme="luxury"] .hall-detail .hall-gallery .swiper-pagination-bullet { background: var(--lux-gold); opacity: .8; }
+body[data-theme="luxury"] .hall-detail .hall-gallery .swiper-pagination-bullet-active { background: var(--lux-gold); }
+
+/* Similar halls */
+body[data-theme="luxury"] .hall-detail .price { color: var(--lux-gold); }
+body[data-theme="luxury"] .hall-detail .capacity-badge { border: 1px solid var(--lux-gold); color: var(--lux-gold); background: transparent; }
 </style>
-{% endblock %} 
+{% endblock %}

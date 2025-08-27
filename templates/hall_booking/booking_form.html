@@ -290,6 +290,70 @@
 </section>
 {% endblock %}
 
+{% block extra_css %}
+<style>
+/* Luxury Black/Gold theme overrides (scoped) */
+body[data-theme="luxury"] .breadcrumb {
+    background: transparent !important;
+}
+body[data-theme="luxury"] .breadcrumb .breadcrumb-item a { color: var(--lux-gold) !important; }
+body[data-theme="luxury"] .breadcrumb .breadcrumb-item + .breadcrumb-item::before { color: var(--lux-gold) !important; }
+
+/* Cards and headers */
+body[data-theme="luxury"] .card {
+    background: var(--lux-surface) !important;
+    border: 1px solid rgba(212,175,55,0.25) !important;
+}
+body[data-theme="luxury"] .card.border-0 { border: 1px solid rgba(212,175,55,0.25) !important; }
+body[data-theme="luxury"] .card-header.bg-light {
+    background: var(--lux-surface) !important;
+    color: var(--lux-text) !important;
+    border-bottom: 1px solid rgba(212,175,55,0.25) !important;
+}
+
+/* Text utilities */
+body[data-theme="luxury"] .text-muted { color: var(--lux-muted) !important; }
+body[data-theme="luxury"] .text-success { color: var(--lux-gold) !important; }
+body[data-theme="luxury"] .text-primary { color: var(--lux-gold) !important; }
+
+/* Background light blocks -> luxury surface */
+body[data-theme="luxury"] .bg-light {
+    background: var(--lux-surface) !important;
+    color: var(--lux-text) !important;
+}
+
+/* Badges */
+body[data-theme="luxury"] .badge.bg-primary {
+    background: var(--lux-gold) !important;
+    color: #111 !important;
+    border: 1px solid var(--lux-gold-dark) !important;
+}
+body[data-theme="luxury"] .badge.bg-light,
+body[data-theme="luxury"] .badge.bg-light.text-dark {
+    background: transparent !important;
+    color: var(--lux-gold) !important;
+    border: 1px solid rgba(212,175,55,0.35) !important;
+}
+
+/* Price display */
+body[data-theme="luxury"] #total-price { color: var(--lux-gold) !important; }
+
+/* Forms */
+body[data-theme="luxury"] .form-check-input:checked {
+    background-color: var(--lux-gold) !important;
+    border-color: var(--lux-gold) !important;
+}
+body[data-theme="luxury"] .form-check-label a { color: var(--lux-gold) !important; }
+
+/* Buttons (outline secondary already mapped in base) */
+body[data-theme="luxury"] .btn-outline-secondary {
+    background: transparent !important;
+    color: var(--lux-gold) !important;
+    border: 1px solid var(--lux-gold) !important;
+}
+</style>
+{% endblock %}
+
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {

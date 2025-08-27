@@ -654,7 +654,13 @@ def auth_profile(request):
         messages.success(request, 'تم تحديث الملف الشخصي بنجاح')
         return redirect('hall_booking:auth_profile')
     
-    return render(request, 'hall_booking/auth/profile.html')
+    # جلب طلبات الحجز الخاصة بالمستخدم بناءً على بريده الإلكتروني
+    user_email = request.user.email
+    user_bookings = Booking.objects.filter(customer_email=user_email).order_by('-created_at') if user_email else Booking.objects.none()
+    context = {
+        'bookings': user_bookings,
+    }
+    return render(request, 'hall_booking/auth/profile.html', context)
 
 @login_required
 def auth_change_password(request):

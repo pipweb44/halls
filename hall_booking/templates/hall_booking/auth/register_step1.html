@@ -5,7 +5,7 @@
 
 {% block content %}
 <!-- Auth Register Step 1 Section -->
-<section class="auth-step-section">
+<section class="auth-step-section lux-auth">
     <div class="auth-background">
         <div class="auth-overlay"></div>
         <div class="auth-particles"></div>
@@ -137,7 +137,7 @@
                         </div>
                         
                         <div class="form-actions">
-                            <button type="submit" class="btn btn-primary btn-lg auth-submit-btn">
+                            <button type="submit" class="btn btn-hero-primary btn-lg auth-submit-btn">
                                 <i class="fas fa-arrow-left me-2"></i>
                                 التالي
                             </button>
@@ -151,7 +151,7 @@
                         </div>
                         
                         <div class="alternative-buttons">
-                            <a href="{% url 'hall_booking:auth_login_step1' %}" class="btn btn-outline-primary">
+                            <a href="{% url 'hall_booking:auth_login_step1' %}" class="btn btn-hero-secondary">
                                 <i class="fas fa-sign-in-alt me-2"></i>
                                 تسجيل الدخول
                             </a>
@@ -476,6 +476,40 @@
         align-items: center;
     }
 }
+</style>
+<style>
+/* Luxury black/gold overrides */
+body[data-theme="luxury"] .lux-auth.auth-step-section { background: #0b0b0d !important; }
+body[data-theme="luxury"] .lux-auth .auth-background,
+body[data-theme="luxury"] .lux-auth .auth-overlay,
+body[data-theme="luxury"] .lux-auth .auth-particles { display: none !important; }
+body[data-theme="luxury"] .lux-auth .auth-form-card { background: #0f0f14 !important; border: 1px solid rgba(212,175,55,0.25) !important; box-shadow: none !important; }
+body[data-theme="luxury"] .lux-auth .form-header h2 { color: var(--lux-gold); }
+body[data-theme="luxury"] .lux-auth .form-header p { color: rgba(242,241,238,0.8); }
+
+/* Steps */
+body[data-theme="luxury"] .lux-auth .step-number { background: #15151c; color: var(--lux-gold); border: 1px solid rgba(212,175,55,0.25); }
+body[data-theme="luxury"] .lux-auth .step.active .step-number { background: rgba(212,175,55,0.15); color: var(--lux-gold); }
+body[data-theme="luxury"] .lux-auth .step-label { color: rgba(242,241,238,0.7); }
+body[data-theme="luxury"] .lux-auth .step.active .step-label { color: var(--lux-gold); }
+body[data-theme="luxury"] .lux-auth .step-line { background: rgba(212,175,55,0.25); }
+
+/* Inputs */
+body[data-theme="luxury"] .lux-auth .auth-input { background: #121218 !important; border-color: rgba(212,175,55,0.25) !important; color: var(--lux-text) !important; }
+body[data-theme="luxury"] .lux-auth .auth-input:focus { border-color: var(--lux-gold) !important; box-shadow: 0 0 0 0.2rem rgba(212,175,55,0.2) !important; background: #121218 !important; }
+body[data-theme="luxury"] .lux-auth .form-label { color: var(--lux-text); }
+body[data-theme="luxury"] .lux-auth .input-icon { color: var(--lux-gold) !important; }
+body[data-theme="luxury"] .lux-auth .form-text { color: rgba(242,241,238,0.7); }
+
+/* Divider and links */
+body[data-theme="luxury"] .lux-auth .divider::before { background: rgba(212,175,55,0.3); }
+body[data-theme="luxury"] .lux-auth .divider span { background: transparent; color: rgba(242,241,238,0.8); }
+body[data-theme="luxury"] .lux-auth .back-link { color: var(--lux-gold); }
+body[data-theme="luxury"] .lux-auth .back-link:hover { color: var(--lux-gold); text-decoration: underline; }
+
+/* Alerts */
+body[data-theme="luxury"] .lux-auth .alert { background: #121218; color: var(--lux-text); border: 1px solid rgba(212,175,55,0.25); }
+body[data-theme="luxury"] .lux-auth .btn-close { filter: invert(1) grayscale(1); }
 </style>
 {% endblock %}
 
