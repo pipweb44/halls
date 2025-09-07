@@ -6,6 +6,47 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 import uuid
 
+# نموذج المحافظات المصرية
+class Governorate(models.Model):
+    name = models.CharField(max_length=100, unique=True, verbose_name="اسم المحافظة")
+    name_en = models.CharField(max_length=100, unique=True, verbose_name="الاسم بالإنجليزية")
+    code = models.CharField(max_length=10, unique=True, verbose_name="كود المحافظة")
+    region = models.CharField(max_length=50, verbose_name="المنطقة", choices=[
+        ('cairo', 'القاهرة الكبرى'),
+        ('delta', 'الدلتا'),
+        ('canal', 'قناة السويس'),
+        ('sinai', 'سيناء'),
+        ('red_sea', 'البحر الأحمر'),
+        ('upper_egypt', 'صعيد مصر'),
+        ('new_valley', 'الوادي الجديد'),
+    ])
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاريخ الإنشاء")
+
+    class Meta:
+        verbose_name = "محافظة"
+        verbose_name_plural = "المحافظات"
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+# نموذج المراكز والمدن
+class City(models.Model):
+    name = models.CharField(max_length=100, verbose_name="اسم المدينة/المركز")
+    name_en = models.CharField(max_length=100, verbose_name="الاسم بالإنجليزية")
+    governorate = models.ForeignKey(Governorate, on_delete=models.CASCADE, related_name='cities', verbose_name="المحافظة")
+    is_capital = models.BooleanField(default=False, verbose_name="عاصمة المحافظة")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاريخ الإنشاء")
+
+    class Meta:
+        verbose_name = "مدينة/مركز"
+        verbose_name_plural = "المدن والمراكز"
+        ordering = ['governorate', 'name']
+        unique_together = ['name', 'governorate']
+
+    def __str__(self):
+        return f"{self.name} - {self.governorate.name}"
+
 class Category(models.Model):
     name = models.CharField(max_length=100, verbose_name="اسم الفئة")
     description = models.TextField(verbose_name="الوصف")
@@ -27,12 +68,22 @@ class Hall(models.Model):
 
     name = models.CharField(max_length=200, verbose_name="اسم القاعة")
     category = models.ForeignKey(Category, on_delete=models.CASCADE, verbose_name="الفئة")
+    governorate = models.ForeignKey(Governorate, on_delete=models.CASCADE, verbose_name="المحافظة")
+    city = models.ForeignKey(City, on_delete=models.CASCADE, verbose_name="المدينة/المركز")
+    address = models.TextField(verbose_name="العنوان التفصيلي", help_text="الشارع، الحي، معالم مميزة")
     description = models.TextField(verbose_name="الوصف")
     capacity = models.PositiveIntegerField(verbose_name="السعة")
     price_per_hour = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="السعر للساعة")
     image = models.ImageField(upload_to='halls/', verbose_name="الصورة")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='available', verbose_name="الحالة")
     features = models.JSONField(default=list, verbose_name="المميزات")
+    # معلومات إضافية
+    phone = models.CharField(max_length=20, blank=True, null=True, verbose_name="رقم الهاتف")
+    email = models.EmailField(blank=True, null=True, verbose_name="البريد الإلكتروني")
+    website = models.URLField(blank=True, null=True, verbose_name="الموقع الإلكتروني")
+    # إحداثيات الموقع
+    latitude = models.DecimalField(max_digits=10, decimal_places=8, blank=True, null=True, verbose_name="خط العرض")
+    longitude = models.DecimalField(max_digits=11, decimal_places=8, blank=True, null=True, verbose_name="خط الطول")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاريخ الإنشاء")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="تاريخ التحديث")
 
@@ -42,6 +93,14 @@ class Hall(models.Model):
 
     def __str__(self):
         return self.name
+
+    def get_full_address(self):
+        """الحصول على العنوان الكامل"""
+        return f"{self.address}, {self.city.name}, {self.governorate.name}"
+
+    def get_location_display(self):
+        """عرض الموقع بشكل مختصر"""
+        return f"{self.city.name} - {self.governorate.name}"
 
     def get_manager(self):
         """الحصول على مدير القاعة"""

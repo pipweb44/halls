@@ -9,7 +9,7 @@ from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, UserChangeForm
 from datetime import datetime, timedelta
 import json
-from .models import Hall, Category, Booking, Contact, HallManager, Notification
+from .models import Hall, Category, Booking, Contact, HallManager, Notification, Governorate, City
 from .forms import BookingForm, ContactForm, HallForm
 from django.contrib.auth.models import User
 from django.db.models import Sum
@@ -48,29 +48,73 @@ def home(request):
 def halls_list(request):
     """قائمة القاعات"""
     category_id = request.GET.get('category')
+    governorate_id = request.GET.get('governorate')
+    city_id = request.GET.get('city')
     search_query = request.GET.get('search')
-    
-    halls = Hall.objects.filter(status='available')
-    
+    capacity = request.GET.get('capacity')
+
+    halls = Hall.objects.filter(status='available').select_related('category', 'governorate', 'city')
+
     if category_id:
         halls = halls.filter(category_id=category_id)
-    
+
+    if governorate_id:
+        halls = halls.filter(governorate_id=governorate_id)
+
+    if city_id:
+        halls = halls.filter(city_id=city_id)
+
+    if capacity:
+        if capacity == '1-50':
+            halls = halls.filter(capacity__gte=1, capacity__lte=50)
+        elif capacity == '51-100':
+            halls = halls.filter(capacity__gte=51, capacity__lte=100)
+        elif capacity == '101-200':
+            halls = halls.filter(capacity__gte=101, capacity__lte=200)
+        elif capacity == '201+':
+            halls = halls.filter(capacity__gte=201)
+
     if search_query:
         halls = halls.filter(
             Q(name__icontains=search_query) |
             Q(description__icontains=search_query) |
-            Q(category__name__icontains=search_query)
+            Q(category__name__icontains=search_query) |
+            Q(governorate__name__icontains=search_query) |
+            Q(city__name__icontains=search_query) |
+            Q(address__icontains=search_query)
         )
-    
+
     categories = Category.objects.all()
-    
+    governorates = Governorate.objects.all().order_by('name')
+    cities = City.objects.all().order_by('governorate', 'name')
+
+    # إذا تم اختيار محافظة، فلتر المدن حسب المحافظة
+    if governorate_id:
+        cities = cities.filter(governorate_id=governorate_id)
+
     context = {
         'halls': halls,
         'categories': categories,
+        'governorates': governorates,
+        'cities': cities,
         'selected_category': category_id,
+        'selected_governorate': governorate_id,
+        'selected_city': city_id,
+        'selected_capacity': capacity,
         'search_query': search_query,
     }
     return render(request, 'hall_booking/halls_list.html', context)
+
+def get_cities_by_governorate(request):
+    """الحصول على المدن حسب المحافظة (AJAX)"""
+    governorate_id = request.GET.get('governorate_id')
+    cities = []
+
+    if governorate_id:
+        cities_queryset = City.objects.filter(governorate_id=governorate_id).order_by('name')
+        cities = [{'id': city.id, 'name': city.name} for city in cities_queryset]
+
+    return JsonResponse({'cities': cities})
 
 def hall_detail(request, hall_id):
     """تفاصيل القاعة"""

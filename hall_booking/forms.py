@@ -75,26 +75,38 @@ class ContactForm(forms.ModelForm):
 class HallForm(forms.ModelForm):
     class Meta:
         model = Hall
-        fields = ['name', 'category', 'description', 'capacity', 'price_per_hour', 'image', 'status', 'features']
+        fields = ['name', 'category', 'governorate', 'city', 'address', 'description', 'capacity', 'price_per_hour', 'image', 'status', 'features', 'phone', 'email', 'website']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'اسم القاعة'}),
             'category': forms.Select(attrs={'class': 'form-control'}),
+            'governorate': forms.Select(attrs={'class': 'form-control'}),
+            'city': forms.Select(attrs={'class': 'form-control'}),
+            'address': forms.Textarea(attrs={'class': 'form-control', 'rows': 2, 'placeholder': 'العنوان التفصيلي'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'وصف القاعة'}),
             'capacity': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'السعة'}),
             'price_per_hour': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'السعر للساعة', 'step': '0.01'}),
             'image': forms.FileInput(attrs={'class': 'form-control'}),
             'status': forms.Select(attrs={'class': 'form-control'}),
             'features': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'المميزات (كل مميزة في سطر منفصل)'}),
+            'phone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'رقم الهاتف'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'البريد الإلكتروني'}),
+            'website': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'الموقع الإلكتروني'}),
         }
         labels = {
             'name': 'اسم القاعة',
             'category': 'الفئة',
+            'governorate': 'المحافظة',
+            'city': 'المدينة/المركز',
+            'address': 'العنوان التفصيلي',
             'description': 'الوصف',
             'capacity': 'السعة',
             'price_per_hour': 'السعر للساعة',
             'image': 'الصورة',
             'status': 'الحالة',
             'features': 'المميزات',
+            'phone': 'رقم الهاتف',
+            'email': 'البريد الإلكتروني',
+            'website': 'الموقع الإلكتروني',
         }
 
     def clean_features(self):

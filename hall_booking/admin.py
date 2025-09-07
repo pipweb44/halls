@@ -9,7 +9,7 @@ from django.shortcuts import render
 from django.db.models import Count, Sum, Avg
 from django.utils import timezone
 from datetime import datetime, timedelta
-from .models import Category, Hall, Booking, Contact, HallImage, HallManager, Notification
+from .models import Category, Hall, Booking, Contact, HallImage, HallManager, Notification, Governorate, City
 
 # تخصيص لوحة الإدارة
 class HallBookingAdminSite(AdminSite):
@@ -98,9 +98,9 @@ class HallManagerInline(admin.TabularInline):
 # تخصيص نموذج القاعات
 @admin.register(Hall)
 class HallAdmin(admin.ModelAdmin):
-    list_display = ['name', 'category', 'capacity', 'price_per_hour', 'status', 'get_manager_display', 'booking_count', 'created_at']
-    list_filter = ['category', 'status', 'created_at']
-    search_fields = ['name', 'description']
+    list_display = ['name', 'category', 'governorate', 'city', 'capacity', 'price_per_hour', 'status', 'get_manager_display', 'booking_count', 'created_at']
+    list_filter = ['category', 'governorate', 'city', 'status', 'created_at']
+    search_fields = ['name', 'description', 'address', 'governorate__name', 'city__name']
     ordering = ['-created_at']
     readonly_fields = ['created_at', 'updated_at']
     inlines = [HallImageInline, HallManagerInline]
@@ -108,8 +108,15 @@ class HallAdmin(admin.ModelAdmin):
         ('معلومات أساسية', {
             'fields': ('name', 'category', 'description')
         }),
+        ('الموقع', {
+            'fields': ('governorate', 'city', 'address', 'latitude', 'longitude')
+        }),
         ('المواصفات', {
             'fields': ('capacity', 'price_per_hour', 'features')
+        }),
+        ('معلومات الاتصال', {
+            'fields': ('phone', 'email', 'website'),
+            'classes': ('collapse',)
         }),
         ('الحالة', {
             'fields': ('status',)
@@ -310,7 +317,40 @@ class NotificationAdmin(admin.ModelAdmin):
         self.message_user(request, f'تم تحديد {updated} إشعار كغير مقروء.')
     mark_as_unread.short_description = "تحديد كغير مقروء"
 
+# إدارة المحافظات
+@admin.register(Governorate)
+class GovernorateAdmin(admin.ModelAdmin):
+    list_display = ['name', 'name_en', 'code', 'region', 'cities_count', 'created_at']
+    list_filter = ['region', 'created_at']
+    search_fields = ['name', 'name_en', 'code']
+    ordering = ['name']
+    readonly_fields = ['created_at']
+
+    def cities_count(self, obj):
+        return obj.cities.count()
+    cities_count.short_description = "عدد المدن"
+
+# إدارة المدن
+class CityInline(admin.TabularInline):
+    model = City
+    extra = 1
+    fields = ['name', 'name_en', 'is_capital']
+
+@admin.register(City)
+class CityAdmin(admin.ModelAdmin):
+    list_display = ['name', 'name_en', 'governorate', 'is_capital', 'halls_count', 'created_at']
+    list_filter = ['governorate', 'is_capital', 'created_at']
+    search_fields = ['name', 'name_en', 'governorate__name']
+    ordering = ['governorate', 'name']
+    readonly_fields = ['created_at']
+
+    def halls_count(self, obj):
+        return obj.hall_set.count()
+    halls_count.short_description = "عدد القاعات"
+
 # تسجيل النماذج في لوحة الإدارة المخصصة
+admin_site.register(Governorate, GovernorateAdmin)
+admin_site.register(City, CityAdmin)
 admin_site.register(Category, CategoryAdmin)
 admin_site.register(Hall, HallAdmin)
 admin_site.register(Booking, BookingAdmin)

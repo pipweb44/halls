@@ -56,7 +56,7 @@
                                    value="{{ search_query }}" placeholder="ابحث في القاعات...">
                         </div>
                     </div>
-                    <div class="col-lg-3 col-md-6">
+                    <div class="col-lg-2 col-md-6">
                         <div class="search-input-group">
                             <i class="fas fa-filter search-icon"></i>
                             <select class="form-control search-input" id="category" name="category">
@@ -69,15 +69,41 @@
                             </select>
                         </div>
                     </div>
-                    <div class="col-lg-3 col-md-6">
+                    <div class="col-lg-2 col-md-6">
+                        <div class="search-input-group">
+                            <i class="fas fa-map-marker-alt search-icon"></i>
+                            <select class="form-control search-input" id="governorate" name="governorate">
+                                <option value="">جميع المحافظات</option>
+                                {% for governorate in governorates %}
+                                <option value="{{ governorate.id }}" {% if selected_governorate == governorate.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ governorate.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-lg-2 col-md-6">
+                        <div class="search-input-group">
+                            <i class="fas fa-city search-icon"></i>
+                            <select class="form-control search-input" id="city" name="city">
+                                <option value="">جميع المدن</option>
+                                {% for city in cities %}
+                                <option value="{{ city.id }}" {% if selected_city == city.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ city.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-lg-2 col-md-6">
                         <div class="search-input-group">
                             <i class="fas fa-users search-icon"></i>
                             <select class="form-control search-input" id="capacity" name="capacity">
                                 <option value="">أي سعة</option>
-                                <option value="1-50">1-50 شخص</option>
-                                <option value="51-100">51-100 شخص</option>
-                                <option value="101-200">101-200 شخص</option>
-                                <option value="201+">أكثر من 200 شخص</option>
+                                <option value="1-50" {% if selected_capacity == "1-50" %}selected{% endif %}>1-50 شخص</option>
+                                <option value="51-100" {% if selected_capacity == "51-100" %}selected{% endif %}>51-100 شخص</option>
+                                <option value="101-200" {% if selected_capacity == "101-200" %}selected{% endif %}>101-200 شخص</option>
+                                <option value="201+" {% if selected_capacity == "201+" %}selected{% endif %}>أكثر من 200 شخص</option>
                             </select>
                         </div>
                     </div>
@@ -129,18 +155,43 @@
 
                     <div class="mb-3">
                         <label class="form-label" style="color: var(--gold-primary);">
-                            <i class="fas fa-users me-2"></i>السعة
+                            <i class="fas fa-map-marker-alt me-2"></i>المحافظة
                         </label>
-                        <input type="number" class="form-control search-input" name="capacity"
-                               value="{{ capacity_filter }}" placeholder="الحد الأدنى للسعة">
+                        <select class="form-control search-input" name="governorate" id="mobile-governorate">
+                            <option value="">جميع المحافظات</option>
+                            {% for governorate in governorates %}
+                            <option value="{{ governorate.id }}" {% if selected_governorate == governorate.id|stringformat:"s" %}selected{% endif %}>
+                                {{ governorate.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label" style="color: var(--gold-primary);">
-                            <i class="fas fa-dollar-sign me-2"></i>السعر الأقصى
+                            <i class="fas fa-city me-2"></i>المدينة/المركز
                         </label>
-                        <input type="number" class="form-control search-input" name="max_price"
-                               value="{{ max_price_filter }}" placeholder="السعر الأقصى">
+                        <select class="form-control search-input" name="city" id="mobile-city">
+                            <option value="">جميع المدن</option>
+                            {% for city in cities %}
+                            <option value="{{ city.id }}" {% if selected_city == city.id|stringformat:"s" %}selected{% endif %}>
+                                {{ city.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" style="color: var(--gold-primary);">
+                            <i class="fas fa-users me-2"></i>السعة
+                        </label>
+                        <select class="form-control search-input" name="capacity">
+                            <option value="">أي سعة</option>
+                            <option value="1-50" {% if selected_capacity == "1-50" %}selected{% endif %}>1-50 شخص</option>
+                            <option value="51-100" {% if selected_capacity == "51-100" %}selected{% endif %}>51-100 شخص</option>
+                            <option value="101-200" {% if selected_capacity == "101-200" %}selected{% endif %}>101-200 شخص</option>
+                            <option value="201+" {% if selected_capacity == "201+" %}selected{% endif %}>أكثر من 200 شخص</option>
+                        </select>
                     </div>
 
                     <div class="mb-3">
@@ -231,7 +282,7 @@
                         </div>
                         <div class="feature-item">
                             <i class="fas fa-map-marker-alt"></i>
-                            <span>{{ hall.location|default:"غير محدد" }}</span>
+                            <span>{{ hall.get_location_display }}</span>
                         </div>
                         {% if hall.features %}
                         <div class="feature-item">
@@ -1446,6 +1497,46 @@ const observer = new IntersectionObserver(function(entries) {
 document.addEventListener('DOMContentLoaded', function() {
     const fadeElements = document.querySelectorAll('.fade-in');
     fadeElements.forEach(el => observer.observe(el));
+
+    // تحديث المدن عند تغيير المحافظة
+    const governorateSelect = document.getElementById('governorate');
+    const citySelect = document.getElementById('city');
+    const mobileGovernorateSelect = document.getElementById('mobile-governorate');
+    const mobileCitySelect = document.getElementById('mobile-city');
+
+    function updateCities(governorateId, targetCitySelect) {
+        if (!governorateId) {
+            targetCitySelect.innerHTML = '<option value="">جميع المدن</option>';
+            return;
+        }
+
+        fetch(`{% url 'hall_booking:get_cities_by_governorate' %}?governorate_id=${governorateId}`)
+            .then(response => response.json())
+            .then(data => {
+                targetCitySelect.innerHTML = '<option value="">جميع المدن</option>';
+                data.cities.forEach(city => {
+                    const option = document.createElement('option');
+                    option.value = city.id;
+                    option.textContent = city.name;
+                    targetCitySelect.appendChild(option);
+                });
+            })
+            .catch(error => {
+                console.error('خطأ في تحميل المدن:', error);
+            });
+    }
+
+    if (governorateSelect && citySelect) {
+        governorateSelect.addEventListener('change', function() {
+            updateCities(this.value, citySelect);
+        });
+    }
+
+    if (mobileGovernorateSelect && mobileCitySelect) {
+        mobileGovernorateSelect.addEventListener('change', function() {
+            updateCities(this.value, mobileCitySelect);
+        });
+    }
 });
 </script>
 {% endblock %} 

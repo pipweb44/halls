@@ -12,6 +12,7 @@ urlpatterns = [
     path('about/', views.about, name='about'),
     path('dashboard/', views.dashboard, name='dashboard'),
     path('api/check-availability/', views.check_availability, name='check_availability'),
+    path('api/get-cities/', views.get_cities_by_governorate, name='get_cities_by_governorate'),
     
     # مسارات الإدارة - بعد dashboard
     path('dashboard/halls/', views.admin_halls_list, name='admin_halls_list'),
