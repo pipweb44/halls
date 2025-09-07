@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}{{ hall.name }}{% endblock %}
+{% block title %}{{ hall.name }} - تفاصيل القاعة{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -15,24 +15,32 @@
     --black-light: #404040;
 }
 
-body {
+/* Hall Detail Section */
+.hall-detail-section {
     background: linear-gradient(135deg, var(--black-primary) 0%, var(--black-secondary) 100%);
-    color: var(--gold-primary);
     min-height: 100vh;
+    padding: 2rem 0;
 }
 
-/* Hero Section */
+/* Hall Hero */
 .hall-hero {
     position: relative;
     height: 60vh;
+    border-radius: 20px;
     overflow: hidden;
     margin-bottom: 3rem;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
 }
 
 .hall-hero-image {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.hall-hero:hover .hall-hero-image {
+    transform: scale(1.05);
 }
 
 .hall-hero-overlay {
@@ -41,259 +49,207 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(45deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 100%);
+    background: linear-gradient(45deg, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.3) 100%);
     display: flex;
     align-items: end;
     padding: 3rem;
 }
 
-.hall-hero-content {
-    color: white;
-    max-width: 600px;
-}
-
-.hall-hero-title {
+.hall-hero-content h1 {
+    color: var(--gold-primary);
     font-size: 3rem;
     font-weight: 800;
     margin-bottom: 1rem;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
 }
 
-.hall-hero-category {
-    background: var(--gold-primary);
-    color: var(--black-primary);
-    padding: 0.5rem 1.5rem;
-    border-radius: 25px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    display: inline-block;
-    margin-bottom: 1rem;
-}
-
-.hall-hero-location {
+.hall-hero-content .location {
+    color: rgba(255, 255, 255, 0.9);
     font-size: 1.2rem;
-    color: var(--gold-secondary);
     display: flex;
     align-items: center;
     gap: 0.5rem;
 }
 
-/* Back Button */
-.back-btn {
-    position: fixed;
-    top: 100px;
-    left: 2rem;
-    background: var(--black-tertiary);
-    border: 2px solid var(--gold-dark);
+.hall-hero-content .location i {
     color: var(--gold-primary);
+}
+
+/* Hall Info Card */
+.hall-info-card {
+    background: rgba(26, 26, 26, 0.95);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    padding: 2.5rem;
+    margin-bottom: 3rem;
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.hall-info-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.hall-info-header h2 {
+    color: var(--gold-primary);
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.hall-price {
+    background: linear-gradient(135deg, var(--gold-primary) 0%, var(--gold-secondary) 100%);
+    color: var(--black-primary);
+    padding: 1rem 2rem;
+    border-radius: 15px;
+    font-size: 1.5rem;
+    font-weight: 700;
+    box-shadow: 0 10px 25px rgba(255, 215, 0, 0.3);
+}
+
+/* Hall Details Grid */
+.hall-details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.detail-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
     padding: 1rem;
+    background: rgba(45, 45, 45, 0.5);
+    border-radius: 15px;
+    border: 1px solid rgba(255, 215, 0, 0.2);
+    transition: all 0.3s ease;
+}
+
+.detail-item:hover {
+    background: rgba(45, 45, 45, 0.8);
+    border-color: var(--gold-primary);
+    transform: translateY(-2px);
+}
+
+.detail-icon {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, var(--gold-primary) 0%, var(--gold-secondary) 100%);
     border-radius: 50%;
-    width: 60px;
-    height: 60px;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.3s ease;
-    z-index: 1000;
-    text-decoration: none;
-}
-
-.back-btn:hover {
-    background: var(--gold-primary);
     color: var(--black-primary);
-    transform: translateX(-5px);
-    text-decoration: none;
+    font-size: 1.2rem;
 }
 
-/* Main Content */
-.hall-details {
-    background: var(--black-tertiary);
-    border-radius: 20px;
-    padding: 3rem;
-    margin-bottom: 3rem;
-    border: 2px solid var(--gold-dark);
-    box-shadow: 0 10px 30px rgba(255, 215, 0, 0.1);
-}
-
-.hall-info-grid {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 3rem;
-    margin-bottom: 3rem;
-}
-
-.hall-description {
-    color: var(--gold-secondary);
-    font-size: 1.1rem;
-    line-height: 1.8;
-    margin-bottom: 2rem;
-}
-
-.hall-features {
-    margin-bottom: 2rem;
-}
-
-.features-title {
+.detail-content h4 {
     color: var(--gold-primary);
-    font-size: 1.3rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0 0 0.25rem 0;
+}
+
+.detail-content p {
+    color: rgba(255, 255, 255, 0.8);
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+/* Description */
+.hall-description {
+    margin-bottom: 2rem;
+}
+
+.hall-description h3 {
+    color: var(--gold-primary);
+    font-size: 1.5rem;
     font-weight: 700;
     margin-bottom: 1rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
 }
 
-.features-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1rem;
-}
-
-.feature-item {
-    background: var(--black-secondary);
-    padding: 1rem;
-    border-radius: 10px;
-    border: 1px solid var(--gold-dark);
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    transition: all 0.3s ease;
-}
-
-.feature-item:hover {
-    background: var(--black-light);
-    border-color: var(--gold-primary);
-}
-
-.feature-item i {
-    color: var(--gold-primary);
-    font-size: 1.2rem;
-}
-
-.feature-item span {
-    color: var(--gold-secondary);
-    font-weight: 500;
-}
-
-/* Hall Info Sidebar */
-.hall-info-sidebar {
-    background: var(--black-secondary);
-    padding: 2rem;
-    border-radius: 15px;
-    border: 2px solid var(--gold-dark);
-    height: fit-content;
-}
-
-.info-item {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    padding: 1rem 0;
-    border-bottom: 1px solid var(--gold-dark);
-}
-
-.info-item:last-child {
-    border-bottom: none;
-}
-
-.info-icon {
-    background: var(--gold-primary);
-    color: var(--black-primary);
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.1rem;
-}
-
-.info-content {
-    flex: 1;
-}
-
-.info-label {
-    color: var(--gold-secondary);
-    font-size: 0.9rem;
-    margin-bottom: 0.25rem;
-}
-
-.info-value {
-    color: var(--gold-primary);
-    font-weight: 600;
-    font-size: 1.1rem;
+.hall-description p {
+    color: rgba(255, 255, 255, 0.8);
+    line-height: 1.8;
+    font-size: 1rem;
 }
 
 /* Booking Button */
 .booking-section {
-    background: linear-gradient(135deg, var(--gold-primary) 0%, var(--gold-secondary) 100%);
-    padding: 2rem;
-    border-radius: 15px;
     text-align: center;
-    margin-top: 2rem;
+    padding: 2rem 0;
+    border-top: 1px solid rgba(255, 215, 0, 0.3);
 }
 
-.booking-price {
+.booking-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.5rem 3rem;
+    background: linear-gradient(135deg, var(--gold-primary) 0%, var(--gold-secondary) 100%);
     color: var(--black-primary);
-    font-size: 2.5rem;
-    font-weight: 800;
-    margin-bottom: 0.5rem;
-}
-
-.booking-unit {
-    color: var(--black-secondary);
-    font-size: 1rem;
-    margin-bottom: 1.5rem;
-}
-
-.btn-book-now {
-    background: var(--black-primary);
-    color: var(--gold-primary);
-    border: none;
-    padding: 1rem 3rem;
-    border-radius: 50px;
-    font-size: 1.2rem;
+    text-decoration: none;
+    border-radius: 20px;
+    font-size: 1.3rem;
     font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
     transition: all 0.3s ease;
-    text-decoration: none;
-    display: inline-block;
+    box-shadow: 0 15px 35px rgba(255, 215, 0, 0.4);
+    position: relative;
+    overflow: hidden;
 }
 
-.btn-book-now:hover {
-    background: var(--black-secondary);
-    color: var(--gold-primary);
+.booking-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    transition: left 0.5s ease;
+}
+
+.booking-btn:hover::before {
+    left: 100%;
+}
+
+.booking-btn:hover {
     transform: translateY(-3px);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    box-shadow: 0 20px 40px rgba(255, 215, 0, 0.5);
     text-decoration: none;
+    color: var(--black-primary);
+}
+
+.booking-btn i {
+    font-size: 1.5rem;
 }
 
 /* Similar Halls Section */
-.similar-halls {
+.similar-halls-section {
     margin-top: 4rem;
 }
 
-.section-title {
+.similar-halls-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.similar-halls-header h2 {
     color: var(--gold-primary);
     font-size: 2.5rem;
     font-weight: 800;
-    text-align: center;
-    margin-bottom: 3rem;
-    position: relative;
+    margin-bottom: 1rem;
 }
 
-.section-title::after {
-    content: '';
-    position: absolute;
-    bottom: -10px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 100px;
-    height: 3px;
-    background: linear-gradient(90deg, var(--gold-primary) 0%, var(--gold-secondary) 100%);
-    border-radius: 2px;
+.similar-halls-header p {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 1.1rem;
 }
 
 .similar-halls-grid {
@@ -303,32 +259,28 @@ body {
 }
 
 .similar-hall-card {
-    background: var(--black-tertiary);
-    border-radius: 15px;
+    background: rgba(26, 26, 26, 0.95);
+    border-radius: 20px;
     overflow: hidden;
-    border: 2px solid var(--gold-dark);
+    border: 1px solid rgba(255, 215, 0, 0.3);
     transition: all 0.3s ease;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
 }
 
 .similar-hall-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 15px 40px rgba(255, 215, 0, 0.2);
     border-color: var(--gold-primary);
+    box-shadow: 0 20px 40px rgba(255, 215, 0, 0.2);
 }
 
 .similar-hall-image {
-    height: 200px;
-    overflow: hidden;
-}
-
-.similar-hall-image img {
     width: 100%;
-    height: 100%;
+    height: 200px;
     object-fit: cover;
     transition: transform 0.3s ease;
 }
 
-.similar-hall-card:hover .similar-hall-image img {
+.similar-hall-card:hover .similar-hall-image {
     transform: scale(1.05);
 }
 
@@ -336,15 +288,15 @@ body {
     padding: 1.5rem;
 }
 
-.similar-hall-title {
+.similar-hall-content h4 {
     color: var(--gold-primary);
-    font-size: 1.2rem;
+    font-size: 1.3rem;
     font-weight: 700;
     margin-bottom: 0.5rem;
 }
 
-.similar-hall-location {
-    color: var(--gold-secondary);
+.similar-hall-content .location {
+    color: rgba(255, 255, 255, 0.7);
     font-size: 0.9rem;
     margin-bottom: 1rem;
     display: flex;
@@ -352,259 +304,228 @@ body {
     gap: 0.5rem;
 }
 
-.similar-hall-price {
+.similar-hall-content .price {
     color: var(--gold-primary);
-    font-size: 1.3rem;
+    font-size: 1.2rem;
     font-weight: 700;
     margin-bottom: 1rem;
 }
 
-.similar-hall-actions {
-    display: flex;
+.similar-hall-link {
+    display: inline-flex;
+    align-items: center;
     gap: 0.5rem;
-}
-
-.btn-view-similar {
-    flex: 1;
-    background: transparent;
-    border: 2px solid var(--gold-dark);
     color: var(--gold-primary);
-    padding: 0.75rem;
-    border-radius: 8px;
+    text-decoration: none;
     font-weight: 600;
     transition: all 0.3s ease;
-    text-decoration: none;
-    text-align: center;
 }
 
-.btn-view-similar:hover {
-    background: var(--gold-dark);
-    color: var(--black-primary);
-    text-decoration: none;
-}
-
-.btn-book-similar {
-    flex: 1;
-    background: linear-gradient(135deg, var(--gold-primary) 0%, var(--gold-secondary) 100%);
-    border: none;
-    color: var(--black-primary);
-    padding: 0.75rem;
-    border-radius: 8px;
-    font-weight: 600;
-    transition: all 0.3s ease;
-    text-decoration: none;
-    text-align: center;
-}
-
-.btn-book-similar:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
-    color: var(--black-primary);
-    text-decoration: none;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-    .hall-hero {
-        height: 40vh;
-    }
-    
-    .hall-hero-overlay {
-        padding: 2rem;
-    }
-    
-    .hall-hero-title {
-        font-size: 2rem;
-    }
-    
-    .hall-info-grid {
-        grid-template-columns: 1fr;
-        gap: 2rem;
-    }
-    
-    .hall-details {
-        padding: 2rem;
-    }
-    
-    .back-btn {
-        top: 80px;
-        left: 1rem;
-        width: 50px;
-        height: 50px;
-    }
-    
-    .features-list {
-        grid-template-columns: 1fr;
-    }
-    
-    .similar-halls-grid {
-        grid-template-columns: 1fr;
-    }
+.similar-hall-link:hover {
+    color: var(--gold-secondary);
+    text-decoration: underline;
 }
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- Back Button -->
-<a href="{% url 'hall_booking:halls_list' %}" class="back-btn">
-    <i class="fas fa-arrow-right"></i>
-</a>
-
-<!-- Hero Section -->
-<div class="hall-hero">
-    {% if hall.hallimage_set.first %}
-        <img src="{{ hall.hallimage_set.first.image.url }}" alt="{{ hall.name }}" class="hall-hero-image">
-    {% else %}
-        <div style="width: 100%; height: 100%; background: var(--black-light); display: flex; align-items: center; justify-content: center;">
-            <i class="fas fa-building" style="font-size: 5rem; color: var(--gold-dark);"></i>
-        </div>
-    {% endif %}
-    <div class="hall-hero-overlay">
-        <div class="hall-hero-content">
-            <div class="hall-hero-category">{{ hall.category.name }}</div>
-            <h1 class="hall-hero-title">{{ hall.name }}</h1>
-            <div class="hall-hero-location">
-                <i class="fas fa-map-marker-alt"></i>
-                {{ hall.get_location_display }}
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="container">
-    <!-- Main Hall Details -->
-    <div class="hall-details">
-        <div class="hall-info-grid">
-            <div class="hall-main-info">
-                <div class="hall-description">
-                    {{ hall.description }}
-                </div>
-                
-                {% if hall.features %}
-                <div class="hall-features">
-                    <h3 class="features-title">
-                        <i class="fas fa-star"></i>
-                        مميزات القاعة
-                    </h3>
-                    <div class="features-list">
-                        {% for feature in hall.features %}
-                        <div class="feature-item">
-                            <i class="fas fa-check"></i>
-                            <span>{{ feature }}</span>
-                        </div>
-                        {% endfor %}
+<section class="hall-detail-section">
+    <div class="container">
+        <!-- Hall Hero -->
+        <div class="hall-hero">
+            {% if hall.images.first %}
+                <img src="{{ hall.images.first.image.url }}" alt="{{ hall.name }}" class="hall-hero-image">
+            {% else %}
+                <img src="{% static 'images/default-hall.jpg' %}" alt="{{ hall.name }}" class="hall-hero-image">
+            {% endif %}
+            <div class="hall-hero-overlay">
+                <div class="hall-hero-content">
+                    <h1>{{ hall.name }}</h1>
+                    <div class="location">
+                        <i class="fas fa-map-marker-alt"></i>
+                        {{ hall.city.name }}، {{ hall.governorate.name }}
                     </div>
                 </div>
-                {% endif %}
             </div>
-            
-            <div class="hall-info-sidebar">
-                <div class="info-item">
-                    <div class="info-icon">
+        </div>
+
+        <!-- Hall Information -->
+        <div class="hall-info-card">
+            <div class="hall-info-header">
+                <h2>معلومات القاعة</h2>
+                <div class="hall-price">
+                    {{ hall.price_per_hour }} جنيه / ساعة
+                </div>
+            </div>
+
+            <!-- Hall Details Grid -->
+            <div class="hall-details-grid">
+                <div class="detail-item">
+                    <div class="detail-icon">
                         <i class="fas fa-users"></i>
                     </div>
-                    <div class="info-content">
-                        <div class="info-label">السعة</div>
-                        <div class="info-value">{{ hall.capacity }} شخص</div>
+                    <div class="detail-content">
+                        <h4>السعة</h4>
+                        <p>{{ hall.capacity }} شخص</p>
                     </div>
                 </div>
-                
-                <div class="info-item">
-                    <div class="info-icon">
+
+                <div class="detail-item">
+                    <div class="detail-icon">
+                        <i class="fas fa-tag"></i>
+                    </div>
+                    <div class="detail-content">
+                        <h4>الفئة</h4>
+                        <p>{{ hall.category }}</p>
+                    </div>
+                </div>
+
+                <div class="detail-item">
+                    <div class="detail-icon">
                         <i class="fas fa-map-marker-alt"></i>
                     </div>
-                    <div class="info-content">
-                        <div class="info-label">الموقع</div>
-                        <div class="info-value">{{ hall.get_location_display }}</div>
+                    <div class="detail-content">
+                        <h4>الموقع</h4>
+                        <p>{{ hall.city.name }}، {{ hall.governorate.name }}</p>
                     </div>
                 </div>
-                
-                {% if hall.address %}
-                <div class="info-item">
-                    <div class="info-icon">
-                        <i class="fas fa-home"></i>
-                    </div>
-                    <div class="info-content">
-                        <div class="info-label">العنوان</div>
-                        <div class="info-value">{{ hall.address }}</div>
-                    </div>
-                </div>
-                {% endif %}
-                
-                {% if hall.phone %}
-                <div class="info-item">
-                    <div class="info-icon">
+
+                <div class="detail-item">
+                    <div class="detail-icon">
                         <i class="fas fa-phone"></i>
                     </div>
-                    <div class="info-content">
-                        <div class="info-label">الهاتف</div>
-                        <div class="info-value">{{ hall.phone }}</div>
+                    <div class="detail-content">
+                        <h4>الهاتف</h4>
+                        <p>{{ hall.phone|default:"غير متوفر" }}</p>
                     </div>
                 </div>
-                {% endif %}
-                
+
                 {% if hall.email %}
-                <div class="info-item">
-                    <div class="info-icon">
+                <div class="detail-item">
+                    <div class="detail-icon">
                         <i class="fas fa-envelope"></i>
                     </div>
-                    <div class="info-content">
-                        <div class="info-label">البريد الإلكتروني</div>
-                        <div class="info-value">{{ hall.email }}</div>
+                    <div class="detail-content">
+                        <h4>البريد الإلكتروني</h4>
+                        <p>{{ hall.email }}</p>
                     </div>
                 </div>
                 {% endif %}
-                
-                <div class="booking-section">
-                    <div class="booking-price">{{ hall.price_per_hour }}</div>
-                    <div class="booking-unit">ريال للساعة الواحدة</div>
-                    <a href="{% url 'hall_booking:booking_step1_date' hall.id %}" class="btn-book-now">
-                        <i class="fas fa-calendar-check me-2"></i>احجز الآن
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Similar Halls Section -->
-    <div class="similar-halls">
-        <h2 class="section-title">قاعات مشابهة</h2>
-        <div class="similar-halls-grid">
-            {% for similar_hall in similar_halls %}
-            <div class="similar-hall-card">
-                <div class="similar-hall-image">
-                    {% if similar_hall.hallimage_set.first %}
-                        <img src="{{ similar_hall.hallimage_set.first.image.url }}" alt="{{ similar_hall.name }}">
-                    {% else %}
-                        <div style="height: 200px; background: var(--black-light); display: flex; align-items: center; justify-content: center;">
-                            <i class="fas fa-building" style="font-size: 3rem; color: var(--gold-dark);"></i>
-                        </div>
-                    {% endif %}
-                </div>
-                <div class="similar-hall-content">
-                    <h4 class="similar-hall-title">{{ similar_hall.name }}</h4>
-                    <div class="similar-hall-location">
-                        <i class="fas fa-map-marker-alt"></i>
-                        {{ similar_hall.get_location_display }}
+                {% if hall.website %}
+                <div class="detail-item">
+                    <div class="detail-icon">
+                        <i class="fas fa-globe"></i>
                     </div>
-                    <div class="similar-hall-price">{{ similar_hall.price_per_hour }} ريال/ساعة</div>
-                    <div class="similar-hall-actions">
-                        <a href="{% url 'hall_booking:hall_detail' similar_hall.id %}" class="btn-view-similar">
-                            <i class="fas fa-eye me-1"></i>عرض
-                        </a>
-                        <a href="{% url 'hall_booking:booking_step1_date' similar_hall.id %}" class="btn-book-similar">
-                            <i class="fas fa-calendar-check me-1"></i>احجز
-                        </a>
+                    <div class="detail-content">
+                        <h4>الموقع الإلكتروني</h4>
+                        <p><a href="{{ hall.website }}" target="_blank" style="color: var(--gold-primary);">زيارة الموقع</a></p>
                     </div>
                 </div>
+                {% endif %}
             </div>
-            {% empty %}
-            <div style="grid-column: 1 / -1; text-align: center; color: var(--gold-secondary); padding: 2rem;">
-                <i class="fas fa-search" style="font-size: 3rem; margin-bottom: 1rem; color: var(--gold-dark);"></i>
-                <p>لا توجد قاعات مشابهة في الوقت الحالي</p>
+
+            <!-- Description -->
+            {% if hall.description %}
+            <div class="hall-description">
+                <h3>وصف القاعة</h3>
+                <p>{{ hall.description }}</p>
             </div>
-            {% endfor %}
+            {% endif %}
+
+            <!-- Booking Section -->
+            <div class="booking-section">
+                <a href="{% url 'hall_booking:booking_step1_date' hall.id %}" class="booking-btn">
+                    <i class="fas fa-calendar-check"></i>
+                    احجز الآن
+                </a>
+            </div>
         </div>
+
+        <!-- Similar Halls -->
+        {% if similar_halls %}
+        <div class="similar-halls-section">
+            <div class="similar-halls-header">
+                <h2>قاعات مشابهة</h2>
+                <p>اكتشف المزيد من القاعات التي قد تناسبك</p>
+            </div>
+
+            <div class="similar-halls-grid">
+                {% for similar_hall in similar_halls %}
+                <div class="similar-hall-card">
+                    {% if similar_hall.images.first %}
+                        <img src="{{ similar_hall.images.first.image.url }}" alt="{{ similar_hall.name }}" class="similar-hall-image">
+                    {% else %}
+                        <img src="{% static 'images/default-hall.jpg' %}" alt="{{ similar_hall.name }}" class="similar-hall-image">
+                    {% endif %}
+
+                    <div class="similar-hall-content">
+                        <h4>{{ similar_hall.name }}</h4>
+                        <div class="location">
+                            <i class="fas fa-map-marker-alt"></i>
+                            {{ similar_hall.city.name }}، {{ similar_hall.governorate.name }}
+                        </div>
+                        <div class="price">{{ similar_hall.price_per_hour }} جنيه / ساعة</div>
+                        <a href="{% url 'hall_booking:hall_detail' similar_hall.id %}" class="similar-hall-link">
+                            عرض التفاصيل
+                            <i class="fas fa-arrow-left"></i>
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
     </div>
-</div>
+</section>
+
+<!-- Responsive CSS -->
+<style>
+@media (max-width: 768px) {
+    .hall-hero {
+        height: 40vh;
+    }
+
+    .hall-hero-content h1 {
+        font-size: 2rem;
+    }
+
+    .hall-info-card {
+        padding: 1.5rem;
+    }
+
+    .hall-details-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .booking-btn {
+        padding: 1rem 2rem;
+        font-size: 1.1rem;
+    }
+
+    .similar-halls-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 576px) {
+    .hall-hero-overlay {
+        padding: 2rem;
+    }
+
+    .hall-hero-content h1 {
+        font-size: 1.5rem;
+    }
+
+    .hall-info-header {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .booking-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+</style>
 {% endblock %}

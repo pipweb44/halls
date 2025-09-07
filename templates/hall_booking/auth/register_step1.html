@@ -3,6 +3,300 @@
 
 {% block title %}إنشاء حساب جديد - الخطوة الأولى{% endblock %}
 
+{% block extra_css %}
+<style>
+:root {
+    --gold-primary: #FFD700;
+    --gold-secondary: #FFA500;
+    --gold-dark: #B8860B;
+    --black-primary: #000000;
+    --black-secondary: #1a1a1a;
+    --black-tertiary: #2d2d2d;
+    --black-light: #404040;
+}
+
+body {
+    background: linear-gradient(135deg, var(--black-primary) 0%, var(--black-secondary) 100%);
+    min-height: 100vh;
+}
+
+.auth-step-section {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    padding: 2rem 0;
+    position: relative;
+}
+
+.auth-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+}
+
+.auth-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, var(--black-primary) 0%, var(--black-secondary) 100%);
+}
+
+.auth-particles {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="%23FFD700" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="%23FFD700" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="%23FFA500" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+    opacity: 0.3;
+}
+
+.auth-form-card {
+    background: var(--black-tertiary);
+    border-radius: 20px;
+    padding: 3rem;
+    border: 2px solid var(--gold-dark);
+    box-shadow: 0 20px 60px rgba(255, 215, 0, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.auth-form-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--gold-primary) 0%, var(--gold-secondary) 100%);
+}
+
+.progress-steps {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 2rem;
+}
+
+.step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.step-number {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--black-light);
+    border: 2px solid var(--gold-dark);
+    color: var(--gold-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    transition: all 0.3s ease;
+}
+
+.step.active .step-number {
+    background: var(--gold-primary);
+    color: var(--black-primary);
+    border-color: var(--gold-primary);
+}
+
+.step.completed .step-number {
+    background: var(--gold-dark);
+    color: var(--gold-primary);
+    border-color: var(--gold-dark);
+}
+
+.step-label {
+    color: var(--gold-secondary);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.step.active .step-label,
+.step.completed .step-label {
+    color: var(--gold-primary);
+}
+
+.step-line {
+    width: 60px;
+    height: 2px;
+    background: var(--gold-dark);
+    margin: 0 1rem;
+}
+
+.step-line.completed {
+    background: var(--gold-primary);
+}
+
+.form-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.form-header h2 {
+    color: var(--gold-primary);
+    font-size: 2rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+}
+
+.form-header p {
+    color: var(--gold-secondary);
+    font-size: 1rem;
+}
+
+.messages-container {
+    margin-bottom: 1.5rem;
+}
+
+.alert {
+    border: none;
+    border-radius: 10px;
+    padding: 1rem;
+}
+
+.alert-success {
+    background: rgba(255, 215, 0, 0.1);
+    color: var(--gold-primary);
+    border: 1px solid var(--gold-dark);
+}
+
+.alert-error,
+.alert-danger {
+    background: rgba(220, 53, 69, 0.1);
+    color: #ff6b6b;
+    border: 1px solid rgba(220, 53, 69, 0.3);
+}
+
+.auth-form {
+    margin-bottom: 2rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.form-label {
+    color: var(--gold-primary);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.form-control {
+    background: var(--black-secondary);
+    border: 2px solid var(--gold-dark);
+    border-radius: 10px;
+    color: var(--gold-primary);
+    padding: 1rem;
+    font-size: 1rem;
+    width: 100%;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    background: var(--black-primary);
+    border-color: var(--gold-primary);
+    box-shadow: 0 0 0 0.2rem rgba(255, 215, 0, 0.25);
+    color: var(--gold-primary);
+    outline: none;
+}
+
+.form-control::placeholder {
+    color: var(--gold-secondary);
+    opacity: 0.7;
+}
+
+.btn-auth {
+    background: linear-gradient(135deg, var(--gold-primary) 0%, var(--gold-secondary) 100%);
+    border: none;
+    color: var(--black-primary);
+    padding: 1rem 2rem;
+    border-radius: 10px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    width: 100%;
+    cursor: pointer;
+}
+
+.btn-auth:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(255, 215, 0, 0.4);
+    color: var(--black-primary);
+}
+
+.auth-links {
+    text-align: center;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--gold-dark);
+}
+
+.auth-links a {
+    color: var(--gold-primary);
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.auth-links a:hover {
+    color: var(--gold-secondary);
+    text-decoration: underline;
+}
+
+.auth-links p {
+    color: var(--gold-secondary);
+    margin-bottom: 0.5rem;
+}
+
+@media (max-width: 768px) {
+    .auth-form-card {
+        padding: 2rem;
+        margin: 1rem;
+    }
+
+    .form-header h2 {
+        font-size: 1.5rem;
+    }
+
+    .progress-steps {
+        margin-bottom: 1.5rem;
+    }
+
+    .step-number {
+        width: 35px;
+        height: 35px;
+    }
+
+    .step-line {
+        width: 30px;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <!-- Auth Register Step 1 Section -->
 <section class="auth-step-section lux-auth">
@@ -53,116 +347,76 @@
                     <!-- Register Form -->
                     <form method="post" class="auth-form">
                         {% csrf_token %}
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="first_name" class="form-label">
-                                        <i class="fas fa-user me-2"></i>
-                                        الاسم الأول
-                                    </label>
-                                    <div class="input-group">
-                                        <input type="text" 
-                                               class="form-control auth-input" 
-                                               id="first_name" 
-                                               name="first_name" 
-                                               placeholder="أدخل اسمك الأول"
-                                               required>
-                                        <span class="input-icon">
-                                            <i class="fas fa-user"></i>
-                                        </span>
-                                    </div>
-                                </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="first_name" class="form-label">
+                                    <i class="fas fa-user me-2"></i>
+                                    الاسم الأول
+                                </label>
+                                <input type="text"
+                                       class="form-control"
+                                       id="first_name"
+                                       name="first_name"
+                                       placeholder="أدخل اسمك الأول"
+                                       required>
                             </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="last_name" class="form-label">
-                                        <i class="fas fa-user me-2"></i>
-                                        اسم العائلة
-                                    </label>
-                                    <div class="input-group">
-                                        <input type="text" 
-                                               class="form-control auth-input" 
-                                               id="last_name" 
-                                               name="last_name" 
-                                               placeholder="أدخل اسم العائلة"
-                                               required>
-                                        <span class="input-icon">
-                                            <i class="fas fa-user"></i>
-                                        </span>
-                                    </div>
-                                </div>
+                            <div class="form-group">
+                                <label for="last_name" class="form-label">
+                                    <i class="fas fa-user me-2"></i>
+                                    اسم العائلة
+                                </label>
+                                <input type="text"
+                                       class="form-control"
+                                       id="last_name"
+                                       name="last_name"
+                                       placeholder="أدخل اسم العائلة"
+                                       required>
                             </div>
                         </div>
-                        
+
                         <div class="form-group">
                             <label for="email" class="form-label">
                                 <i class="fas fa-envelope me-2"></i>
                                 البريد الإلكتروني
                             </label>
-                            <div class="input-group">
-                                <input type="email" 
-                                       class="form-control auth-input" 
-                                       id="email" 
-                                       name="email" 
-                                       placeholder="أدخل بريدك الإلكتروني"
-                                       required>
-                                <span class="input-icon">
-                                    <i class="fas fa-envelope"></i>
-                                </span>
-                            </div>
-                            <small class="form-text text-muted">
-                                سيتم استخدام هذا البريد الإلكتروني لتسجيل الدخول
-                            </small>
+                            <input type="email"
+                                   class="form-control"
+                                   id="email"
+                                   name="email"
+                                   placeholder="أدخل بريدك الإلكتروني"
+                                   required>
                         </div>
-                        
+
                         <div class="form-group">
                             <label for="username" class="form-label">
                                 <i class="fas fa-user-tag me-2"></i>
                                 اسم المستخدم (اختياري)
                             </label>
-                            <div class="input-group">
-                                <input type="text"
-                                       class="form-control auth-input"
-                                       id="username"
-                                       name="username"
-                                       placeholder="أدخل اسم المستخدم (يمكن تركه فارغًا)"
-                                       >
-                                <span class="input-icon">
-                                    <i class="fas fa-user-tag"></i>
-                                </span>
-                            </div>
-                            <small class="form-text text-muted">
-                                يمكنك استخدام اسم المستخدم أو البريد الإلكتروني لتسجيل الدخول
-                            </small>
+                            <input type="text"
+                                   class="form-control"
+                                   id="username"
+                                   name="username"
+                                   placeholder="أدخل اسم المستخدم (يمكن تركه فارغًا)">
                         </div>
-                        
-                        <div class="form-actions">
-                            <button type="submit" class="btn btn-hero-primary btn-lg auth-submit-btn">
-                                <i class="fas fa-arrow-left me-2"></i>
-                                التالي
-                            </button>
-                        </div>
+
+                        <button type="submit" class="btn-auth">
+                            <i class="fas fa-arrow-left me-2"></i>
+                            التالي
+                        </button>
                     </form>
-                    
-                    <!-- Alternative Actions -->
-                    <div class="auth-alternatives">
-                        <div class="divider">
-                            <span>أو</span>
-                        </div>
-                        
-                        <div class="alternative-buttons">
-                            <a href="{% url 'hall_booking:auth_login_step1' %}" class="btn btn-hero-secondary">
-                                <i class="fas fa-sign-in-alt me-2"></i>
-                                تسجيل الدخول
-                            </a>
-                        </div>
-                        
-                        <div class="auth-links">
-                            <a href="{% url 'hall_booking:auth_welcome' %}" class="back-link">
-                                <i class="fas fa-arrow-right me-1"></i>
-                                العودة للصفحة الرئيسية
-                            </a>
-                        </div>
+
+                    <!-- Auth Links -->
+                    <div class="auth-links">
+                        <p>لديك حساب بالفعل؟</p>
+                        <a href="{% url 'hall_booking:auth_login_step1' %}">
+                            <i class="fas fa-sign-in-alt me-1"></i>
+                            تسجيل الدخول
+                        </a>
+                        <br><br>
+                        <a href="{% url 'hall_booking:home' %}">
+                            <i class="fas fa-arrow-right me-1"></i>
+                            العودة للصفحة الرئيسية
+                        </a>
                     </div>
                 </div>
             </div>
@@ -170,385 +424,3 @@
     </div>
 </section>
 {% endblock %}
-
-{% block extra_css %}
-<style>
-/* Auth Step Section */
-.auth-step-section {
-    position: relative;
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    background: var(--gold-primary);
-    overflow: hidden;
-}
-
-.auth-background {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: var(--gold-primary);
-}
-
-.auth-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
-    opacity: 0.3;
-}
-
-.auth-particles {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
-}
-
-/* Auth Form Card */
-.auth-form-card {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(20px);
-    border-radius: var(--border-radius);
-    padding: 3rem;
-    box-shadow: var(--shadow-heavy);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    position: relative;
-    z-index: 2;
-}
-
-/* Progress Steps */
-.progress-steps {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 2rem;
-}
-
-.step {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.step-number {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: #e9ecef;
-    color: #666;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 600;
-    transition: var(--transition);
-}
-
-.step.active .step-number {
-    background: var(--gold-primary);
-    color: white;
-}
-
-.step-label {
-    font-size: 0.8rem;
-    color: #666;
-    font-weight: 500;
-    text-align: center;
-}
-
-.step.active .step-label {
-    color: var(--primary-color);
-    font-weight: 600;
-}
-
-.step-line {
-    width: 40px;
-    height: 2px;
-    background: #e9ecef;
-    margin: 0 0.5rem;
-}
-
-/* Form Header */
-.form-header {
-    text-align: center;
-    margin-bottom: 2rem;
-}
-
-.form-header h2 {
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--dark-color);
-    margin-bottom: 0.5rem;
-}
-
-.form-header p {
-    color: #666;
-    margin: 0;
-}
-
-/* Messages */
-.messages-container {
-    margin-bottom: 2rem;
-}
-
-.alert {
-    border-radius: 15px;
-    border: none;
-    padding: 1rem 1.5rem;
-}
-
-.alert-success {
-    background: rgba(79, 172, 254, 0.1);
-    color: var(--success-color);
-}
-
-.alert-error {
-    background: rgba(250, 112, 154, 0.1);
-    color: var(--danger-color);
-}
-
-/* Auth Form */
-.auth-form {
-    margin-bottom: 2rem;
-}
-
-.form-group {
-    margin-bottom: 1.5rem;
-}
-
-.form-label {
-    display: flex;
-    align-items: center;
-    font-weight: 600;
-    color: var(--dark-color);
-    margin-bottom: 0.75rem;
-}
-
-.input-group {
-    position: relative;
-}
-
-.auth-input {
-    padding: 1rem 3rem 1rem 1rem;
-    border: 2px solid #e9ecef;
-    border-radius: 15px;
-    font-size: 1rem;
-    transition: var(--transition);
-    background: #f8f9fa;
-    width: 100%;
-}
-
-.auth-input:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
-    background: white;
-    outline: none;
-}
-
-.input-icon {
-    position: absolute;
-    right: 1rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--primary-color);
-    z-index: 2;
-}
-
-.form-text {
-    font-size: 0.85rem;
-    color: #666;
-    margin-top: 0.5rem;
-}
-
-/* Form Actions */
-.form-actions {
-    margin-top: 2rem;
-}
-
-.auth-submit-btn {
-    width: 100%;
-    padding: 1rem 2rem;
-    border-radius: 15px;
-    font-weight: 600;
-    font-size: 1.1rem;
-    transition: var(--transition);
-}
-
-.auth-submit-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-medium);
-}
-
-/* Alternative Actions */
-.auth-alternatives {
-    text-align: center;
-}
-
-.divider {
-    position: relative;
-    margin: 2rem 0;
-}
-
-.divider::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 0;
-    right: 0;
-    height: 1px;
-    background: rgba(0, 0, 0, 0.1);
-}
-
-.divider span {
-    background: rgba(255, 255, 255, 0.95);
-    padding: 0 1rem;
-    color: #666;
-    font-size: 0.9rem;
-}
-
-.alternative-buttons {
-    margin-bottom: 2rem;
-}
-
-.auth-links {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-}
-
-.back-link {
-    color: var(--primary-color);
-    text-decoration: none;
-    font-weight: 600;
-    transition: var(--transition);
-    display: inline-flex;
-    align-items: center;
-}
-
-.back-link:hover {
-    color: var(--secondary-color);
-    text-decoration: underline;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-    .auth-form-card {
-        padding: 2rem;
-    }
-    
-    .form-header h2 {
-        font-size: 1.75rem;
-    }
-    
-    .step-line {
-        width: 30px;
-    }
-    
-    .step-label {
-        font-size: 0.7rem;
-    }
-}
-
-@media (max-width: 576px) {
-    .auth-form-card {
-        padding: 1.5rem;
-        margin: 1rem;
-    }
-    
-    .form-header h2 {
-        font-size: 1.5rem;
-    }
-    
-    .step-line {
-        width: 20px;
-    }
-    
-    .auth-links {
-        flex-direction: column;
-        align-items: center;
-    }
-}
-</style>
-<style>
-/* Luxury black/gold overrides */
-body[data-theme="luxury"] .lux-auth.auth-step-section { background: #0b0b0d !important; }
-body[data-theme="luxury"] .lux-auth .auth-background,
-body[data-theme="luxury"] .lux-auth .auth-overlay,
-body[data-theme="luxury"] .lux-auth .auth-particles { display: none !important; }
-body[data-theme="luxury"] .lux-auth .auth-form-card { background: #0f0f14 !important; border: 1px solid rgba(212,175,55,0.25) !important; box-shadow: none !important; }
-body[data-theme="luxury"] .lux-auth .form-header h2 { color: var(--lux-gold); }
-body[data-theme="luxury"] .lux-auth .form-header p { color: rgba(242,241,238,0.8); }
-
-/* Steps */
-body[data-theme="luxury"] .lux-auth .step-number { background: #15151c; color: var(--lux-gold); border: 1px solid rgba(212,175,55,0.25); }
-body[data-theme="luxury"] .lux-auth .step.active .step-number { background: rgba(212,175,55,0.15); color: var(--lux-gold); }
-body[data-theme="luxury"] .lux-auth .step-label { color: rgba(242,241,238,0.7); }
-body[data-theme="luxury"] .lux-auth .step.active .step-label { color: var(--lux-gold); }
-body[data-theme="luxury"] .lux-auth .step-line { background: rgba(212,175,55,0.25); }
-
-/* Inputs */
-body[data-theme="luxury"] .lux-auth .auth-input { background: #121218 !important; border-color: rgba(212,175,55,0.25) !important; color: var(--lux-text) !important; }
-body[data-theme="luxury"] .lux-auth .auth-input:focus { border-color: var(--lux-gold) !important; box-shadow: 0 0 0 0.2rem rgba(212,175,55,0.2) !important; background: #121218 !important; }
-body[data-theme="luxury"] .lux-auth .form-label { color: var(--lux-text); }
-body[data-theme="luxury"] .lux-auth .input-icon { color: var(--lux-gold) !important; }
-body[data-theme="luxury"] .lux-auth .form-text { color: rgba(242,241,238,0.7); }
-
-/* Divider and links */
-body[data-theme="luxury"] .lux-auth .divider::before { background: rgba(212,175,55,0.3); }
-body[data-theme="luxury"] .lux-auth .divider span { background: transparent; color: rgba(242,241,238,0.8); }
-body[data-theme="luxury"] .lux-auth .back-link { color: var(--lux-gold); }
-body[data-theme="luxury"] .lux-auth .back-link:hover { color: var(--lux-gold); text-decoration: underline; }
-
-/* Alerts */
-body[data-theme="luxury"] .lux-auth .alert { background: #121218; color: var(--lux-text); border: 1px solid rgba(212,175,55,0.25); }
-body[data-theme="luxury"] .lux-auth .btn-close { filter: invert(1) grayscale(1); }
-</style>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-// Auto focus on first name input
-document.addEventListener('DOMContentLoaded', function() {
-    const firstNameInput = document.getElementById('first_name');
-    if (firstNameInput) {
-        firstNameInput.focus();
-    }
-});
-
-// Form validation
-document.querySelector('.auth-form').addEventListener('submit', function(e) {
-    const firstName = document.getElementById('first_name').value;
-    const lastName = document.getElementById('last_name').value;
-    const email = document.getElementById('email').value;
-    
-    if (!firstName || !lastName || !email) {
-        e.preventDefault();
-        alert('يرجى ملء جميع الحقول المطلوبة');
-        return false;
-    }
-    
-    // Basic email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-        e.preventDefault();
-        alert('يرجى إدخال بريد إلكتروني صحيح');
-        return false;
-    }
-    
-    // Name validation
-    if (firstName.length < 2 || lastName.length < 2) {
-        e.preventDefault();
-        alert('الاسم يجب أن يكون حرفين على الأقل');
-        return false;
-    }
-});
-</script>
-{% endblock %} 
