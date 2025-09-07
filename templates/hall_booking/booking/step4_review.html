@@ -1,0 +1,388 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}حجز {{ hall.name }} - مراجعة الحجز{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Progress Steps -->
+    <div class="row justify-content-center mb-5">
+        <div class="col-lg-8">
+            <div class="booking-progress">
+                <div class="step completed">
+                    <div class="step-number"><i class="fas fa-check"></i></div>
+                    <div class="step-title">اختيار التاريخ</div>
+                </div>
+                <div class="step completed">
+                    <div class="step-number"><i class="fas fa-check"></i></div>
+                    <div class="step-title">اختيار الوقت</div>
+                </div>
+                <div class="step completed">
+                    <div class="step-number"><i class="fas fa-check"></i></div>
+                    <div class="step-title">معلومات التواصل</div>
+                </div>
+                <div class="step active">
+                    <div class="step-number">4</div>
+                    <div class="step-title">مراجعة وإرسال</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Booking Review Card -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-clipboard-check me-2"></i>
+                        مراجعة تفاصيل الحجز
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Hall Information -->
+                    <div class="row mb-4">
+                        <div class="col-md-4">
+                            {% if hall.image %}
+                            <img src="{{ hall.image.url }}" alt="{{ hall.name }}" class="img-fluid rounded">
+                            {% else %}
+                            <div class="bg-light rounded d-flex align-items-center justify-content-center" style="height: 150px;">
+                                <i class="fas fa-building fa-3x text-muted"></i>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-8">
+                            <h4 class="text-primary">{{ hall.name }}</h4>
+                            <p class="text-muted mb-2">{{ hall.category.name }}</p>
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <small class="text-muted">السعة:</small>
+                                    <span class="fw-bold">{{ hall.capacity }} شخص</span>
+                                </div>
+                                <div class="col-sm-6">
+                                    <small class="text-muted">السعر:</small>
+                                    <span class="fw-bold text-success">{{ hall.price_per_hour }} ريال/ساعة</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- Booking Details -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6 class="text-primary mb-3">تفاصيل الحجز</h6>
+                            <div class="booking-detail-item">
+                                <i class="fas fa-calendar-alt text-primary me-2"></i>
+                                <strong>التاريخ:</strong> {{ booking_data.date }}
+                            </div>
+                            <div class="booking-detail-item">
+                                <i class="fas fa-clock text-primary me-2"></i>
+                                <strong>الوقت:</strong> {{ booking_data.start_time }} - {{ booking_data.end_time }}
+                            </div>
+                            <div class="booking-detail-item">
+                                <i class="fas fa-hourglass-half text-primary me-2"></i>
+                                <strong>المدة:</strong> {{ booking_data.duration_hours }} ساعة
+                            </div>
+                            <div class="booking-detail-item">
+                                <i class="fas fa-users text-primary me-2"></i>
+                                <strong>عدد الحضور:</strong> {{ booking_data.attendees_count }} شخص
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-primary mb-3">معلومات التواصل</h6>
+                            <div class="booking-detail-item">
+                                <i class="fas fa-user text-primary me-2"></i>
+                                <strong>الاسم:</strong> {{ booking_data.customer_name }}
+                            </div>
+                            <div class="booking-detail-item">
+                                <i class="fas fa-envelope text-primary me-2"></i>
+                                <strong>البريد:</strong> {{ booking_data.customer_email }}
+                            </div>
+                            <div class="booking-detail-item">
+                                <i class="fas fa-phone text-primary me-2"></i>
+                                <strong>الهاتف:</strong> {{ booking_data.customer_phone }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- Event Information -->
+                    <div class="mb-4">
+                        <h6 class="text-primary mb-3">معلومات الحدث</h6>
+                        <div class="booking-detail-item">
+                            <i class="fas fa-star text-primary me-2"></i>
+                            <strong>عنوان الحدث:</strong> {{ booking_data.event_title }}
+                        </div>
+                        {% if booking_data.event_description %}
+                        <div class="booking-detail-item">
+                            <i class="fas fa-align-left text-primary me-2"></i>
+                            <strong>الوصف:</strong> {{ booking_data.event_description }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <hr>
+
+                    <!-- Price Breakdown -->
+                    <div class="price-breakdown">
+                        <h6 class="text-primary mb-3">تفاصيل التكلفة</h6>
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>سعر الساعة:</span>
+                                    <span>{{ hall.price_per_hour }} ريال</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>عدد الساعات:</span>
+                                    <span>{{ booking_data.duration_hours }} ساعة</span>
+                                </div>
+                                <hr>
+                                <div class="d-flex justify-content-between">
+                                    <strong class="h5 text-success">المجموع:</strong>
+                                    <strong class="h5 text-success">{{ booking_data.total_price }} ريال</strong>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="alert alert-info">
+                                    <small>
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        سيتم التواصل معك لتأكيد الحجز ودفع العربون
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Confirmation Form -->
+                    <form method="post" id="confirmForm" class="mt-4">
+                        {% csrf_token %}
+                        
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>تأكيد الحجز:</strong> بالضغط على "إرسال طلب الحجز" أنت توافق على جميع التفاصيل المذكورة أعلاه.
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'hall_booking:booking_step3_info' hall.id %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-right me-2"></i>السابق
+                            </a>
+                            <button type="submit" class="btn btn-success btn-lg" id="confirmBtn">
+                                <i class="fas fa-paper-plane me-2"></i>إرسال طلب الحجز
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Golden Black Theme Variables */
+:root {
+    --gold-primary: #FFD700;
+    --gold-secondary: #FFA500;
+    --gold-dark: #B8860B;
+    --black-primary: #000000;
+    --black-secondary: #1a1a1a;
+    --black-tertiary: #2d2d2d;
+    
+    
+    --gold-shadow: 0 10px 30px rgba(255, 215, 0, 0.3);
+    --black-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+body {
+    background: var(--black-primary);
+    color: var(--gold-primary);
+}
+
+.booking-progress {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    margin-bottom: 2rem;
+    background: var(--black-secondary);
+    padding: 1.5rem;
+    border-radius: 15px;
+    box-shadow: var(--black-shadow);
+}
+
+.booking-progress::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 15%;
+    right: 15%;
+    height: 3px;
+    background: var(--gold-primary);
+    z-index: 1;
+    border-radius: 2px;
+}
+
+.step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+    background: var(--black-secondary);
+    padding: 0 15px;
+}
+
+.step-number {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: var(--black-tertiary);
+    color: #666;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 18px;
+    margin-bottom: 8px;
+    transition: all 0.3s ease;
+    border: 2px solid #666;
+}
+
+.step.active .step-number {
+    background: var(--gold-primary);
+    color: var(--black-primary);
+    border-color: var(--gold-primary);
+    box-shadow: var(--gold-shadow);
+    transform: scale(1.1);
+}
+
+.step.completed .step-number {
+    background: var(--gold-primary);
+    color: var(--black-primary);
+    border-color: var(--gold-primary);
+}
+
+.step-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #666;
+    text-align: center;
+}
+
+.step.active .step-title,
+.step.completed .step-title {
+    color: var(--gold-primary);
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+.booking-detail-item {
+    margin-bottom: 12px;
+    padding: 8px 0;
+    color: var(--gold-primary);
+}
+
+.price-breakdown {
+    background: var(--black-secondary);
+    padding: 20px;
+    border-radius: 10px;
+    border: 2px solid var(--gold-dark);
+    box-shadow: var(--black-shadow);
+}
+
+/* Card styling */
+.card {
+    background: var(--black-secondary);
+    border: 1px solid var(--gold-dark);
+    color: var(--gold-primary);
+}
+
+.card-header {
+    background: var(--gold-primary);
+    border-bottom: 1px solid var(--gold-dark);
+    color: var(--black-primary);
+}
+
+.card-body {
+    background: var(--black-secondary);
+}
+
+/* Button styling */
+.btn-success {
+    background: var(--gold-primary);
+    border-color: var(--gold-primary);
+    color: var(--black-primary);
+    font-weight: bold;
+}
+
+.btn-success:hover {
+    background: var(--gold-primary);
+    border-color: var(--gold-primary);
+    color: var(--black-primary);
+    box-shadow: var(--gold-shadow);
+    transform: translateY(-2px);
+}
+
+.btn-outline-secondary {
+    border-color: var(--gold-dark);
+    color: var(--gold-primary);
+}
+
+.btn-outline-secondary:hover {
+    background: var(--gold-primary);
+    border-color: var(--gold-primary);
+    color: var(--black-primary);
+}
+
+/* Text colors */
+.text-muted {
+    color: var(--gold-secondary) !important;
+}
+
+.text-primary {
+    color: var(--gold-primary) !important;
+}
+
+.text-success {
+    color: var(--gold-primary) !important;
+}
+
+.fw-bold {
+    color: var(--gold-primary);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .booking-progress {
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+    
+    .booking-progress::before {
+        display: none;
+    }
+    
+    .step {
+        flex: 1;
+        min-width: calc(50% - 10px);
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const confirmBtn = document.getElementById('confirmBtn');
+    const confirmForm = document.getElementById('confirmForm');
+    
+    confirmForm.addEventListener('submit', function(e) {
+        confirmBtn.disabled = true;
+        confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>جاري الإرسال...';
+    });
+});
+</script>
+{% endblock %}

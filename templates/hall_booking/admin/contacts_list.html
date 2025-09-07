@@ -1,0 +1,245 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}إدارة الرسائل{% endblock %}
+
+{% block extra_css %}
+<style>
+    .admin-header {
+        background: var(--gold-primary);
+        color: white;
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+    }
+
+    .stats-card {
+        background: var(--light-color, #fff);
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+    }
+
+    .stats-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .contact-card {
+        background: var(--light-color, #fff);
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        border: none;
+    }
+
+    .contact-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+    }
+
+    .contact-card.unread {
+        border-left: 4px solid var(--primary-color);
+        background: var(--light-color, #f8f9fa);
+    }
+
+    .read-badge {
+        padding: 0.25rem 0.5rem;
+        border-radius: 15px;
+        font-size: 0.7rem;
+        font-weight: bold;
+    }
+
+    .read-false { background: var(--primary-color); color: white; }
+    .read-true { background: var(--success-color); color: white; }
+
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    .btn-action {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-view { background: var(--primary-color); color: white; }
+    .btn-delete { background: var(--danger-color); color: white; }
+
+    .btn-action:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        color: white;
+        text-decoration: none;
+    }
+
+    .search-filters {
+        background: var(--light-color, #fff);
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 3rem;
+        color: #666;
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        color: #ddd;
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="admin-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="display-4 fw-bold mb-3">
+                    <i class="fas fa-envelope me-3"></i>
+                    إدارة الرسائل
+                </h1>
+                <p class="lead mb-0">إدارة جميع رسائل التواصل في النظام</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <a href="{% url 'hall_booking:dashboard' %}" class="btn btn-outline-light me-2">
+                    <i class="fas fa-tachometer-alt me-2"></i>
+                    لوحة التحكم
+                </a>
+            </div>
+        </div>
+        
+        <!-- Navigation Breadcrumb -->
+        <div class="row mt-3">
+            <div class="col-12">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb justify-content-center" style="background: transparent; color: white;">
+                        <li class="breadcrumb-item">
+                            <a href="{% url 'hall_booking:dashboard' %}" class="text-white text-decoration-none">
+                                <i class="fas fa-tachometer-alt me-1"></i>
+                                لوحة التحكم
+                            </a>
+                        </li>
+                        <li class="breadcrumb-item active text-white" aria-current="page">
+                            <i class="fas fa-envelope me-1"></i>
+                            إدارة الرسائل
+                        </li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stats-card text-center">
+                <i class="fas fa-envelope fa-2x text-primary mb-3"></i>
+                <h3>{{ contacts.count }}</h3>
+                <p class="text-muted mb-0">إجمالي الرسائل</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card text-center">
+                <i class="fas fa-envelope-open fa-2x text-success mb-3"></i>
+                <h3>{{ contacts|length }}</h3>
+                <p class="text-muted mb-0">رسائل مقروءة</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card text-center">
+                <i class="fas fa-envelope fa-2x text-warning mb-3"></i>
+                <h3>{{ contacts|length }}</h3>
+                <p class="text-muted mb-0">رسائل غير مقروءة</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card text-center">
+                <i class="fas fa-calendar fa-2x text-info mb-3"></i>
+                <h3>{{ contacts|length }}</h3>
+                <p class="text-muted mb-0">رسائل هذا الشهر</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search and Filters -->
+    <div class="search-filters">
+        <form method="get" class="row g-3">
+            <div class="col-md-8">
+                <input type="text" name="search" class="form-control" placeholder="البحث في الرسائل..." value="{{ search_query }}">
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-search me-2"></i>
+                    بحث
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Contacts List -->
+    {% if contacts %}
+    <div class="row">
+        {% for contact in contacts %}
+        <div class="col-lg-6 col-xl-4">
+            <div class="contact-card {% if not contact.is_read %}unread{% endif %}">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h5 class="mb-1">{{ contact.name }}</h5>
+                        <small class="text-muted">{{ contact.email }}</small>
+                        <br>
+                        <small class="text-muted">{{ contact.created_at|date:"Y/m/d H:i" }}</small>
+                    </div>
+                    <span class="read-badge read-{{ contact.is_read|yesno:'true,false' }}">
+                        {% if contact.is_read %}مقروءة{% else %}غير مقروءة{% endif %}
+                    </span>
+                </div>
+                
+                <div class="mb-3">
+                    <strong>الموضوع:</strong>
+                    <p class="mb-2">{{ contact.subject|default:"لا يوجد موضوع" }}</p>
+                </div>
+                
+                <div class="mb-3">
+                    <strong>الرسالة:</strong>
+                    <p class="mb-2">{{ contact.message|truncatechars:100 }}</p>
+                </div>
+                
+                <div class="action-buttons">
+                    <a href="{% url 'hall_booking:admin_contact_detail' contact.id %}" class="btn-action btn-view">
+                        <i class="fas fa-eye me-1"></i>
+                        عرض
+                    </a>
+                    <a href="{% url 'hall_booking:admin_contact_delete' contact.id %}" class="btn-action btn-delete">
+                        <i class="fas fa-trash me-1"></i>
+                        حذف
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="fas fa-envelope-open"></i>
+        <h4>لا توجد رسائل</h4>
+        <p>لم يتم العثور على رسائل تطابق معايير البحث</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %} 

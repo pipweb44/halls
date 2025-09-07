@@ -1,0 +1,369 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}تفاصيل الحجز - {{ booking.event_title }}{% endblock %}
+
+{% block content %}
+<style>
+:root {
+    --gold-primary: #FFD700;
+    --gold-secondary: #FFA500;
+    --gold-dark: #B8860B;
+    --black-primary: #000000;
+    --black-secondary: #1a1a1a;
+    --black-tertiary: #2d2d2d;
+    --gold-shadow: 0 10px 30px rgba(255, 215, 0, 0.3);
+}
+
+.page-header {
+    background: var(--black-primary);
+    color: var(--gold-primary);
+    padding: 2rem 0;
+    margin-bottom: 2rem;
+}
+
+.detail-card {
+    background: var(--black-secondary);
+    border: 1px solid var(--gold-dark);
+    border-radius: 15px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.detail-card h3 {
+    color: var(--gold-primary);
+    border-bottom: 2px solid var(--gold-dark);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.8rem 0;
+    border-bottom: 1px solid var(--gold-dark);
+}
+
+.info-row:last-child {
+    border-bottom: none;
+}
+
+.info-label {
+    color: #ccc;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+}
+
+.info-label i {
+    margin-left: 0.5rem;
+    color: var(--gold-secondary);
+}
+
+.info-value {
+    color: var(--gold-primary);
+    font-weight: bold;
+}
+
+.booking-status {
+    padding: 0.5rem 1rem;
+    border-radius: 25px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    display: inline-block;
+}
+
+.status-pending {
+    background: #ffc107;
+    color: #000;
+}
+
+.status-approved {
+    background: #28a745;
+    color: #fff;
+}
+
+.status-completed {
+    background: #17a2b8;
+    color: #fff;
+}
+
+.status-rejected {
+    background: #dc3545;
+    color: #fff;
+}
+
+.status-cancelled {
+    background: #6c757d;
+    color: #fff;
+}
+
+.btn-primary {
+    background: var(--gold-primary);
+    border-color: var(--gold-primary);
+    color: var(--black-primary);
+    font-weight: bold;
+}
+
+.btn-primary:hover {
+    background: var(--gold-secondary);
+    border-color: var(--gold-secondary);
+    color: var(--black-primary);
+}
+
+.btn-outline-primary {
+    border-color: var(--gold-primary);
+    color: var(--gold-primary);
+}
+
+.btn-outline-primary:hover {
+    background: var(--gold-primary);
+    color: var(--black-primary);
+}
+
+.btn-danger {
+    background: #dc3545;
+    border-color: #dc3545;
+}
+
+.btn-danger:hover {
+    background: #c82333;
+    border-color: #bd2130;
+}
+
+.hall-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 2px solid var(--gold-dark);
+}
+
+.alert-warning {
+    background: rgba(255, 193, 7, 0.1);
+    border: 1px solid #ffc107;
+    color: #ffc107;
+}
+
+.alert-info {
+    background: rgba(23, 162, 184, 0.1);
+    border: 1px solid #17a2b8;
+    color: #17a2b8;
+}
+</style>
+
+<!-- Page Header -->
+<section class="page-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1><i class="fas fa-calendar-check me-3"></i>تفاصيل الحجز</h1>
+                <p class="mb-0">رقم الحجز: {{ booking.booking_id }}</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <a href="{% url 'hall_booking:user_bookings' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-right me-2"></i>العودة للحجوزات
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="container">
+    <div class="row">
+        <!-- معلومات الحجز -->
+        <div class="col-md-8">
+            <div class="detail-card">
+                <h3><i class="fas fa-info-circle me-2"></i>معلومات الحجز</h3>
+                
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fas fa-tag"></i>
+                        عنوان الحدث
+                    </div>
+                    <div class="info-value">{{ booking.event_title }}</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fas fa-align-left"></i>
+                        وصف الحدث
+                    </div>
+                    <div class="info-value">{{ booking.event_description|default:"لا يوجد وصف" }}</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fas fa-building"></i>
+                        القاعة
+                    </div>
+                    <div class="info-value">{{ booking.hall.name }}</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fas fa-calendar"></i>
+                        التاريخ
+                    </div>
+                    <div class="info-value">{{ booking.start_datetime|date:"l، d F Y" }}</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fas fa-clock"></i>
+                        الوقت
+                    </div>
+                    <div class="info-value">{{ booking.start_datetime|time:"H:i" }} - {{ booking.end_datetime|time:"H:i" }}</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fas fa-users"></i>
+                        عدد الحضور
+                    </div>
+                    <div class="info-value">{{ booking.attendees_count }} شخص</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fas fa-money-bill"></i>
+                        السعر الإجمالي
+                    </div>
+                    <div class="info-value">{{ booking.total_price }} ريال</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fas fa-info"></i>
+                        حالة الحجز
+                    </div>
+                    <div class="info-value">
+                        <span class="booking-status status-{{ booking.status }}">
+                            {{ booking.get_status_display }}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fas fa-calendar-plus"></i>
+                        تاريخ الطلب
+                    </div>
+                    <div class="info-value">{{ booking.created_at|date:"d M Y - H:i" }}</div>
+                </div>
+
+                {% if booking.admin_notes %}
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fas fa-sticky-note"></i>
+                        ملاحظات الإدارة
+                    </div>
+                    <div class="info-value">{{ booking.admin_notes }}</div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- معلومات التواصل -->
+            <div class="detail-card">
+                <h3><i class="fas fa-address-book me-2"></i>معلومات التواصل</h3>
+                
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fas fa-user"></i>
+                        اسم العميل
+                    </div>
+                    <div class="info-value">{{ booking.customer_name }}</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fas fa-envelope"></i>
+                        البريد الإلكتروني
+                    </div>
+                    <div class="info-value">{{ booking.customer_email }}</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fas fa-phone"></i>
+                        رقم الهاتف
+                    </div>
+                    <div class="info-value">{{ booking.customer_phone }}</div>
+                </div>
+            </div>
+
+            <!-- إجراءات -->
+            {% if can_cancel %}
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                يمكنك إلغاء هذا الحجز لأنه لا يزال في حالة الانتظار.
+            </div>
+            <div class="text-center">
+                <a href="{% url 'hall_booking:cancel_booking' booking.booking_id %}" 
+                   class="btn btn-danger btn-lg">
+                    <i class="fas fa-times me-2"></i>إلغاء الحجز
+                </a>
+            </div>
+            {% elif booking.status == 'approved' %}
+            <div class="alert alert-info">
+                <i class="fas fa-check-circle me-2"></i>
+                تم الموافقة على حجزك! سيتم التواصل معك قريباً لتأكيد التفاصيل.
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- معلومات القاعة -->
+        <div class="col-md-4">
+            <div class="detail-card">
+                <h3><i class="fas fa-building me-2"></i>معلومات القاعة</h3>
+                
+                {% if booking.hall.image %}
+                <img src="{{ booking.hall.image.url }}" alt="{{ booking.hall.name }}" class="hall-image mb-3">
+                {% endif %}
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fas fa-tag"></i>
+                        اسم القاعة
+                    </div>
+                    <div class="info-value">{{ booking.hall.name }}</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fas fa-users"></i>
+                        السعة
+                    </div>
+                    <div class="info-value">{{ booking.hall.capacity }} شخص</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fas fa-money-bill"></i>
+                        السعر للساعة
+                    </div>
+                    <div class="info-value">{{ booking.hall.price_per_hour }} ريال</div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">
+                        <i class="fas fa-list"></i>
+                        الفئة
+                    </div>
+                    <div class="info-value">{{ booking.hall.category.name }}</div>
+                </div>
+
+                <div class="mt-3">
+                    <a href="{% url 'hall_booking:hall_detail' booking.hall.id %}" 
+                       class="btn btn-outline-primary w-100">
+                        <i class="fas fa-eye me-2"></i>عرض تفاصيل القاعة
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -5,15 +5,15 @@
 
 {% block content %}
 <!-- About Hero Section -->
-<section class="bg-primary text-white py-5">
+<section class="py-5" style="background: var(--black-primary); color: var(--gold-primary);">
     <div class="container">
         <div class="row align-items-center">
             <div class="col-lg-6">
-                <h1 class="display-4 fw-bold mb-4">من نحن</h1>
-                <p class="lead mb-4">نظام متطور لحجز القاعات والمؤتمرات، نقدم أفضل الخدمات لعملائنا الكرام</p>
+                <h1 class="display-4 fw-bold mb-4" style="color: var(--gold-primary);">من نحن</h1>
+                <p class="lead mb-4" style="color: var(--gold-secondary);">نظام متطور وأنيق لحجز القاعات والمؤتمرات، نقدم أفضل الخدمات بتصميم ذهبي فاخر</p>
             </div>
             <div class="col-lg-6 text-center">
-                <i class="fas fa-building display-1 text-light opacity-75"></i>
+                <i class="fas fa-crown display-1" style="color: var(--gold-primary); opacity: 0.8;"></i>
             </div>
         </div>
     </div>
@@ -285,4 +285,95 @@
         </div>
     </div>
 </section>
-{% endblock %} 
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Golden Black Theme for About Page */
+
+body {
+    background: var(--black-primary);
+    color: var(--gold-primary);
+}
+
+.card {
+    background: var(--black-secondary);
+    border: 1px solid var(--gold-dark);
+    color: var(--gold-primary);
+}
+
+.card-body {
+    background: var(--black-secondary);
+}
+
+.text-primary {
+    color: var(--gold-primary) !important;
+}
+
+.text-muted {
+    color: var(--gold-secondary) !important;
+}
+
+.bg-light {
+    background: var(--black-secondary) !important;
+}
+
+.feature-icon {
+    background: var(--gold-primary);
+    color: var(--black-primary);
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+    box-shadow: var(--gold-shadow);
+}
+
+.btn-primary {
+    background: var(--gold-primary);
+    border-color: var(--gold-primary);
+    color: var(--black-primary);
+    font-weight: bold;
+}
+
+.btn-primary:hover {
+    background: var(--gold-primary);
+    border-color: var(--gold-primary);
+    color: var(--black-primary);
+    box-shadow: var(--gold-shadow);
+    transform: translateY(-2px);
+}
+
+.btn-outline-primary {
+    border-color: var(--gold-primary);
+    color: var(--gold-primary);
+}
+
+.btn-outline-primary:hover {
+    background: var(--gold-primary);
+    border-color: var(--gold-primary);
+    color: var(--black-primary);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: var(--gold-primary);
+}
+
+.lead {
+    color: var(--gold-secondary);
+}
+
+.list-group-item {
+    background: var(--black-tertiary);
+    border-color: var(--gold-dark);
+    color: var(--gold-primary);
+}
+
+.badge {
+    background: var(--gold-primary);
+    color: var(--black-primary);
+}
+</style>
+{% endblock %}

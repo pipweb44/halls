@@ -262,13 +262,15 @@
 
 {% block extra_css %}
 <style>
+/* Golden Black Theme for Halls List */
+
 /* Header Section */
 .halls-header {
     position: relative;
     min-height: 50vh;
     display: flex;
     align-items: center;
-    background: var(--gradient-primary);
+    background: var(--black-primary);
     overflow: hidden;
 }
 
@@ -278,7 +280,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: var(--gradient-primary);
+    background: var(--black-primary);
 }
 
 .header-overlay {
@@ -287,7 +289,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="gold" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
     opacity: 0.3;
 }
 
@@ -297,21 +299,23 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+    background: radial-gradient(circle at 20% 80%, rgba(255, 215, 0, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 165, 0, 0.2) 0%, transparent 50%);
 }
 
 .header-title {
     font-size: 3rem;
     font-weight: 800;
     margin-bottom: 1rem;
-    color: white;
+    color: var(--gold-primary);
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
 }
 
 .header-subtitle {
     font-size: 1.25rem;
     margin-bottom: 2rem;
-    color: rgba(255, 255, 255, 0.9);
+    color: var(--gold-secondary);
+    opacity: 0.9;
 }
 
 .header-stats {
@@ -323,36 +327,38 @@
 
 .stat-item {
     text-align: center;
-    color: white;
+    color: var(--gold-primary);
 }
 
 .stat-number {
     display: block;
     font-size: 2rem;
     font-weight: 700;
-    color: var(--accent-color);
+    color: var(--gold-primary);
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
 }
 
 .stat-label {
     font-size: 0.9rem;
     opacity: 0.8;
+    color: var(--gold-secondary);
 }
 
 /* Search Section */
 .search-section {
     padding: 2rem 0;
-    background: white;
+    background: var(--black-primary);
     position: relative;
     z-index: 10;
     margin-top: -50px;
 }
 
 .search-card {
-    background: white;
+    background: var(--black-secondary);
+    border: 1px solid var(--gold-dark);
     border-radius: var(--border-radius);
     padding: 2rem;
-    box-shadow: var(--shadow-medium);
-    border: 1px solid rgba(0,0,0,0.05);
+    box-shadow: var(--black-shadow);
 }
 
 .search-input-group {
@@ -364,15 +370,17 @@
     right: 1rem;
     top: 50%;
     transform: translateY(-50%);
-    color: var(--primary-color);
+    color: var(--gold-primary);
     z-index: 2;
 }
 
 .search-input {
     padding: 1rem 3rem 1rem 1rem;
-    border: 2px solid #e9ecef;
+    border: 2px solid var(--gold-dark);
     border-radius: 15px;
     font-size: 1rem;
+    background: var(--black-tertiary);
+    color: var(--gold-primary);
     transition: var(--transition);
     background: #f8f9fa;
 }
@@ -496,7 +504,7 @@
 .hall-placeholder {
     width: 100%;
     height: 100%;
-    background: var(--gradient-primary);
+    background: var(--gold-primary);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -557,7 +565,7 @@
 }
 
 .hall-category {
-    background: var(--gradient-primary);
+    background: var(--gold-primary);
     color: white;
     padding: 0.25rem 0.75rem;
     border-radius: 15px;
@@ -667,7 +675,7 @@
 }
 
 .pagination-item.active .pagination-link {
-    background: var(--gradient-primary);
+    background: var(--gold-primary);
     border-color: var(--primary-color);
     color: white;
 }
@@ -738,7 +746,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: var(--gradient-primary);
+    background: var(--gold-primary);
     opacity: 0;
     transition: var(--transition);
     z-index: 1;
@@ -752,7 +760,7 @@
     width: 80px;
     height: 80px;
     border-radius: 50%;
-    background: var(--gradient-secondary);
+    background: var(--gold-secondary);
     display: flex;
     align-items: center;
     justify-content: center;

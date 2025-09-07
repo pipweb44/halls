@@ -2,6 +2,8 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.utils import timezone
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 import uuid
 
 class Category(models.Model):
@@ -194,3 +196,83 @@ class Contact(models.Model):
 
     def __str__(self):
         return f"{self.name} - {self.subject}"
+
+class Notification(models.Model):
+    NOTIFICATION_TYPES = [
+        ('booking_approved', 'تم الموافقة على الحجز'),
+        ('booking_rejected', 'تم رفض الحجز'),
+        ('booking_cancelled', 'تم إلغاء الحجز'),
+        ('booking_completed', 'تم إكمال الحجز'),
+        ('booking_reminder', 'تذكير بالحجز'),
+        ('general', 'إشعار عام'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications', verbose_name="المستخدم")
+    booking = models.ForeignKey(Booking, on_delete=models.CASCADE, null=True, blank=True, verbose_name="الحجز")
+    notification_type = models.CharField(max_length=20, choices=NOTIFICATION_TYPES, verbose_name="نوع الإشعار")
+    title = models.CharField(max_length=200, verbose_name="العنوان")
+    message = models.TextField(verbose_name="الرسالة")
+    is_read = models.BooleanField(default=False, verbose_name="مقروء")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاريخ الإنشاء")
+
+    class Meta:
+        verbose_name = "إشعار"
+        verbose_name_plural = "الإشعارات"
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.user.username} - {self.title}"
+
+    def mark_as_read(self):
+        """تحديد الإشعار كمقروء"""
+        self.is_read = True
+        self.save()
+
+# إشارات لإنشاء الإشعارات تلقائياً
+@receiver(post_save, sender=Booking)
+def create_booking_notification(sender, instance, created, **kwargs):
+    """إنشاء إشعار عند تغيير حالة الحجز"""
+    if not created and instance.user:  # فقط عند التحديث وليس الإنشاء
+        # التحقق من تغيير الحالة
+        if hasattr(instance, '_state') and instance._state.adding is False:
+            try:
+                old_instance = Booking.objects.get(pk=instance.pk)
+                if old_instance.status != instance.status:
+                    # إنشاء الإشعار حسب الحالة الجديدة
+                    notification_data = get_notification_data(instance.status, instance)
+                    if notification_data:
+                        Notification.objects.create(
+                            user=instance.user,
+                            booking=instance,
+                            notification_type=notification_data['type'],
+                            title=notification_data['title'],
+                            message=notification_data['message']
+                        )
+            except Booking.DoesNotExist:
+                pass
+
+def get_notification_data(status, booking):
+    """الحصول على بيانات الإشعار حسب حالة الحجز"""
+    status_messages = {
+        'approved': {
+            'type': 'booking_approved',
+            'title': 'تم الموافقة على حجزك!',
+            'message': f'تم الموافقة على حجز "{booking.event_title}" في قاعة {booking.hall.name}. سيتم التواصل معك قريباً لتأكيد التفاصيل.'
+        },
+        'rejected': {
+            'type': 'booking_rejected',
+            'title': 'تم رفض حجزك',
+            'message': f'نأسف لإبلاغك أنه تم رفض حجز "{booking.event_title}" في قاعة {booking.hall.name}. يرجى التواصل معنا للمزيد من التفاصيل.'
+        },
+        'completed': {
+            'type': 'booking_completed',
+            'title': 'تم إكمال حجزك بنجاح',
+            'message': f'تم إكمال حجز "{booking.event_title}" في قاعة {booking.hall.name} بنجاح. نشكرك لاختيارك خدماتنا!'
+        },
+        'cancelled': {
+            'type': 'booking_cancelled',
+            'title': 'تم إلغاء حجزك',
+            'message': f'تم إلغاء حجز "{booking.event_title}" في قاعة {booking.hall.name}.'
+        }
+    }
+    return status_messages.get(status)

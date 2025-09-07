@@ -1,0 +1,305 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}الإشعارات{% endblock %}
+
+{% block content %}
+<style>
+:root {
+    --gold-primary: #FFD700;
+    --gold-secondary: #FFA500;
+    --gold-dark: #B8860B;
+    --black-primary: #000000;
+    --black-secondary: #1a1a1a;
+    --black-tertiary: #2d2d2d;
+    --gold-shadow: 0 10px 30px rgba(255, 215, 0, 0.3);
+}
+
+.page-header {
+    background: var(--black-primary);
+    color: var(--gold-primary);
+    padding: 2rem 0;
+    margin-bottom: 2rem;
+}
+
+.notification-card {
+    background: var(--black-secondary);
+    border: 1px solid var(--gold-dark);
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.notification-card:hover {
+    border-color: var(--gold-primary);
+    box-shadow: 0 5px 15px rgba(255, 215, 0, 0.2);
+}
+
+.notification-card.unread {
+    border-left: 4px solid var(--gold-primary);
+    background: rgba(255, 215, 0, 0.05);
+}
+
+.notification-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    margin-left: 1rem;
+}
+
+.notification-icon.booking_approved {
+    background: rgba(40, 167, 69, 0.2);
+    color: #28a745;
+}
+
+.notification-icon.booking_rejected {
+    background: rgba(220, 53, 69, 0.2);
+    color: #dc3545;
+}
+
+.notification-icon.booking_completed {
+    background: rgba(23, 162, 184, 0.2);
+    color: #17a2b8;
+}
+
+.notification-icon.booking_cancelled {
+    background: rgba(108, 117, 125, 0.2);
+    color: #6c757d;
+}
+
+.notification-icon.general {
+    background: rgba(255, 215, 0, 0.2);
+    color: var(--gold-primary);
+}
+
+.notification-title {
+    color: var(--gold-primary);
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+.notification-message {
+    color: #ccc;
+    margin-bottom: 0.5rem;
+    line-height: 1.5;
+}
+
+.notification-time {
+    color: #999;
+    font-size: 0.85rem;
+}
+
+.notification-booking {
+    background: var(--black-tertiary);
+    border: 1px solid var(--gold-dark);
+    border-radius: 5px;
+    padding: 0.8rem;
+    margin-top: 0.8rem;
+}
+
+.btn-primary {
+    background: var(--gold-primary);
+    border-color: var(--gold-primary);
+    color: var(--black-primary);
+    font-weight: bold;
+}
+
+.btn-primary:hover {
+    background: var(--gold-secondary);
+    border-color: var(--gold-secondary);
+    color: var(--black-primary);
+}
+
+.btn-outline-primary {
+    border-color: var(--gold-primary);
+    color: var(--gold-primary);
+}
+
+.btn-outline-primary:hover {
+    background: var(--gold-primary);
+    color: var(--black-primary);
+}
+
+.pagination .page-link {
+    background: var(--black-secondary);
+    border-color: var(--gold-dark);
+    color: var(--gold-primary);
+}
+
+.pagination .page-link:hover {
+    background: var(--gold-primary);
+    border-color: var(--gold-primary);
+    color: var(--black-primary);
+}
+
+.pagination .page-item.active .page-link {
+    background: var(--gold-primary);
+    border-color: var(--gold-primary);
+    color: var(--black-primary);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 3rem 0;
+    color: #999;
+}
+
+.empty-state i {
+    font-size: 4rem;
+    color: var(--gold-dark);
+    margin-bottom: 1rem;
+}
+</style>
+
+<!-- Page Header -->
+<section class="page-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1><i class="fas fa-bell me-3"></i>الإشعارات</h1>
+                <p class="mb-0">تتبع جميع التحديثات والإشعارات الخاصة بك</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <a href="{% url 'hall_booking:user_profile' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-user me-2"></i>البروفيل
+                </a>
+                <a href="{% url 'hall_booking:user_bookings' %}" class="btn btn-primary ms-2">
+                    <i class="fas fa-calendar me-2"></i>حجوزاتي
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="container">
+    {% if page_obj %}
+        <!-- Notifications List -->
+        {% for notification in page_obj %}
+        <div class="notification-card {% if not notification.is_read %}unread{% endif %}">
+            <div class="row align-items-start">
+                <div class="col-auto">
+                    <div class="notification-icon {{ notification.notification_type }}">
+                        {% if notification.notification_type == 'booking_approved' %}
+                            <i class="fas fa-check-circle"></i>
+                        {% elif notification.notification_type == 'booking_rejected' %}
+                            <i class="fas fa-times-circle"></i>
+                        {% elif notification.notification_type == 'booking_completed' %}
+                            <i class="fas fa-check-double"></i>
+                        {% elif notification.notification_type == 'booking_cancelled' %}
+                            <i class="fas fa-ban"></i>
+                        {% else %}
+                            <i class="fas fa-bell"></i>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="notification-title">{{ notification.title }}</div>
+                    <div class="notification-message">{{ notification.message }}</div>
+                    <div class="notification-time">
+                        <i class="fas fa-clock me-1"></i>{{ notification.created_at|timesince }} مضت
+                    </div>
+                    
+                    {% if notification.booking %}
+                    <div class="notification-booking">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <small style="color: var(--gold-secondary);">
+                                    <i class="fas fa-calendar me-1"></i>{{ notification.booking.event_title }}
+                                </small><br>
+                                <small style="color: #ccc;">
+                                    <i class="fas fa-building me-1"></i>{{ notification.booking.hall.name }} - 
+                                    {{ notification.booking.start_datetime|date:"d M Y" }}
+                                </small>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <a href="{% url 'hall_booking:booking_detail_user' notification.booking.booking_id %}" 
+                                   class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye me-1"></i>عرض التفاصيل
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                {% if not notification.is_read %}
+                <div class="col-auto">
+                    <span class="badge bg-warning text-dark">جديد</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+        <nav aria-label="Page navigation" class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+
+    {% else %}
+        <!-- Empty State -->
+        <div class="empty-state">
+            <i class="fas fa-bell-slash"></i>
+            <h4>لا توجد إشعارات</h4>
+            <p>لم تتلق أي إشعارات حتى الآن</p>
+            <a href="{% url 'hall_booking:halls_list' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>احجز قاعة جديدة
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+// تحديث عداد الإشعارات في الشريط العلوي
+document.addEventListener('DOMContentLoaded', function() {
+    // تحديث عداد الإشعارات غير المقروءة
+    fetch('{% url "hall_booking:unread_notifications_count" %}')
+        .then(response => response.json())
+        .then(data => {
+            const badge = document.querySelector('.navbar .badge');
+            if (badge && data.count > 0) {
+                badge.textContent = data.count;
+                badge.style.display = 'inline';
+            } else if (badge) {
+                badge.style.display = 'none';
+            }
+        })
+        .catch(error => console.error('Error:', error));
+});
+</script>
+{% endblock %}

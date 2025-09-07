@@ -1,0 +1,431 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}حجز {{ hall.name }} - معلومات التواصل{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Progress Steps -->
+    <div class="row justify-content-center mb-5">
+        <div class="col-lg-8">
+            <div class="booking-progress">
+                <div class="step completed">
+                    <div class="step-number"><i class="fas fa-check"></i></div>
+                    <div class="step-title">اختيار التاريخ</div>
+                </div>
+                <div class="step completed">
+                    <div class="step-number"><i class="fas fa-check"></i></div>
+                    <div class="step-title">اختيار الوقت</div>
+                </div>
+                <div class="step active">
+                    <div class="step-number">3</div>
+                    <div class="step-title">معلومات التواصل</div>
+                </div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-title">مراجعة وإرسال</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Booking Summary -->
+            <div class="alert alert-info mb-4">
+                <div class="row">
+                    <div class="col-md-6">
+                        <i class="fas fa-calendar-check me-2"></i>
+                        <strong>التاريخ:</strong> {{ booking_data.date }}
+                    </div>
+                    <div class="col-md-6">
+                        <i class="fas fa-clock me-2"></i>
+                        <strong>الوقت:</strong> {{ booking_data.start_time }} - {{ booking_data.end_time }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Information Form -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user me-2"></i>
+                        معلومات التواصل والحدث
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="contactForm">
+                        {% csrf_token %}
+                        
+                        <!-- Contact Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">معلومات التواصل</h6>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="customer_name" class="form-label">الاسم الكامل *</label>
+                                    <input type="text" 
+                                           class="form-control" 
+                                           id="customer_name" 
+                                           name="customer_name" 
+                                           value="{{ initial_data.customer_name|default:'' }}"
+                                           required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="customer_email" class="form-label">البريد الإلكتروني *</label>
+                                    <input type="email" 
+                                           class="form-control" 
+                                           id="customer_email" 
+                                           name="customer_email" 
+                                           value="{{ initial_data.customer_email|default:'' }}"
+                                           required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="customer_phone" class="form-label">رقم الهاتف *</label>
+                                    <input type="tel" 
+                                           class="form-control" 
+                                           id="customer_phone" 
+                                           name="customer_phone" 
+                                           value="{{ initial_data.customer_phone|default:'' }}"
+                                           placeholder="05xxxxxxxx"
+                                           required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="attendees_count" class="form-label">عدد الحضور المتوقع *</label>
+                                    <input type="number" 
+                                           class="form-control" 
+                                           id="attendees_count" 
+                                           name="attendees_count" 
+                                           value="{{ initial_data.attendees_count|default:'' }}"
+                                           min="1" 
+                                           max="{{ hall.capacity }}"
+                                           required>
+                                    <div class="form-text">الحد الأقصى: {{ hall.capacity }} شخص</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Event Information -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h6 class="text-primary mb-3">معلومات الحدث</h6>
+                            </div>
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <label for="event_title" class="form-label">عنوان الحدث *</label>
+                                    <input type="text" 
+                                           class="form-control" 
+                                           id="event_title" 
+                                           name="event_title" 
+                                           value="{{ initial_data.event_title|default:'' }}"
+                                           placeholder="مثال: حفل زفاف، مؤتمر، ورشة عمل..."
+                                           required>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <label for="event_description" class="form-label">وصف الحدث (اختياري)</label>
+                                    <textarea class="form-control" 
+                                              id="event_description" 
+                                              name="event_description" 
+                                              rows="4"
+                                              placeholder="اكتب تفاصيل إضافية عن الحدث، المتطلبات الخاصة، أو أي ملاحظات أخرى...">{{ initial_data.event_description|default:'' }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Terms and Conditions -->
+                        <div class="mb-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="terms" required>
+                                <label class="form-check-label" for="terms">
+                                    أوافق على <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">الشروط والأحكام</a> *
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'hall_booking:booking_step2_time' hall.id %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-right me-2"></i>السابق
+                            </a>
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                التالي - مراجعة الحجز
+                                <i class="fas fa-arrow-left ms-2"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Terms Modal -->
+<div class="modal fade" id="termsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">الشروط والأحكام</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <h6>شروط الحجز:</h6>
+                <ul>
+                    <li>يجب دفع 50% من قيمة الحجز كعربون عند التأكيد</li>
+                    <li>يمكن إلغاء الحجز قبل 48 ساعة من موعد الحدث</li>
+                    <li>في حالة الإلغاء المتأخر، لن يتم استرداد العربون</li>
+                    <li>يجب الالتزام بالوقت المحدد للحجز</li>
+                    <li>العميل مسؤول عن أي أضرار تحدث في القاعة</li>
+                </ul>
+                
+                <h6>قواعد الاستخدام:</h6>
+                <ul>
+                    <li>ممنوع التدخين داخل القاعة</li>
+                    <li>يجب المحافظة على نظافة المكان</li>
+                    <li>الالتزام بمستوى الصوت المناسب</li>
+                    <li>عدم تجاوز العدد المسموح به من الحضور</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">موافق</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Golden Black Theme Variables */
+:root {
+    --gold-primary: #FFD700;
+    --gold-secondary: #FFA500;
+    --gold-dark: #B8860B;
+    --black-primary: #000000;
+    --black-secondary: #1a1a1a;
+    --black-tertiary: #2d2d2d;
+
+    --gold-shadow: 0 10px 30px rgba(255, 215, 0, 0.3);
+    --black-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+body {
+    background: var(--black-primary);
+    color: var(--gold-primary);
+}
+
+.booking-progress {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    margin-bottom: 2rem;
+    background: var(--black-secondary);
+    padding: 1.5rem;
+    border-radius: 15px;
+    box-shadow: var(--black-shadow);
+}
+
+.booking-progress::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 15%;
+    right: 15%;
+    height: 3px;
+    background: var(--gold-primary);
+    z-index: 1;
+    border-radius: 2px;
+}
+
+.step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+    background: var(--black-secondary);
+    padding: 0 15px;
+}
+
+.step-number {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: var(--black-tertiary);
+    color: #666;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 18px;
+    margin-bottom: 8px;
+    transition: all 0.3s ease;
+    border: 2px solid #666;
+}
+
+.step.active .step-number {
+    background: var(--gold-primary);
+    color: var(--black-primary);
+    border-color: var(--gold-primary);
+    box-shadow: var(--gold-shadow);
+    transform: scale(1.1);
+}
+
+.step.completed .step-number {
+    background: var(--gold-primary);
+    color: var(--black-primary);
+    border-color: var(--gold-primary);
+}
+
+.step-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #666;
+    text-align: center;
+}
+
+.step.active .step-title,
+.step.completed .step-title {
+    color: var(--gold-primary);
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+/* Card styling */
+.card {
+    background: var(--black-secondary);
+    border: 1px solid var(--gold-dark);
+    color: var(--gold-primary);
+}
+
+.card-header {
+    background: var(--gold-primary);
+    border-bottom: 1px solid var(--gold-dark);
+    color: var(--black-primary);
+}
+
+.card-body {
+    background: var(--black-secondary);
+}
+
+/* Form styling */
+.form-control, .form-select, .form-check-input {
+    background: var(--black-tertiary);
+    border: 1px solid var(--gold-dark);
+    color: var(--gold-primary);
+}
+
+.form-control:focus, .form-select:focus, .form-check-input:focus {
+    background: var(--black-tertiary);
+    border-color: var(--gold-primary);
+    color: var(--gold-primary);
+    box-shadow: 0 0 0 0.2rem rgba(255, 215, 0, 0.25);
+}
+
+.form-label {
+    color: var(--gold-primary);
+    font-weight: 600;
+}
+
+.form-text {
+    color: var(--gold-secondary);
+}
+
+/* Button styling */
+.btn-primary {
+    background: var(--gold-primary);
+    border-color: var(--gold-primary);
+    color: var(--black-primary);
+    font-weight: bold;
+}
+
+.btn-primary:hover {
+    background: var(--gold-primary);
+    border-color: var(--gold-primary);
+    color: var(--black-primary);
+    box-shadow: var(--gold-shadow);
+    transform: translateY(-2px);
+}
+
+.btn-outline-secondary {
+    border-color: var(--gold-dark);
+    color: var(--gold-primary);
+}
+
+.btn-outline-secondary:hover {
+    background: var(--gold-primary);
+    border-color: var(--gold-primary);
+    color: var(--black-primary);
+}
+
+/* Text colors */
+.text-muted {
+    color: var(--gold-secondary) !important;
+}
+
+.text-primary {
+    color: var(--gold-primary) !important;
+}
+
+.text-success {
+    color: var(--gold-primary) !important;
+}
+
+.form-control:focus {
+    border-color: var(--bs-primary);
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .booking-progress {
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+    
+    .booking-progress::before {
+        display: none;
+    }
+    
+    .step {
+        flex: 1;
+        min-width: calc(50% - 10px);
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // تنسيق رقم الهاتف
+    const phoneInput = document.getElementById('customer_phone');
+    phoneInput.addEventListener('input', function() {
+        let value = this.value.replace(/\D/g, '');
+        if (value.length > 10) {
+            value = value.substring(0, 10);
+        }
+        this.value = value;
+    });
+    
+    // التحقق من صحة النموذج
+    const form = document.getElementById('contactForm');
+    form.addEventListener('submit', function(e) {
+        const attendeesCount = parseInt(document.getElementById('attendees_count').value);
+        const hallCapacity = {{ hall.capacity }};
+        
+        if (attendeesCount > hallCapacity) {
+            e.preventDefault();
+            alert(`عدد الحضور لا يمكن أن يتجاوز سعة القاعة (${hallCapacity} شخص)`);
+        }
+    });
+});
+</script>
+{% endblock %}

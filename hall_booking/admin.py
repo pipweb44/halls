@@ -9,7 +9,7 @@ from django.shortcuts import render
 from django.db.models import Count, Sum, Avg
 from django.utils import timezone
 from datetime import datetime, timedelta
-from .models import Category, Hall, Booking, Contact, HallImage, HallManager
+from .models import Category, Hall, Booking, Contact, HallImage, HallManager, Notification
 
 # تخصيص لوحة الإدارة
 class HallBookingAdminSite(AdminSite):
@@ -275,6 +275,40 @@ class HallManagerAdmin(admin.ModelAdmin):
             assigned_halls = HallManager.objects.filter(is_active=True).values_list('hall_id', flat=True)
             kwargs["queryset"] = Hall.objects.exclude(id__in=assigned_halls)
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+# تخصيص نموذج الإشعارات
+@admin.register(Notification, site=admin_site)
+class NotificationAdmin(admin.ModelAdmin):
+    list_display = ['title', 'user', 'notification_type', 'is_read', 'created_at']
+    list_filter = ['notification_type', 'is_read', 'created_at']
+    search_fields = ['title', 'message', 'user__username', 'user__email']
+    ordering = ['-created_at']
+    readonly_fields = ['created_at']
+
+    fieldsets = (
+        ('معلومات الإشعار', {
+            'fields': ('user', 'booking', 'notification_type', 'title', 'message')
+        }),
+        ('الحالة', {
+            'fields': ('is_read',)
+        }),
+        ('التواريخ', {
+            'fields': ('created_at',),
+            'classes': ('collapse',)
+        }),
+    )
+
+    actions = ['mark_as_read', 'mark_as_unread']
+
+    def mark_as_read(self, request, queryset):
+        updated = queryset.update(is_read=True)
+        self.message_user(request, f'تم تحديد {updated} إشعار كمقروء.')
+    mark_as_read.short_description = "تحديد كمقروء"
+
+    def mark_as_unread(self, request, queryset):
+        updated = queryset.update(is_read=False)
+        self.message_user(request, f'تم تحديد {updated} إشعار كغير مقروء.')
+    mark_as_unread.short_description = "تحديد كغير مقروء"
 
 # تسجيل النماذج في لوحة الإدارة المخصصة
 admin_site.register(Category, CategoryAdmin)

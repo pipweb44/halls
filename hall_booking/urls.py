@@ -66,6 +66,18 @@ urlpatterns = [
     path('auth/profile/', views.auth_profile, name='auth_profile'),
     path('auth/change-password/', views.auth_change_password, name='auth_change_password'),
     
+    # مسارات البروفيل الشخصي
+    path('my-profile/', views.user_profile, name='user_profile'),
+    path('my-bookings/', views.user_bookings, name='user_bookings'),
+    path('my-bookings/<uuid:booking_id>/', views.booking_detail_user, name='booking_detail_user'),
+    path('my-bookings/<uuid:booking_id>/cancel/', views.cancel_booking, name='cancel_booking'),
+    path('edit-profile/', views.edit_profile, name='edit_profile'),
+
+    # مسارات الإشعارات
+    path('notifications/', views.user_notifications, name='user_notifications'),
+    path('notifications/<int:notification_id>/read/', views.mark_notification_read, name='mark_notification_read'),
+    path('api/notifications/unread-count/', views.get_unread_notifications_count, name='unread_notifications_count'),
+
     # روابط اختصار لسهولة الوصول
     path('login/', views.auth_login_step1, name='login'),
     path('register/', views.auth_register_step1, name='register'),
@@ -75,4 +87,4 @@ urlpatterns = [
     path('profile/', views.auth_profile, name='profile'),
     path('change-password/', views.auth_change_password, name='change_password'),
     path('logout/', views.auth_logout, name='logout'),
-] 
+]

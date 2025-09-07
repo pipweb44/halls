@@ -5,87 +5,141 @@
 
 {% block extra_css %}
 <style>
-  /* Luxury theme overrides scoped to the luxury data-theme */
-  body[data-theme="luxury"] h1.display-5 {
-    color: var(--lux-text-primary);
-    text-shadow: 0 2px 10px rgba(255, 215, 0, 0.08);
-  }
-  body[data-theme="luxury"] .lead.text-muted {
-    color: var(--lux-text-secondary) !important;
-  }
+/* Golden Black Theme for Contact Page */
 
-  /* Cards */
-  body[data-theme="luxury"] .card {
-    background: var(--lux-surface);
-    border: 1px solid var(--lux-border);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+body {
+    background: var(--black-primary);
+    color: var(--gold-primary);
+}
+
+.display-5 {
+    color: var(--gold-primary);
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.lead {
+    color: var(--gold-secondary) !important;
+}
+
+.card {
+    background: var(--black-secondary);
+    border: 1px solid var(--gold-dark);
+    box-shadow: var(--black-shadow);
     border-radius: 14px;
-  }
-  body[data-theme="luxury"] .card-header.bg-primary,
-  body[data-theme="luxury"] .bg-primary {
-    background: linear-gradient(135deg, var(--lux-gold) 0%, #bfa142 100%) !important;
-    color: #0d0d0d !important;
-    border-bottom: 1px solid rgba(191,161,66,0.35);
-  }
-  body[data-theme="luxury"] .card-header.bg-light,
-  body[data-theme="luxury"] .card .bg-light {
-    background: rgba(255,255,255,0.03) !important;
-    color: var(--lux-text-primary);
-    border-bottom: 1px solid var(--lux-border);
-  }
+    color: var(--gold-primary);
+}
 
-  /* Form controls */
-  body[data-theme="luxury"] .form-label { color: var(--lux-text-primary); }
-  body[data-theme="luxury"] .form-control,
-  body[data-theme="luxury"] .form-select,
-  body[data-theme="luxury"] textarea.form-control {
-    background-color: #0f0f0f;
-    color: var(--lux-text-primary);
-    border: 1px solid var(--lux-border);
-    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
-  }
-  body[data-theme="luxury"] .form-control::placeholder { color: var(--lux-text-muted); }
-  body[data-theme="luxury"] .form-control:focus {
-    border-color: var(--lux-gold);
-    box-shadow: 0 0 0 0.2rem rgba(191,161,66,0.15);
-  }
+.card-header.bg-primary,
+.bg-primary {
+    background: var(--gold-primary) !important;
+    color: var(--black-primary) !important;
+    border-bottom: 1px solid var(--gold-dark);
+}
 
-  /* Buttons */
-  body[data-theme="luxury"] .btn.btn-primary {
-    background: linear-gradient(135deg, var(--lux-gold) 0%, #bfa142 100%);
-    color: #0d0d0d;
+.card-header.bg-light,
+.bg-light {
+    background: var(--black-tertiary) !important;
+    color: var(--gold-primary);
+    border-bottom: 1px solid var(--gold-dark);
+}
+
+/* Form controls */
+.form-label {
+    color: var(--gold-primary);
+    font-weight: 600;
+}
+
+.form-control,
+.form-select,
+textarea.form-control {
+    background-color: var(--black-tertiary);
+    color: var(--gold-primary);
+    border: 1px solid var(--gold-dark);
+    box-shadow: inset 0 0 0 1px rgba(255,215,0,0.1);
+}
+
+.form-control::placeholder {
+    color: var(--gold-secondary);
+    opacity: 0.7;
+}
+
+.form-control:focus {
+    border-color: var(--gold-primary);
+    box-shadow: 0 0 0 0.2rem rgba(255,215,0,0.25);
+    background-color: var(--black-tertiary);
+    color: var(--gold-primary);
+}
+
+/* Buttons */
+.btn.btn-primary {
+    background: var(--gold-primary);
+    color: var(--black-primary);
     border: none;
-    box-shadow: 0 8px 20px rgba(191,161,66,0.25);
-  }
-  body[data-theme="luxury"] .btn.btn-primary:hover {
-    filter: brightness(1.05);
-    box-shadow: 0 10px 26px rgba(191,161,66,0.30);
-  }
+    box-shadow: var(--gold-shadow);
+    font-weight: bold;
+}
 
-  /* Utilities */
-  body[data-theme="luxury"] .text-muted { color: var(--lux-text-secondary) !important; }
-  body[data-theme="luxury"] .accordion-item { background: transparent; border: 1px solid var(--lux-border); }
-  body[data-theme="luxury"] .accordion-button {
-    background: rgba(255,255,255,0.02);
-    color: var(--lux-text-primary);
-  }
-  body[data-theme="luxury"] .accordion-button:not(.collapsed) {
-    color: #0d0d0d;
-    background: linear-gradient(135deg, rgba(191,161,66,0.25), rgba(191,161,66,0.15));
-    border-bottom: 1px solid var(--lux-border);
-  }
-  body[data-theme="luxury"] .accordion-body { color: var(--lux-text-secondary); }
+.btn.btn-primary:hover {
+    background: var(--gold-primary);
+    color: var(--black-primary);
+    box-shadow: 0 15px 35px rgba(255,215,0,0.4);
+    transform: translateY(-2px);
+}
 
-  /* Icon circles */
-  body[data-theme="luxury"] .bg-opacity-10 { background: rgba(191,161,66,0.12) !important; }
-  body[data-theme="luxury"] .text-primary { color: var(--lux-gold) !important; }
+/* Utilities */
+.text-muted {
+    color: var(--gold-secondary) !important;
+}
 
-  /* Links in quick links */
-  body[data-theme="luxury"] a.text-decoration-none { color: var(--lux-text-primary); }
-  body[data-theme="luxury"] a.text-decoration-none:hover { color: var(--lux-gold); }
+.accordion-item {
+    background: var(--black-secondary);
+    border: 1px solid var(--gold-dark);
+}
 
-  /* Validation messages */
-  body[data-theme="luxury"] .invalid-feedback { color: #ff6b6b !important; }
+.accordion-button {
+    background: var(--black-tertiary);
+    color: var(--gold-primary);
+    border: none;
+}
+
+.accordion-button:not(.collapsed) {
+    color: var(--black-primary);
+    background: var(--gold-primary);
+    border-bottom: 1px solid var(--gold-dark);
+}
+
+.accordion-body {
+    color: var(--gold-secondary);
+    background: var(--black-secondary);
+}
+
+/* Icon circles */
+.bg-opacity-10 {
+    background: rgba(255,215,0,0.15) !important;
+}
+
+.text-primary {
+    color: var(--gold-primary) !important;
+}
+
+/* Links */
+a.text-decoration-none {
+    color: var(--gold-primary);
+    transition: var(--transition);
+}
+
+a.text-decoration-none:hover {
+    color: var(--gold-secondary);
+}
+
+/* Validation messages */
+.invalid-feedback {
+    color: #ff6b6b !important;
+}
+
+.valid-feedback {
+    color: var(--gold-primary) !important;
+}
 </style>
 {% endblock %}
 

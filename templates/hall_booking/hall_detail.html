@@ -273,36 +273,129 @@ document.addEventListener('DOMContentLoaded', function() {
 {% endblock %}
 
 {% block extra_css %}
-{{ block.super }}
 <style>
+/* Golden Black Theme for Hall Detail */
+
+.hall-detail {
+    background: var(--black-primary);
+    color: var(--gold-primary);
+    min-height: 100vh;
+}
+
+.breadcrumb {
+    background: transparent;
+    padding: 1rem 0;
+}
+
+.breadcrumb-item a {
+    color: var(--gold-secondary);
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+.breadcrumb-item a:hover {
+    color: var(--gold-primary);
+}
+
+.breadcrumb-item.active {
+    color: var(--gold-primary);
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+    color: var(--gold-dark);
+}
+
 .hall-main-image {
     border-radius: 18px;
-    box-shadow: 0 8px 32px rgba(128,0,0,0.10), 0 2px 8px #bfa76a33;
-    background: #fff;
+    box-shadow: var(--gold-shadow);
+    background: var(--black-secondary);
     margin-bottom: 1.5rem;
     overflow: hidden;
+    border: 2px solid var(--gold-dark);
 }
+
 .hall-main-image img {
-    border-radius: 18px;
-    box-shadow: 0 2px 12px #bfa76a22;
-    transition: transform 0.2s;
+    border-radius: 16px;
+    transition: var(--transition);
 }
+
 .hall-main-image img:hover {
     transform: scale(1.03);
-    box-shadow: 0 8px 32px #bfa76a33;
+    box-shadow: var(--gold-shadow);
 }
 
-/* Luxury overrides for hall detail */
-body[data-theme="luxury"] .hall-detail .breadcrumb {
-    --bs-breadcrumb-divider-color: rgba(212,175,55,0.6);
-    color: var(--lux-text);
+.card {
+    background: var(--black-secondary);
+    border: 1px solid var(--gold-dark);
+    color: var(--gold-primary);
 }
-body[data-theme="luxury"] .hall-detail .breadcrumb a { color: var(--lux-gold); text-decoration: none; }
-body[data-theme="luxury"] .hall-detail .breadcrumb .active { color: var(--lux-text); }
 
-/* Cards and headers */
-body[data-theme="luxury"] .hall-detail .card { background: #0f0f14; border: 1px solid rgba(212,175,55,0.25); }
-body[data-theme="luxury"] .hall-detail .card-header { background: #0b0b0d; color: var(--lux-gold); border-bottom: 1px solid rgba(212,175,55,0.35); }
+.card-header {
+    background: var(--black-tertiary);
+    color: var(--gold-primary);
+    border-bottom: 1px solid var(--gold-dark);
+    font-weight: 600;
+}
+
+.card-body {
+    background: var(--black-secondary);
+}
+
+.badge {
+    background: var(--gold-gradient);
+    color: var(--black-primary);
+    font-weight: 600;
+}
+
+.btn-primary {
+    background: var(--gold-gradient);
+    border-color: var(--gold-primary);
+    color: var(--black-primary);
+    font-weight: bold;
+}
+
+.btn-primary:hover {
+    background: var(--gold-primary);
+    border-color: var(--gold-primary);
+    color: var(--black-primary);
+    box-shadow: var(--gold-shadow);
+    transform: translateY(-2px);
+}
+
+.btn-outline-secondary {
+    border-color: var(--gold-dark);
+    color: var(--gold-primary);
+}
+
+.btn-outline-secondary:hover {
+    background: var(--gold-primary);
+    border-color: var(--gold-primary);
+    color: var(--black-primary);
+}
+
+.text-muted {
+    color: var(--gold-secondary) !important;
+}
+
+.text-primary {
+    color: var(--gold-primary) !important;
+}
+
+.list-group-item {
+    background: var(--black-tertiary);
+    border-color: var(--gold-dark);
+    color: var(--gold-primary);
+}
+
+.list-group-item:first-child {
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+}
+
+.list-group-item:last-child {
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+}
 body[data-theme="luxury"] .hall-detail .card-title { color: var(--lux-text); }
 body[data-theme="luxury"] .hall-detail .card-text.lead { color: var(--lux-text); opacity: .95; }
 

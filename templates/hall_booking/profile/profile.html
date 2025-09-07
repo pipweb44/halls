@@ -1,0 +1,360 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}البروفيل الشخصي{% endblock %}
+
+{% block content %}
+<style>
+:root {
+    --gold-primary: #FFD700;
+    --gold-secondary: #FFA500;
+    --gold-dark: #B8860B;
+    --black-primary: #000000;
+    --black-secondary: #1a1a1a;
+    --black-tertiary: #2d2d2d;
+    --gold-shadow: 0 10px 30px rgba(255, 215, 0, 0.3);
+}
+
+.profile-header {
+    background: var(--black-primary);
+    color: var(--gold-primary);
+    padding: 2rem 0;
+    margin-bottom: 2rem;
+}
+
+.profile-avatar {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: var(--gold-primary);
+    color: var(--black-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    font-weight: bold;
+    margin: 0 auto 1rem;
+    box-shadow: var(--gold-shadow);
+}
+
+.stats-card {
+    background: var(--black-secondary);
+    border: 2px solid var(--gold-dark);
+    border-radius: 15px;
+    padding: 1.5rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    margin-bottom: 1rem;
+}
+
+.stats-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--gold-shadow);
+    border-color: var(--gold-primary);
+}
+
+.stats-number {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: var(--gold-primary);
+    margin-bottom: 0.5rem;
+}
+
+.stats-label {
+    color: #ccc;
+    font-size: 0.9rem;
+}
+
+.booking-card {
+    background: var(--black-secondary);
+    border: 1px solid var(--gold-dark);
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+}
+
+.booking-card:hover {
+    border-color: var(--gold-primary);
+    box-shadow: 0 5px 15px rgba(255, 215, 0, 0.2);
+}
+
+.booking-status {
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.status-pending {
+    background: #ffc107;
+    color: #000;
+}
+
+.status-approved {
+    background: #28a745;
+    color: #fff;
+}
+
+.status-completed {
+    background: #17a2b8;
+    color: #fff;
+}
+
+.status-rejected {
+    background: #dc3545;
+    color: #fff;
+}
+
+.status-cancelled {
+    background: #6c757d;
+    color: #fff;
+}
+
+.btn-primary {
+    background: var(--gold-primary);
+    border-color: var(--gold-primary);
+    color: var(--black-primary);
+    font-weight: bold;
+}
+
+.btn-primary:hover {
+    background: var(--gold-secondary);
+    border-color: var(--gold-secondary);
+    color: var(--black-primary);
+}
+
+.btn-outline-primary {
+    border-color: var(--gold-primary);
+    color: var(--gold-primary);
+}
+
+.btn-outline-primary:hover {
+    background: var(--gold-primary);
+    color: var(--black-primary);
+}
+
+.section-title {
+    color: var(--gold-primary);
+    font-weight: bold;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid var(--gold-dark);
+    padding-bottom: 0.5rem;
+}
+</style>
+
+<!-- Profile Header -->
+<section class="profile-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-3 text-center">
+                <div class="profile-avatar">
+                    {{ user.first_name.0|default:user.username.0|upper }}{{ user.last_name.0|upper }}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <h1 class="mb-2">{{ user.get_full_name|default:user.username }}</h1>
+                <p class="mb-1"><i class="fas fa-envelope me-2"></i>{{ user.email }}</p>
+                <p class="mb-0"><i class="fas fa-calendar me-2"></i>عضو منذ {{ user.date_joined|date:"d M Y" }}</p>
+            </div>
+            <div class="col-md-3 text-center">
+                <a href="{% url 'hall_booking:edit_profile' %}" class="btn btn-primary mb-2">
+                    <i class="fas fa-edit me-2"></i>تعديل البروفيل
+                </a>
+                <br>
+                <a href="{% url 'hall_booking:user_bookings' %}" class="btn btn-outline-primary me-2">
+                    <i class="fas fa-list me-2"></i>جميع الحجوزات
+                </a>
+                <a href="{% url 'hall_booking:user_notifications' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-bell me-2"></i>الإشعارات
+                    {% if unread_notifications_count > 0 %}
+                    <span class="badge bg-warning text-dark ms-1">{{ unread_notifications_count }}</span>
+                    {% endif %}
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="container">
+    <div class="row">
+        <!-- إحصائيات الحجوزات -->
+        <div class="col-md-12 mb-4">
+            <h2 class="section-title">إحصائيات الحجوزات</h2>
+            <div class="row">
+                <div class="col-md-2">
+                    <div class="stats-card">
+                        <div class="stats-number">{{ total_bookings }}</div>
+                        <div class="stats-label">إجمالي الحجوزات</div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="stats-card">
+                        <div class="stats-number">{{ pending_bookings }}</div>
+                        <div class="stats-label">في الانتظار</div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="stats-card">
+                        <div class="stats-number">{{ approved_bookings }}</div>
+                        <div class="stats-label">موافق عليها</div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="stats-card">
+                        <div class="stats-number">{{ completed_bookings }}</div>
+                        <div class="stats-label">مكتملة</div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="stats-card">
+                        <div class="stats-number">{{ rejected_bookings }}</div>
+                        <div class="stats-label">مرفوضة</div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="stats-card">
+                        <div class="stats-number">{{ cancelled_bookings }}</div>
+                        <div class="stats-label">ملغية</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- آخر الحجوزات -->
+        <div class="col-md-8">
+            <h2 class="section-title">آخر الحجوزات</h2>
+            {% if bookings %}
+                {% for booking in bookings %}
+                <div class="booking-card">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <h5 class="mb-2" style="color: var(--gold-primary);">{{ booking.event_title }}</h5>
+                            <p class="mb-1" style="color: #ccc;">
+                                <i class="fas fa-building me-2"></i>{{ booking.hall.name }}
+                            </p>
+                            <p class="mb-1" style="color: #ccc;">
+                                <i class="fas fa-calendar me-2"></i>{{ booking.start_datetime|date:"d M Y" }}
+                                <i class="fas fa-clock me-2 ms-3"></i>{{ booking.start_datetime|time:"H:i" }} - {{ booking.end_datetime|time:"H:i" }}
+                            </p>
+                            <p class="mb-0" style="color: #ccc;">
+                                <i class="fas fa-money-bill me-2"></i>{{ booking.total_price }} ريال
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <span class="booking-status status-{{ booking.status }}">
+                                {{ booking.get_status_display }}
+                            </span>
+                            <br><br>
+                            <a href="{% url 'hall_booking:booking_detail_user' booking.booking_id %}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-eye me-1"></i>التفاصيل
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                
+                <div class="text-center mt-3">
+                    <a href="{% url 'hall_booking:user_bookings' %}" class="btn btn-primary">
+                        <i class="fas fa-list me-2"></i>عرض جميع الحجوزات
+                    </a>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-calendar-times fa-3x mb-3" style="color: var(--gold-dark);"></i>
+                    <h4 style="color: #ccc;">لا توجد حجوزات حتى الآن</h4>
+                    <p style="color: #999;">ابدأ بحجز قاعتك الأولى!</p>
+                    <a href="{% url 'hall_booking:halls_list' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>احجز الآن
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- الإشعارات والحجوزات حسب الحالة -->
+        <div class="col-md-4">
+            <!-- الإشعارات الأخيرة -->
+            <h2 class="section-title">الإشعارات الأخيرة</h2>
+            {% if notifications %}
+                {% for notification in notifications %}
+                <div class="d-flex align-items-start py-2 border-bottom" style="border-color: var(--gold-dark) !important;">
+                    <div class="me-3">
+                        {% if notification.notification_type == 'booking_approved' %}
+                            <i class="fas fa-check-circle" style="color: #28a745;"></i>
+                        {% elif notification.notification_type == 'booking_rejected' %}
+                            <i class="fas fa-times-circle" style="color: #dc3545;"></i>
+                        {% elif notification.notification_type == 'booking_completed' %}
+                            <i class="fas fa-check-double" style="color: #17a2b8;"></i>
+                        {% elif notification.notification_type == 'booking_cancelled' %}
+                            <i class="fas fa-ban" style="color: #6c757d;"></i>
+                        {% else %}
+                            <i class="fas fa-bell" style="color: var(--gold-primary);"></i>
+                        {% endif %}
+                    </div>
+                    <div class="flex-grow-1">
+                        <small style="color: #ccc; font-weight: bold;">{{ notification.title|truncatechars:30 }}</small><br>
+                        <small style="color: #999;">{{ notification.created_at|timesince }} مضت</small>
+                        {% if not notification.is_read %}
+                        <span class="badge bg-warning text-dark ms-1" style="font-size: 0.6rem;">جديد</span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+
+                <div class="text-center mt-3">
+                    <a href="{% url 'hall_booking:user_notifications' %}" class="btn btn-sm btn-outline-primary">
+                        عرض جميع الإشعارات
+                        {% if unread_notifications_count > 0 %}
+                        <span class="badge bg-warning text-dark ms-1">{{ unread_notifications_count }}</span>
+                        {% endif %}
+                    </a>
+                </div>
+            {% else %}
+                <div class="text-center py-3">
+                    <i class="fas fa-bell-slash fa-2x mb-2" style="color: var(--gold-dark);"></i>
+                    <p style="color: #999;">لا توجد إشعارات</p>
+                </div>
+            {% endif %}
+
+            <h2 class="section-title mt-4">الحجوزات حسب الحالة</h2>
+            
+            {% if bookings_by_status.pending %}
+            <div class="mb-3">
+                <h6 style="color: var(--gold-secondary);">في الانتظار ({{ bookings_by_status.pending|length }})</h6>
+                {% for booking in bookings_by_status.pending|slice:":3" %}
+                <div class="d-flex justify-content-between align-items-center py-2 border-bottom" style="border-color: var(--gold-dark) !important;">
+                    <div>
+                        <small style="color: #ccc;">{{ booking.event_title|truncatechars:25 }}</small><br>
+                        <small style="color: #999;">{{ booking.start_datetime|date:"d M" }}</small>
+                    </div>
+                    <span class="booking-status status-pending">انتظار</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if bookings_by_status.approved %}
+            <div class="mb-3">
+                <h6 style="color: var(--gold-secondary);">موافق عليها ({{ bookings_by_status.approved|length }})</h6>
+                {% for booking in bookings_by_status.approved|slice:":3" %}
+                <div class="d-flex justify-content-between align-items-center py-2 border-bottom" style="border-color: var(--gold-dark) !important;">
+                    <div>
+                        <small style="color: #ccc;">{{ booking.event_title|truncatechars:25 }}</small><br>
+                        <small style="color: #999;">{{ booking.start_datetime|date:"d M" }}</small>
+                    </div>
+                    <span class="booking-status status-approved">موافق</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="text-center">
+                <a href="{% url 'hall_booking:user_bookings' %}" class="btn btn-sm btn-outline-primary">
+                    عرض الكل
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

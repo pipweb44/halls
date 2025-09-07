@@ -14,7 +14,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
     
     <style>
-        /* Golden Black Theme Variables - Solid Colors Only */
+        /* Golden Black Theme Variables */
         :root {
             --gold-primary: #FFD700;
             --gold-secondary: #FFA500;
@@ -22,6 +22,8 @@
             --black-primary: #000000;
             --black-secondary: #1a1a1a;
             --black-tertiary: #2d2d2d;
+            --gold-gradient: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            --black-gradient: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
             --gold-shadow: 0 10px 30px rgba(255, 215, 0, 0.3);
             --black-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
             --transition: all 0.3s ease;
@@ -53,7 +55,10 @@
         .navbar-brand {
             font-size: 1.5rem;
             font-weight: 800;
-            color: var(--gold-primary);
+            background: var(--gold-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
             transition: var(--transition);
             text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
         }
@@ -80,7 +85,7 @@
             left: -100%;
             width: 100%;
             height: 100%;
-            background: var(--gold-primary);
+            background: var(--gold-gradient);
             transition: var(--transition);
             z-index: -1;
             border-radius: 25px;
@@ -128,7 +133,7 @@
         }
 
         .dropdown-item:hover {
-            background: var(--gold-primary);
+            background: var(--gold-gradient);
             color: var(--black-primary);
         }
 
@@ -144,7 +149,7 @@
 
         /* Modern Footer */
         .footer {
-            background: var(--black-secondary);
+            background: var(--black-gradient);
             color: var(--gold-primary);
             padding: 3rem 0 1rem;
             position: relative;
@@ -229,7 +234,7 @@
 
         /* Button styling */
         .btn-primary {
-            background: var(--gold-primary);
+            background: var(--gold-gradient);
             border-color: var(--gold-primary);
             color: var(--black-primary);
             font-weight: bold;
@@ -262,7 +267,7 @@
         }
 
         .card-header {
-            background: var(--gold-primary);
+            background: var(--gold-gradient);
             border-bottom: 1px solid var(--gold-dark);
             color: var(--black-primary);
         }
@@ -359,32 +364,11 @@
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                                 <i class="fas fa-user me-1"></i>
-                                {{ user.get_full_name|default:user.username }}
-                                <span class="badge bg-warning text-dark ms-1 notification-badge" style="display: none;"></span>
+                                {{ user.username }}
                             </a>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="{% url 'hall_booking:user_profile' %}">
-                                    <i class="fas fa-user me-2"></i>البروفيل الشخصي
-                                </a></li>
-                                <li><a class="dropdown-item" href="{% url 'hall_booking:user_bookings' %}">
-                                    <i class="fas fa-calendar-alt me-2"></i>حجوزاتي
-                                </a></li>
-                                <li><a class="dropdown-item" href="{% url 'hall_booking:user_notifications' %}">
-                                    <i class="fas fa-bell me-2"></i>الإشعارات
-                                    <span class="badge bg-warning text-dark ms-1 notification-count" style="display: none;"></span>
-                                </a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                {% if user.is_staff %}
                                 <li><a class="dropdown-item" href="{% url 'hall_booking:dashboard' %}">
                                     <i class="fas fa-tachometer-alt me-2"></i>لوحة التحكم
-                                </a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                {% endif %}
-                                <li><a class="dropdown-item" href="{% url 'hall_booking:edit_profile' %}">
-                                    <i class="fas fa-edit me-2"></i>تعديل البروفيل
-                                </a></li>
-                                <li><a class="dropdown-item" href="{% url 'hall_booking:change_password' %}">
-                                    <i class="fas fa-key me-2"></i>تغيير كلمة المرور
                                 </a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="{% url 'admin:logout' %}">
@@ -484,39 +468,6 @@
                 }
             });
         });
-
-        // تحديث عداد الإشعارات للمستخدمين المسجلين
-        {% if user.is_authenticated %}
-        function updateNotificationCount() {
-            fetch('{% url "hall_booking:unread_notifications_count" %}')
-                .then(response => response.json())
-                .then(data => {
-                    const badge = document.querySelector('.notification-badge');
-                    const dropdownBadge = document.querySelector('.notification-count');
-
-                    if (data.count > 0) {
-                        if (badge) {
-                            badge.textContent = data.count;
-                            badge.style.display = 'inline';
-                        }
-                        if (dropdownBadge) {
-                            dropdownBadge.textContent = data.count;
-                            dropdownBadge.style.display = 'inline';
-                        }
-                    } else {
-                        if (badge) badge.style.display = 'none';
-                        if (dropdownBadge) dropdownBadge.style.display = 'none';
-                    }
-                })
-                .catch(error => console.error('Error updating notification count:', error));
-        }
-
-        // تحديث العداد عند تحميل الصفحة
-        document.addEventListener('DOMContentLoaded', updateNotificationCount);
-
-        // تحديث العداد كل 30 ثانية
-        setInterval(updateNotificationCount, 30000);
-        {% endif %}
     </script>
 
     {% block extra_js %}{% endblock %}

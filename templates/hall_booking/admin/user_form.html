@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{% if create %}إضافة مستخدم جديد{% elif edit %}تعديل مستخدم{% endif %}{% endblock %}
+{% block extra_css %}
+<style>
+.user-form-card {
+    background: #fff;
+    color: #800000;
+    border-radius: 22px;
+    box-shadow: 0 8px 32px rgba(128,0,0,0.10), 0 2px 8px #bfa76a22;
+    padding: 2.2rem 1.5rem 1.5rem 1.5rem;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+}
+.user-form-card .form-title {
+    display: flex;
+    align-items: center;
+    gap: 1.1rem;
+    font-size: 1.7rem;
+    font-weight: bold;
+    color: #800000;
+    margin-bottom: 1.2rem;
+    border-bottom: 2.5px solid #bfa76a;
+    padding-bottom: 0.7rem;
+}
+.user-form-card .form-title .avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 2px 8px #bfa76a55;
+    border: 3px solid #fffbe6;
+    background: #fffbe6;
+    display: inline-block;
+    transition: box-shadow 0.2s;
+}
+.user-form-card .form-title i {
+    font-size: 2rem;
+    color: #bfa76a;
+    filter: drop-shadow(0 2px 8px #bfa76a55);
+}
+.user-form-card form {
+    margin-top: 1.2rem;
+}
+.user-form-card .form-control {
+    border-radius: 12px;
+    border: 1.5px solid #bfa76a44;
+    box-shadow: 0 2px 8px #bfa76a11;
+    padding: 0.85rem 1.1rem;
+    font-size: 1.08rem;
+    margin-bottom: 1.1rem;
+    background: #fffbe6;
+    color: #800000;
+    transition: box-shadow 0.2s, border 0.2s;
+}
+.user-form-card .form-control:focus {
+    box-shadow: 0 4px 16px #bfa76a33;
+    border: 1.5px solid #bfa76a;
+    background: #fff;
+    color: #800000;
+}
+.user-form-card label {
+    font-weight: 600;
+    color: #bfa76a;
+    margin-bottom: 0.3rem;
+}
+.user-form-card .btn {
+    min-width: 110px;
+    font-size: 1.08rem;
+    font-weight: 600;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px #bfa76a22;
+    transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+}
+.user-form-card .btn-primary { background: #bfa76a; color: #800000; border: none; }
+.user-form-card .btn-primary:hover { background: #ffe066; color: #800000; }
+.user-form-card .btn-secondary { background: #fffbe6; color: #800000; border: none; }
+.user-form-card .btn-secondary:hover { background: #bfa76a; color: #fff; }
+@media (max-width: 700px) {
+    .user-form-card { padding: 1.1rem 0.5rem 0.7rem 0.5rem; }
+    .user-form-card .form-title { font-size: 1.1rem; }
+    .user-form-card .form-title .avatar { width: 38px; height: 38px; }
+}
+</style>
+{% endblock %}
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-7 col-lg-6">
+            <div class="user-form-card">
+                <div class="form-title">
+                    <img id="user-avatar" class="avatar" src="https://ui-avatars.com/api/?name=User&background=bfa76a&color=800000&size=128" alt="أفاتار المستخدم">
+                    <span>{% if create %}إضافة مستخدم جديد{% elif edit %}تعديل مستخدم{% endif %}</span>
+                </div>
+                <form method="post" id="user-form">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <div class="d-flex justify-content-end mt-4">
+                        <a href="{% url 'hall_booking:admin_users_list' %}" class="btn btn-secondary me-2">إلغاء</a>
+                        <button type="submit" class="btn btn-primary">{% if create %}إضافة{% elif edit %}حفظ التعديلات{% endif %}</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+// تحديث صورة الأفاتار تلقائياً حسب الاسم أو اسم المستخدم
+function getAvatarUrl(name) {
+    if (!name) name = 'User';
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=bfa76a&color=800000&size=128`;
+}
+document.addEventListener('DOMContentLoaded', function() {
+    const avatar = document.getElementById('user-avatar');
+    const nameInput = document.getElementById('id_first_name') || document.getElementById('id_username');
+    if (nameInput) {
+        avatar.src = getAvatarUrl(nameInput.value);
+        nameInput.addEventListener('input', function() {
+            avatar.src = getAvatarUrl(this.value);
+        });
+    }
+});
+</script>
+{% endblock %} 

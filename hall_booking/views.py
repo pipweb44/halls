@@ -9,7 +9,7 @@ from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, UserChangeForm
 from datetime import datetime, timedelta
 import json
-from .models import Hall, Category, Booking, Contact, HallManager
+from .models import Hall, Category, Booking, Contact, HallManager, Notification
 from .forms import BookingForm, ContactForm, HallForm
 from django.contrib.auth.models import User
 from django.db.models import Sum
@@ -1257,3 +1257,161 @@ def booking_success(request, booking_id):
         'booking': booking,
     }
     return render(request, 'hall_booking/booking/success.html', context)
+
+@login_required
+def user_profile(request):
+    """صفحة البروفيل الشخصي للمستخدم"""
+    user = request.user
+
+    # جلب حجوزات المستخدم
+    bookings = Booking.objects.filter(user=user).order_by('-created_at')
+
+    # جلب الإشعارات
+    notifications = Notification.objects.filter(user=user).order_by('-created_at')
+    unread_notifications = notifications.filter(is_read=False)
+
+    # إحصائيات الحجوزات
+    total_bookings = bookings.count()
+    pending_bookings = bookings.filter(status='pending').count()
+    approved_bookings = bookings.filter(status='approved').count()
+    completed_bookings = bookings.filter(status='completed').count()
+    rejected_bookings = bookings.filter(status='rejected').count()
+    cancelled_bookings = bookings.filter(status='cancelled').count()
+
+    # تقسيم الحجوزات حسب الحالة
+    bookings_by_status = {
+        'pending': bookings.filter(status='pending'),
+        'approved': bookings.filter(status='approved'),
+        'completed': bookings.filter(status='completed'),
+        'rejected': bookings.filter(status='rejected'),
+        'cancelled': bookings.filter(status='cancelled'),
+    }
+
+    context = {
+        'user': user,
+        'bookings': bookings[:5],  # آخر 5 حجوزات
+        'bookings_by_status': bookings_by_status,
+        'notifications': notifications[:5],  # آخر 5 إشعارات
+        'unread_notifications_count': unread_notifications.count(),
+        'total_bookings': total_bookings,
+        'pending_bookings': pending_bookings,
+        'approved_bookings': approved_bookings,
+        'completed_bookings': completed_bookings,
+        'rejected_bookings': rejected_bookings,
+        'cancelled_bookings': cancelled_bookings,
+    }
+    return render(request, 'hall_booking/profile/profile.html', context)
+
+@login_required
+def user_bookings(request):
+    """صفحة جميع حجوزات المستخدم"""
+    user = request.user
+    status_filter = request.GET.get('status', 'all')
+
+    # جلب الحجوزات
+    bookings = Booking.objects.filter(user=user).order_by('-created_at')
+
+    # تطبيق فلتر الحالة
+    if status_filter != 'all':
+        bookings = bookings.filter(status=status_filter)
+
+    # تقسيم الصفحات
+    paginator = Paginator(bookings, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'page_obj': page_obj,
+        'status_filter': status_filter,
+        'status_choices': Booking.STATUS_CHOICES,
+    }
+    return render(request, 'hall_booking/profile/bookings.html', context)
+
+@login_required
+def booking_detail_user(request, booking_id):
+    """صفحة تفاصيل الحجز للمستخدم"""
+    booking = get_object_or_404(Booking, booking_id=booking_id, user=request.user)
+
+    context = {
+        'booking': booking,
+        'can_cancel': booking.status == 'pending',
+    }
+    return render(request, 'hall_booking/profile/booking_detail.html', context)
+
+@login_required
+def cancel_booking(request, booking_id):
+    """إلغاء الحجز"""
+    booking = get_object_or_404(Booking, booking_id=booking_id, user=request.user)
+
+    if booking.status != 'pending':
+        messages.error(request, 'لا يمكن إلغاء هذا الحجز.')
+        return redirect('booking_detail_user', booking_id=booking_id)
+
+    if request.method == 'POST':
+        booking.status = 'cancelled'
+        booking.save()
+        messages.success(request, 'تم إلغاء الحجز بنجاح.')
+        return redirect('user_profile')
+
+    context = {
+        'booking': booking,
+    }
+    return render(request, 'hall_booking/profile/cancel_booking.html', context)
+
+@login_required
+def edit_profile(request):
+    """تعديل البروفيل الشخصي"""
+    if request.method == 'POST':
+        user = request.user
+        user.first_name = request.POST.get('first_name', '')
+        user.last_name = request.POST.get('last_name', '')
+        user.email = request.POST.get('email', '')
+        user.save()
+
+        messages.success(request, 'تم تحديث البروفيل بنجاح.')
+        return redirect('user_profile')
+
+    context = {
+        'user': request.user,
+    }
+    return render(request, 'hall_booking/profile/edit_profile.html', context)
+
+@login_required
+def user_notifications(request):
+    """صفحة الإشعارات"""
+    user = request.user
+
+    # جلب الإشعارات
+    notifications = Notification.objects.filter(user=user).order_by('-created_at')
+
+    # تقسيم الصفحات
+    paginator = Paginator(notifications, 15)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    # تحديد الإشعارات كمقروءة عند عرضها
+    unread_notifications = notifications.filter(is_read=False)
+    unread_notifications.update(is_read=True)
+
+    context = {
+        'page_obj': page_obj,
+        'total_notifications': notifications.count(),
+    }
+    return render(request, 'hall_booking/profile/notifications.html', context)
+
+@login_required
+def mark_notification_read(request, notification_id):
+    """تحديد إشعار كمقروء"""
+    notification = get_object_or_404(Notification, id=notification_id, user=request.user)
+    notification.mark_as_read()
+
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({'success': True})
+
+    return redirect('user_notifications')
+
+@login_required
+def get_unread_notifications_count(request):
+    """الحصول على عدد الإشعارات غير المقروءة"""
+    count = Notification.objects.filter(user=request.user, is_read=False).count()
+    return JsonResponse({'count': count})
