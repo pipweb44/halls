@@ -19,32 +19,12 @@
             <!-- Hall Image and Info -->
             <div class="col-lg-8">
                 <div class="card border-0 shadow-sm mb-4">
-                    <!-- معرض صور القاعة -->
-                    <div class="hall-gallery mb-3">
-                        <div class="swiper hallSwiper">
-                            <div class="swiper-wrapper">
-                                {% if hall.image %}
-                                <div class="swiper-slide">
-                                    <a href="{{ hall.image.url }}" data-fslightbox="hall-gallery">
-                                        <img src="{{ hall.image.url }}" class="w-100 rounded" style="height:400px;object-fit:cover;" alt="{{ hall.name }}">
-                                    </a>
-                                </div>
-                                {% endif %}
-                                {% for img in hall.images.all %}
-                                <div class="swiper-slide">
-                                    <a href="{{ img.image.url }}" data-fslightbox="hall-gallery">
-                                        <img src="{{ img.image.url }}" class="w-100 rounded" style="height:400px;object-fit:cover;" alt="صورة إضافية لـ {{ hall.name }}">
-                                    </a>
-                                </div>
-                                {% endfor %}
-                            </div>
-                            <!-- أزرار التنقل -->
-                            <div class="swiper-button-next"></div>
-                            <div class="swiper-button-prev"></div>
-                            <div class="swiper-pagination"></div>
-                        </div>
+                    <!-- صورة القاعة الرئيسية -->
+                    {% if hall.image %}
+                    <div class="hall-main-image mb-3">
+                        <img src="{{ hall.image.url }}" class="w-100 rounded" style="height:400px;object-fit:cover;" alt="{{ hall.name }}">
                     </div>
-                    <!-- نهاية معرض الصور -->
+                    {% endif %}
                     
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-start mb-3">
@@ -98,7 +78,7 @@
                         {% endif %}
 
                         <div class="d-flex gap-3">
-                            <a href="{% url 'hall_booking:booking_form' hall.id %}" class="btn btn-hero-primary btn-lg">
+                            <a href="{% url 'hall_booking:booking_step1_date' hall.id %}" class="btn btn-hero-primary btn-lg">
                                 <i class="fas fa-calendar-check me-2"></i>احجز الآن
                             </a>
                             <button class="btn btn-hero-secondary btn-lg" onclick="checkAvailability()">
@@ -284,61 +264,32 @@
 {% endblock %}
 
 {% block extra_js %}
-<!-- Swiper.js -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css" />
-<script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
-<!-- fslightbox.js -->
-<script src="https://cdn.jsdelivr.net/npm/fslightbox/index.min.js"></script>
+<!-- Custom JavaScript for hall detail page -->
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    new Swiper('.hallSwiper', {
-        loop: true,
-        spaceBetween: 20,
-        slidesPerView: 1,
-        navigation: {
-            nextEl: '.swiper-button-next',
-            prevEl: '.swiper-button-prev',
-        },
-        pagination: {
-            el: '.swiper-pagination',
-            clickable: true,
-        },
-        effect: 'slide',
-        speed: 600,
-    });
+    // Any custom JavaScript for hall detail page can go here
 });
 </script>
-{% endblock %} 
+{% endblock %}
 
 {% block extra_css %}
 {{ block.super }}
 <style>
-.hall-gallery .swiper {
+.hall-main-image {
     border-radius: 18px;
     box-shadow: 0 8px 32px rgba(128,0,0,0.10), 0 2px 8px #bfa76a33;
     background: #fff;
     margin-bottom: 1.5rem;
+    overflow: hidden;
 }
-.hall-gallery .swiper-slide img {
+.hall-main-image img {
     border-radius: 18px;
     box-shadow: 0 2px 12px #bfa76a22;
     transition: transform 0.2s;
 }
-.hall-gallery .swiper-slide img:hover {
+.hall-main-image img:hover {
     transform: scale(1.03);
     box-shadow: 0 8px 32px #bfa76a33;
-}
-.hall-gallery .swiper-button-next,
-.hall-gallery .swiper-button-prev {
-    color: #bfa76a;
-    filter: drop-shadow(0 2px 8px #80000033);
-}
-.hall-gallery .swiper-pagination-bullet {
-    background: #bfa76a;
-    opacity: 0.8;
-}
-.hall-gallery .swiper-pagination-bullet-active {
-    background: #800000;
 }
 
 /* Luxury overrides for hall detail */
@@ -370,14 +321,10 @@ body[data-theme="luxury"] .hall-detail .table { color: var(--lux-text); }
 body[data-theme="luxury"] .hall-detail .table-hover tbody tr:hover { background: rgba(212,175,55,0.06); }
 body[data-theme="luxury"] .hall-detail .table-light { background: #0b0b0d !important; color: var(--lux-gold) !important; border-bottom: 1px solid rgba(212,175,55,0.35); }
 
-/* Gallery (Swiper) */
-body[data-theme="luxury"] .hall-detail .hall-gallery .swiper { border-radius: 18px; background: #0b0b0d; margin-bottom: 1.5rem; border: 1px solid rgba(212,175,55,0.25); }
-body[data-theme="luxury"] .hall-detail .hall-gallery .swiper-slide img { border-radius: 18px; transition: transform 0.2s; box-shadow: none; }
-body[data-theme="luxury"] .hall-detail .hall-gallery .swiper-slide img:hover { transform: scale(1.03); }
-body[data-theme="luxury"] .hall-detail .hall-gallery .swiper-button-next,
-body[data-theme="luxury"] .hall-detail .hall-gallery .swiper-button-prev { color: var(--lux-gold); filter: none; }
-body[data-theme="luxury"] .hall-detail .hall-gallery .swiper-pagination-bullet { background: var(--lux-gold); opacity: .8; }
-body[data-theme="luxury"] .hall-detail .hall-gallery .swiper-pagination-bullet-active { background: var(--lux-gold); }
+/* Main Image */
+body[data-theme="luxury"] .hall-detail .hall-main-image { border-radius: 18px; background: #0b0b0d; margin-bottom: 1.5rem; border: 1px solid rgba(212,175,55,0.25); }
+body[data-theme="luxury"] .hall-detail .hall-main-image img { border-radius: 18px; transition: transform 0.2s; box-shadow: none; }
+body[data-theme="luxury"] .hall-detail .hall-main-image img:hover { transform: scale(1.03); }
 
 /* Similar halls */
 body[data-theme="luxury"] .hall-detail .price { color: var(--lux-gold); }

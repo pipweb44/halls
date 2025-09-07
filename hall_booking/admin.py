@@ -9,7 +9,7 @@ from django.shortcuts import render
 from django.db.models import Count, Sum, Avg
 from django.utils import timezone
 from datetime import datetime, timedelta
-from .models import Category, Hall, Booking, Contact, HallImage
+from .models import Category, Hall, Booking, Contact, HallImage, HallManager
 
 # تخصيص لوحة الإدارة
 class HallBookingAdminSite(AdminSite):
@@ -85,18 +85,25 @@ class CategoryAdmin(admin.ModelAdmin):
 class HallImageInline(admin.TabularInline):
     model = HallImage
     extra = 1
-    fields = ['image', 'uploaded_at']
+    fields = ['image', 'image_type', 'title', 'is_featured', 'order', 'uploaded_at']
     readonly_fields = ['uploaded_at']
+
+# تخصيص نموذج مديري القاعات (inline)
+class HallManagerInline(admin.TabularInline):
+    model = HallManager
+    extra = 0
+    fields = ['user', 'permission_level', 'is_active', 'assigned_at']
+    readonly_fields = ['assigned_at']
 
 # تخصيص نموذج القاعات
 @admin.register(Hall)
 class HallAdmin(admin.ModelAdmin):
-    list_display = ['name', 'category', 'capacity', 'price_per_hour', 'status', 'booking_count', 'created_at']
+    list_display = ['name', 'category', 'capacity', 'price_per_hour', 'status', 'get_manager_display', 'booking_count', 'created_at']
     list_filter = ['category', 'status', 'created_at']
     search_fields = ['name', 'description']
     ordering = ['-created_at']
     readonly_fields = ['created_at', 'updated_at']
-    inlines = [HallImageInline]
+    inlines = [HallImageInline, HallManagerInline]
     fieldsets = (
         ('معلومات أساسية', {
             'fields': ('name', 'category', 'description')
@@ -112,9 +119,17 @@ class HallAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
     )
+
     def booking_count(self, obj):
         return obj.booking_set.count()
     booking_count.short_description = 'عدد الحجوزات'
+
+    def get_manager_display(self, obj):
+        manager = obj.get_manager()
+        if manager:
+            return f"{manager.user.get_full_name() or manager.user.username}"
+        return "غير محدد"
+    get_manager_display.short_description = 'مدير القاعة'
 
 # تخصيص نموذج الحجوزات
 @admin.register(Booking)
@@ -225,8 +240,45 @@ class ContactAdmin(admin.ModelAdmin):
         self.message_user(request, f'تم تحديد {updated} رسالة كغير مقروءة بنجاح.')
     mark_as_unread.short_description = "تحديد الرسائل كغير مقروءة"
 
+# تخصيص نموذج مديري القاعات
+@admin.register(HallManager)
+class HallManagerAdmin(admin.ModelAdmin):
+    list_display = ['user', 'hall', 'permission_level', 'is_active', 'assigned_at']
+    list_filter = ['permission_level', 'is_active', 'assigned_at', 'hall__category']
+    search_fields = ['user__username', 'user__first_name', 'user__last_name', 'hall__name']
+    ordering = ['-assigned_at']
+    readonly_fields = ['assigned_at']
+
+    fieldsets = (
+        ('معلومات التعيين', {
+            'fields': ('user', 'hall', 'permission_level')
+        }),
+        ('الحالة', {
+            'fields': ('is_active',)
+        }),
+        ('ملاحظات', {
+            'fields': ('notes',)
+        }),
+        ('التواريخ', {
+            'fields': ('assigned_at',),
+            'classes': ('collapse',)
+        }),
+    )
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "user":
+            # عرض المستخدمين الذين ليسوا مديرين لقاعات أخرى
+            assigned_users = HallManager.objects.filter(is_active=True).values_list('user_id', flat=True)
+            kwargs["queryset"] = User.objects.exclude(id__in=assigned_users)
+        elif db_field.name == "hall":
+            # عرض القاعات التي ليس لها مدير
+            assigned_halls = HallManager.objects.filter(is_active=True).values_list('hall_id', flat=True)
+            kwargs["queryset"] = Hall.objects.exclude(id__in=assigned_halls)
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
 # تسجيل النماذج في لوحة الإدارة المخصصة
 admin_site.register(Category, CategoryAdmin)
 admin_site.register(Hall, HallAdmin)
 admin_site.register(Booking, BookingAdmin)
-admin_site.register(Contact, ContactAdmin) 
+admin_site.register(Contact, ContactAdmin)
+admin_site.register(HallManager, HallManagerAdmin)

@@ -1,0 +1,204 @@
+{% extends 'hall_booking/base.html' %}
+{% load static %}
+
+{% block title %}إدارة حجوزات {{ managed_hall.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .booking-card {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        border-left: 4px solid #007bff;
+    }
+    .booking-card.pending {
+        border-left-color: #ffc107;
+    }
+    .booking-card.approved {
+        border-left-color: #28a745;
+    }
+    .booking-card.completed {
+        border-left-color: #6c757d;
+    }
+    .booking-card.cancelled {
+        border-left-color: #dc3545;
+    }
+    .booking-card.rejected {
+        border-left-color: #dc3545;
+    }
+    .filter-card {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1>إدارة حجوزات {{ managed_hall.name }}</h1>
+                    <p class="text-muted">إدارة وتتبع جميع حجوزات القاعة</p>
+                </div>
+                <div>
+                    <a href="{% url 'hall_booking:hall_manager_dashboard' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-arrow-right me-2"></i>العودة للوحة التحكم
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="filter-card">
+                <form method="get" class="row g-3">
+                    <div class="col-md-4">
+                        <label for="search" class="form-label">البحث</label>
+                        <input type="text" class="form-control" id="search" name="search" 
+                               value="{{ search_query }}" placeholder="اسم العميل، عنوان الحدث، رقم الهاتف...">
+                    </div>
+                    <div class="col-md-3">
+                        <label for="status" class="form-label">الحالة</label>
+                        <select class="form-select" id="status" name="status">
+                            <option value="">جميع الحالات</option>
+                            <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>في الانتظار</option>
+                            <option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>موافق عليه</option>
+                            <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>مكتمل</option>
+                            <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>ملغي</option>
+                            <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>مرفوض</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary me-2">
+                            <i class="fas fa-search me-1"></i>بحث
+                        </button>
+                        <a href="{% url 'hall_booking:hall_manager_bookings' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-1"></i>مسح
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bookings List -->
+    <div class="row">
+        <div class="col-12">
+            {% for booking in bookings %}
+                <div class="booking-card {{ booking.status }}">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h5 class="mb-2">{{ booking.event_title }}</h5>
+                                    <p class="mb-1">
+                                        <i class="fas fa-user me-2"></i>
+                                        <strong>العميل:</strong> {{ booking.customer_name }}
+                                    </p>
+                                    <p class="mb-1">
+                                        <i class="fas fa-envelope me-2"></i>
+                                        <strong>البريد:</strong> {{ booking.customer_email }}
+                                    </p>
+                                    <p class="mb-1">
+                                        <i class="fas fa-phone me-2"></i>
+                                        <strong>الهاتف:</strong> {{ booking.customer_phone }}
+                                    </p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p class="mb-1">
+                                        <i class="fas fa-calendar-start me-2"></i>
+                                        <strong>البداية:</strong> {{ booking.start_datetime|date:"d/m/Y H:i" }}
+                                    </p>
+                                    <p class="mb-1">
+                                        <i class="fas fa-calendar-times me-2"></i>
+                                        <strong>النهاية:</strong> {{ booking.end_datetime|date:"d/m/Y H:i" }}
+                                    </p>
+                                    <p class="mb-1">
+                                        <i class="fas fa-users me-2"></i>
+                                        <strong>عدد الحضور:</strong> {{ booking.attendees_count }}
+                                    </p>
+                                    <p class="mb-1">
+                                        <i class="fas fa-money-bill-wave me-2"></i>
+                                        <strong>السعر:</strong> {{ booking.total_price }} ج.م
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <div class="mb-3">
+                                <span class="badge bg-{% if booking.status == 'pending' %}warning{% elif booking.status == 'approved' %}success{% elif booking.status == 'completed' %}secondary{% elif booking.status == 'cancelled' %}danger{% else %}danger{% endif %} fs-6">
+                                    {{ booking.get_status_display }}
+                                </span>
+                            </div>
+                            <div class="mb-2">
+                                <small class="text-muted">
+                                    تاريخ الطلب: {{ booking.created_at|date:"d/m/Y H:i" }}
+                                </small>
+                            </div>
+                            <div>
+                                <a href="{% url 'hall_booking:hall_manager_booking_detail' booking.id %}" 
+                                   class="btn btn-primary btn-sm">
+                                    <i class="fas fa-eye me-1"></i>التفاصيل
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="text-center py-5">
+                    <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                    <h4 class="text-muted">لا توجد حجوزات</h4>
+                    <p class="text-muted">لم يتم العثور على حجوزات تطابق معايير البحث</p>
+                </div>
+            {% endfor %}
+
+            <!-- Pagination -->
+            {% if bookings.has_other_pages %}
+                <nav aria-label="Page navigation" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        {% if bookings.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ bookings.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">
+                                    السابق
+                                </a>
+                            </li>
+                        {% endif %}
+
+                        {% for num in bookings.paginator.page_range %}
+                            {% if bookings.number == num %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ num }}</span>
+                                </li>
+                            {% elif num > bookings.number|add:'-3' and num < bookings.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">
+                                        {{ num }}
+                                    </a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if bookings.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ bookings.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">
+                                    التالي
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

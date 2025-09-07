@@ -34,7 +34,20 @@ urlpatterns = [
     path('dashboard/users/<int:user_id>/edit/', views.admin_user_edit, name='admin_user_edit'),
     path('dashboard/users/<int:user_id>/delete/', views.admin_user_delete, name='admin_user_delete'),
     path('dashboard/users/<int:user_id>/', views.admin_user_detail, name='admin_user_detail'),
-    
+
+    # مسارات مديري القاعات
+    path('hall-manager/', views.hall_manager_dashboard, name='hall_manager_dashboard'),
+    path('hall-manager/bookings/', views.hall_manager_bookings, name='hall_manager_bookings'),
+    path('hall-manager/bookings/<int:booking_id>/', views.hall_manager_booking_detail, name='hall_manager_booking_detail'),
+    path('hall-manager/schedule/', views.hall_manager_schedule, name='hall_manager_schedule'),
+
+    # مسارات الحجز متعدد الخطوات
+    path('booking/<int:hall_id>/step1/', views.booking_step1_date, name='booking_step1_date'),
+    path('booking/<int:hall_id>/step2/', views.booking_step2_time, name='booking_step2_time'),
+    path('booking/<int:hall_id>/step3/', views.booking_step3_info, name='booking_step3_info'),
+    path('booking/<int:hall_id>/step4/', views.booking_step4_review, name='booking_step4_review'),
+    path('booking/success/<uuid:booking_id>/', views.booking_success, name='booking_success'),
+
     # مسارات نظام المصادقة متعدد الخطوات
     path('auth/', views.auth_welcome, name='auth_welcome'),
     

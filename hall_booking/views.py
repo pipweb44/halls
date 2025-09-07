@@ -9,7 +9,7 @@ from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, UserChangeForm
 from datetime import datetime, timedelta
 import json
-from .models import Hall, Category, Booking, Contact
+from .models import Hall, Category, Booking, Contact, HallManager
 from .forms import BookingForm, ContactForm, HallForm
 from django.contrib.auth.models import User
 from django.db.models import Sum
@@ -19,6 +19,18 @@ from django.contrib.auth import update_session_auth_hash
 
 def is_admin(user):
     return user.is_staff
+
+def is_hall_manager(user):
+    """تحقق من كون المستخدم مدير قاعة"""
+    return HallManager.objects.filter(user=user, is_active=True).exists()
+
+def get_user_managed_hall(user):
+    """الحصول على القاعة التي يديرها المستخدم"""
+    try:
+        manager = HallManager.objects.get(user=user, is_active=True)
+        return manager.hall
+    except HallManager.DoesNotExist:
+        return None
 
 def home(request):
     """الصفحة الرئيسية"""
@@ -791,3 +803,457 @@ def admin_user_detail(request, user_id):
             'bookings': user_bookings,
         },
     )
+
+# ==================== Hall Manager Views ====================
+
+@login_required
+@user_passes_test(is_hall_manager)
+def hall_manager_dashboard(request):
+    """لوحة تحكم مدير القاعة"""
+    managed_hall = get_user_managed_hall(request.user)
+    if not managed_hall:
+        messages.error(request, 'لا يمكنك الوصول لهذه الصفحة')
+        return redirect('hall_booking:home')
+
+    # إحصائيات القاعة
+    total_bookings = Booking.objects.filter(hall=managed_hall).count()
+    pending_bookings = Booking.objects.filter(hall=managed_hall, status='pending').count()
+    approved_bookings = Booking.objects.filter(hall=managed_hall, status='approved').count()
+    completed_bookings = Booking.objects.filter(hall=managed_hall, status='completed').count()
+    cancelled_bookings = Booking.objects.filter(hall=managed_hall, status='cancelled').count()
+
+    # إيرادات القاعة
+    total_revenue = Booking.objects.filter(
+        hall=managed_hall,
+        status='completed'
+    ).aggregate(total=Sum('total_price'))['total'] or 0
+
+    # الحجوزات الأخيرة
+    recent_bookings = Booking.objects.filter(
+        hall=managed_hall
+    ).order_by('-created_at')[:10]
+
+    # الحجوزات القادمة
+    upcoming_bookings = Booking.objects.filter(
+        hall=managed_hall,
+        status__in=['approved', 'pending'],
+        start_datetime__gte=timezone.now()
+    ).order_by('start_datetime')[:5]
+
+    context = {
+        'managed_hall': managed_hall,
+        'total_bookings': total_bookings,
+        'pending_bookings': pending_bookings,
+        'approved_bookings': approved_bookings,
+        'completed_bookings': completed_bookings,
+        'cancelled_bookings': cancelled_bookings,
+        'total_revenue': total_revenue,
+        'recent_bookings': recent_bookings,
+        'upcoming_bookings': upcoming_bookings,
+    }
+    return render(request, 'hall_booking/hall_manager/dashboard.html', context)
+
+@login_required
+@user_passes_test(is_hall_manager)
+def hall_manager_bookings(request):
+    """إدارة حجوزات القاعة"""
+    managed_hall = get_user_managed_hall(request.user)
+    if not managed_hall:
+        messages.error(request, 'لا يمكنك الوصول لهذه الصفحة')
+        return redirect('hall_booking:home')
+
+    # فلترة الحجوزات
+    bookings = Booking.objects.filter(hall=managed_hall).order_by('-created_at')
+
+    # البحث والفلترة
+    search_query = request.GET.get('search', '')
+    status_filter = request.GET.get('status', '')
+
+    if search_query:
+        bookings = bookings.filter(
+            Q(event_title__icontains=search_query) |
+            Q(customer_name__icontains=search_query) |
+            Q(customer_phone__icontains=search_query)
+        )
+
+    if status_filter:
+        bookings = bookings.filter(status=status_filter)
+
+    # التصفح
+    paginator = Paginator(bookings, 10)
+    page_number = request.GET.get('page')
+    bookings = paginator.get_page(page_number)
+
+    context = {
+        'managed_hall': managed_hall,
+        'bookings': bookings,
+        'search_query': search_query,
+        'status_filter': status_filter,
+    }
+    return render(request, 'hall_booking/hall_manager/bookings.html', context)
+
+@login_required
+@user_passes_test(is_hall_manager)
+def hall_manager_booking_detail(request, booking_id):
+    """تفاصيل الحجز لمدير القاعة"""
+    managed_hall = get_user_managed_hall(request.user)
+    if not managed_hall:
+        messages.error(request, 'لا يمكنك الوصول لهذه الصفحة')
+        return redirect('hall_booking:home')
+
+    booking = get_object_or_404(Booking, id=booking_id, hall=managed_hall)
+
+    if request.method == 'POST':
+        new_status = request.POST.get('status')
+        admin_notes = request.POST.get('admin_notes', '')
+
+        if new_status in ['pending', 'approved', 'completed', 'cancelled']:
+            booking.status = new_status
+            if admin_notes:
+                booking.admin_notes = admin_notes
+            booking.save()
+            messages.success(request, 'تم تحديث حالة الحجز بنجاح')
+            return redirect('hall_booking:hall_manager_bookings')
+
+    context = {
+        'managed_hall': managed_hall,
+        'booking': booking,
+    }
+    return render(request, 'hall_booking/hall_manager/booking_detail.html', context)
+
+@login_required
+@user_passes_test(is_hall_manager)
+def hall_manager_schedule(request):
+    """جدول مواعيد القاعة"""
+    managed_hall = get_user_managed_hall(request.user)
+    if not managed_hall:
+        messages.error(request, 'لا يمكنك الوصول لهذه الصفحة')
+        return redirect('hall_booking:home')
+
+    # الحصول على التاريخ المطلوب (افتراضياً الشهر الحالي)
+    from datetime import datetime, timedelta
+    import calendar
+
+    year = int(request.GET.get('year', datetime.now().year))
+    month = int(request.GET.get('month', datetime.now().month))
+
+    # الحصول على أول وآخر يوم في الشهر
+    first_day = datetime(year, month, 1)
+    if month == 12:
+        last_day = datetime(year + 1, 1, 1) - timedelta(days=1)
+    else:
+        last_day = datetime(year, month + 1, 1) - timedelta(days=1)
+
+    # الحصول على الحجوزات في هذا الشهر
+    bookings = Booking.objects.filter(
+        hall=managed_hall,
+        start_datetime__date__gte=first_day.date(),
+        start_datetime__date__lte=last_day.date()
+    ).order_by('start_datetime')
+
+    # تنظيم الحجوزات حسب التاريخ
+    bookings_by_date = {}
+    for booking in bookings:
+        date_key = booking.start_datetime.date()
+        if date_key not in bookings_by_date:
+            bookings_by_date[date_key] = []
+        bookings_by_date[date_key].append(booking)
+
+    # إنشاء التقويم
+    cal = calendar.monthcalendar(year, month)
+
+    context = {
+        'managed_hall': managed_hall,
+        'bookings': bookings,
+        'bookings_by_date': bookings_by_date,
+        'calendar': cal,
+        'current_year': year,
+        'current_month': month,
+        'month_name': calendar.month_name[month],
+        'prev_month': month - 1 if month > 1 else 12,
+        'prev_year': year if month > 1 else year - 1,
+        'next_month': month + 1 if month < 12 else 1,
+        'next_year': year if month < 12 else year + 1,
+    }
+    return render(request, 'hall_booking/hall_manager/schedule.html', context)
+
+# ==================== Multi-Step Booking Views ====================
+
+def booking_step1_date(request, hall_id):
+    """الخطوة الأولى: اختيار التاريخ"""
+    hall = get_object_or_404(Hall, id=hall_id)
+
+    if request.method == 'POST':
+        selected_date = request.POST.get('date')
+        if selected_date:
+            # حفظ التاريخ في الجلسة
+            request.session['booking_data'] = {
+                'hall_id': hall_id,
+                'date': selected_date
+            }
+            return redirect('hall_booking:booking_step2_time', hall_id=hall_id)
+        else:
+            messages.error(request, 'يرجى اختيار تاريخ صحيح')
+
+    # الحصول على التواريخ المحجوزة لإخفائها
+    from datetime import datetime, timedelta
+    today = datetime.now().date()
+
+    # الحصول على التواريخ المحجوزة في الشهرين القادمين
+    end_date = today + timedelta(days=60)
+    booked_dates = Booking.objects.filter(
+        hall=hall,
+        start_datetime__date__gte=today,
+        start_datetime__date__lte=end_date,
+        status__in=['approved', 'pending']
+    ).values_list('start_datetime__date', flat=True).distinct()
+
+    # تحويل التواريخ إلى strings للاستخدام في JavaScript
+    booked_dates_str = [date.strftime('%Y-%m-%d') for date in booked_dates]
+
+    context = {
+        'hall': hall,
+        'booked_dates': booked_dates_str,
+        'min_date': today.strftime('%Y-%m-%d'),
+        'max_date': end_date.strftime('%Y-%m-%d'),
+    }
+    return render(request, 'hall_booking/booking/step1_date.html', context)
+
+def booking_step2_time(request, hall_id):
+    """الخطوة الثانية: اختيار الوقت"""
+    hall = get_object_or_404(Hall, id=hall_id)
+
+    # التحقق من وجود بيانات الخطوة الأولى
+    booking_data = request.session.get('booking_data', {})
+    if not booking_data.get('date') or booking_data.get('hall_id') != hall_id:
+        messages.error(request, 'يرجى البدء من اختيار التاريخ')
+        return redirect('hall_booking:booking_step1_date', hall_id=hall_id)
+
+    selected_date = booking_data['date']
+
+    if request.method == 'POST':
+        start_time = request.POST.get('start_time')
+        end_time = request.POST.get('end_time')
+
+        if start_time and end_time:
+            # التحقق من صحة الأوقات
+            from datetime import datetime, timedelta
+            try:
+                start_datetime = datetime.strptime(f"{selected_date} {start_time}", '%Y-%m-%d %H:%M')
+                end_datetime = datetime.strptime(f"{selected_date} {end_time}", '%Y-%m-%d %H:%M')
+
+                if end_datetime <= start_datetime:
+                    messages.error(request, 'وقت النهاية يجب أن يكون بعد وقت البداية')
+                else:
+                    # التحقق من عدم تعارض الأوقات
+                    conflicting_bookings = Booking.objects.filter(
+                        hall=hall,
+                        start_datetime__date=start_datetime.date(),
+                        status__in=['approved', 'pending']
+                    ).filter(
+                        Q(start_datetime__lt=end_datetime) & Q(end_datetime__gt=start_datetime)
+                    )
+
+                    if conflicting_bookings.exists():
+                        messages.error(request, 'هذا الوقت محجوز بالفعل، يرجى اختيار وقت آخر')
+                    else:
+                        # حساب السعر
+                        duration_hours = (end_datetime - start_datetime).total_seconds() / 3600
+                        total_price = float(hall.price_per_hour) * duration_hours
+
+                        # حفظ بيانات الوقت في الجلسة
+                        booking_data.update({
+                            'start_time': start_time,
+                            'end_time': end_time,
+                            'start_datetime': start_datetime.isoformat(),
+                            'end_datetime': end_datetime.isoformat(),
+                            'duration_hours': duration_hours,
+                            'total_price': total_price
+                        })
+                        request.session['booking_data'] = booking_data
+                        return redirect('hall_booking:booking_step3_info', hall_id=hall_id)
+
+            except ValueError:
+                messages.error(request, 'تنسيق الوقت غير صحيح')
+        else:
+            messages.error(request, 'يرجى اختيار وقت البداية والنهاية')
+
+    # الحصول على الأوقات المحجوزة في هذا التاريخ
+    from datetime import datetime
+    selected_date_obj = datetime.strptime(selected_date, '%Y-%m-%d').date()
+
+    booked_times = Booking.objects.filter(
+        hall=hall,
+        start_datetime__date=selected_date_obj,
+        status__in=['approved', 'pending']
+    ).values('start_datetime__time', 'end_datetime__time')
+
+    # تحويل الأوقات المحجوزة إلى تنسيق يمكن استخدامه في JavaScript
+    booked_slots = []
+    for booking in booked_times:
+        booked_slots.append({
+            'start': booking['start_datetime__time'].strftime('%H:%M'),
+            'end': booking['end_datetime__time'].strftime('%H:%M')
+        })
+
+    context = {
+        'hall': hall,
+        'selected_date': selected_date,
+        'booked_slots': booked_slots,
+    }
+    return render(request, 'hall_booking/booking/step2_time.html', context)
+
+def booking_step3_info(request, hall_id):
+    """الخطوة الثالثة: معلومات التواصل والحدث"""
+    hall = get_object_or_404(Hall, id=hall_id)
+
+    # التحقق من وجود بيانات الخطوات السابقة
+    booking_data = request.session.get('booking_data', {})
+    if not all([booking_data.get('date'), booking_data.get('start_time'),
+                booking_data.get('hall_id') == hall_id]):
+        messages.error(request, 'يرجى إكمال الخطوات السابقة أولاً')
+        return redirect('hall_booking:booking_step1_date', hall_id=hall_id)
+
+    if request.method == 'POST':
+        # جمع بيانات النموذج
+        customer_name = request.POST.get('customer_name', '').strip()
+        customer_email = request.POST.get('customer_email', '').strip()
+        customer_phone = request.POST.get('customer_phone', '').strip()
+        event_title = request.POST.get('event_title', '').strip()
+        event_description = request.POST.get('event_description', '').strip()
+        attendees_count = request.POST.get('attendees_count', '').strip()
+
+        # التحقق من صحة البيانات
+        errors = []
+        if not customer_name:
+            errors.append('اسم العميل مطلوب')
+        if not customer_email:
+            errors.append('البريد الإلكتروني مطلوب')
+        if not customer_phone:
+            errors.append('رقم الهاتف مطلوب')
+        if not event_title:
+            errors.append('عنوان الحدث مطلوب')
+        if not attendees_count or not attendees_count.isdigit():
+            errors.append('عدد الحضور يجب أن يكون رقماً صحيحاً')
+        elif int(attendees_count) > hall.capacity:
+            errors.append(f'عدد الحضور لا يمكن أن يتجاوز سعة القاعة ({hall.capacity} شخص)')
+
+        if errors:
+            for error in errors:
+                messages.error(request, error)
+        else:
+            # حفظ بيانات التواصل في الجلسة
+            booking_data.update({
+                'customer_name': customer_name,
+                'customer_email': customer_email,
+                'customer_phone': customer_phone,
+                'event_title': event_title,
+                'event_description': event_description,
+                'attendees_count': int(attendees_count)
+            })
+            request.session['booking_data'] = booking_data
+            return redirect('hall_booking:booking_step4_review', hall_id=hall_id)
+
+    # تعبئة البيانات المحفوظة مسبقاً
+    initial_data = {}
+    if request.user.is_authenticated:
+        initial_data['customer_email'] = request.user.email or ''
+        full_name = request.user.get_full_name()
+        if full_name:
+            initial_data['customer_name'] = full_name
+
+    # إضافة البيانات المحفوظة في الجلسة
+    for field in ['customer_name', 'customer_email', 'customer_phone',
+                  'event_title', 'event_description', 'attendees_count']:
+        if booking_data.get(field):
+            initial_data[field] = booking_data[field]
+
+    context = {
+        'hall': hall,
+        'booking_data': booking_data,
+        'initial_data': initial_data,
+    }
+    return render(request, 'hall_booking/booking/step3_info.html', context)
+
+def booking_step4_review(request, hall_id):
+    """الخطوة الرابعة: مراجعة الحجز والإرسال"""
+    hall = get_object_or_404(Hall, id=hall_id)
+
+    # التحقق من وجود جميع بيانات الخطوات السابقة
+    booking_data = request.session.get('booking_data', {})
+    required_fields = ['date', 'start_time', 'end_time', 'customer_name',
+                      'customer_email', 'customer_phone', 'event_title', 'attendees_count']
+
+    if not all([booking_data.get(field) for field in required_fields]) or booking_data.get('hall_id') != hall_id:
+        messages.error(request, 'يرجى إكمال جميع الخطوات السابقة')
+        return redirect('hall_booking:booking_step1_date', hall_id=hall_id)
+
+    if request.method == 'POST':
+        # إنشاء الحجز
+        from datetime import datetime
+
+        try:
+            start_datetime = datetime.fromisoformat(booking_data['start_datetime'])
+            end_datetime = datetime.fromisoformat(booking_data['end_datetime'])
+
+            # التحقق مرة أخيرة من عدم تعارض الأوقات
+            conflicting_bookings = Booking.objects.filter(
+                hall=hall,
+                start_datetime__date=start_datetime.date(),
+                status__in=['approved', 'pending']
+            ).filter(
+                Q(start_datetime__lt=end_datetime) & Q(end_datetime__gt=start_datetime)
+            )
+
+            if conflicting_bookings.exists():
+                messages.error(request, 'عذراً، تم حجز هذا الوقت من قبل عميل آخر. يرجى اختيار وقت آخر.')
+                return redirect('hall_booking:booking_step2_time', hall_id=hall_id)
+
+            # إنشاء الحجز
+            booking = Booking.objects.create(
+                hall=hall,
+                user=request.user if request.user.is_authenticated else None,
+                customer_name=booking_data['customer_name'],
+                customer_email=booking_data['customer_email'],
+                customer_phone=booking_data['customer_phone'],
+                event_title=booking_data['event_title'],
+                event_description=booking_data.get('event_description', ''),
+                start_datetime=start_datetime,
+                end_datetime=end_datetime,
+                attendees_count=booking_data['attendees_count'],
+                total_price=booking_data['total_price'],
+                status='pending'
+            )
+
+            # مسح بيانات الجلسة
+            if 'booking_data' in request.session:
+                del request.session['booking_data']
+
+            messages.success(request, f'تم إرسال طلب الحجز بنجاح! رقم الحجز: {booking.booking_id}')
+            return redirect('hall_booking:booking_success', booking_id=booking.booking_id)
+
+        except Exception as e:
+            messages.error(request, 'حدث خطأ أثناء إنشاء الحجز. يرجى المحاولة مرة أخرى.')
+            return redirect('hall_booking:booking_step1_date', hall_id=hall_id)
+
+    # تحضير البيانات للعرض
+    from datetime import datetime
+    start_datetime = datetime.fromisoformat(booking_data['start_datetime'])
+    end_datetime = datetime.fromisoformat(booking_data['end_datetime'])
+
+    context = {
+        'hall': hall,
+        'booking_data': booking_data,
+        'start_datetime': start_datetime,
+        'end_datetime': end_datetime,
+    }
+    return render(request, 'hall_booking/booking/step4_review.html', context)
+
+def booking_success(request, booking_id):
+    """صفحة نجاح الحجز"""
+    booking = get_object_or_404(Booking, booking_id=booking_id)
+
+    context = {
+        'booking': booking,
+    }
+    return render(request, 'hall_booking/booking/success.html', context)

@@ -1,0 +1,239 @@
+{% extends 'hall_booking/base.html' %}
+{% load static %}
+
+{% block title %}تفاصيل الحجز - {{ booking.event_title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .booking-detail-card {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .status-badge {
+        font-size: 1.1rem;
+        padding: 8px 16px;
+    }
+    .info-row {
+        padding: 10px 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    .info-row:last-child {
+        border-bottom: none;
+    }
+    .action-buttons {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1>تفاصيل الحجز</h1>
+                    <p class="text-muted">{{ booking.event_title }} - {{ managed_hall.name }}</p>
+                </div>
+                <div>
+                    <a href="{% url 'hall_booking:hall_manager_bookings' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-arrow-right me-2"></i>العودة للحجوزات
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Booking Details -->
+        <div class="col-md-8">
+            <div class="booking-detail-card">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3>{{ booking.event_title }}</h3>
+                    <span class="badge status-badge bg-{% if booking.status == 'pending' %}warning{% elif booking.status == 'approved' %}success{% elif booking.status == 'completed' %}secondary{% elif booking.status == 'cancelled' %}danger{% else %}danger{% endif %}">
+                        {{ booking.get_status_display }}
+                    </span>
+                </div>
+
+                <!-- Customer Information -->
+                <h5 class="mb-3">معلومات العميل</h5>
+                <div class="info-row">
+                    <div class="row">
+                        <div class="col-md-3"><strong>الاسم:</strong></div>
+                        <div class="col-md-9">{{ booking.customer_name }}</div>
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="row">
+                        <div class="col-md-3"><strong>البريد الإلكتروني:</strong></div>
+                        <div class="col-md-9">{{ booking.customer_email }}</div>
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="row">
+                        <div class="col-md-3"><strong>رقم الهاتف:</strong></div>
+                        <div class="col-md-9">{{ booking.customer_phone }}</div>
+                    </div>
+                </div>
+
+                <!-- Event Information -->
+                <h5 class="mb-3 mt-4">معلومات الحدث</h5>
+                <div class="info-row">
+                    <div class="row">
+                        <div class="col-md-3"><strong>عنوان الحدث:</strong></div>
+                        <div class="col-md-9">{{ booking.event_title }}</div>
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="row">
+                        <div class="col-md-3"><strong>وصف الحدث:</strong></div>
+                        <div class="col-md-9">{{ booking.event_description }}</div>
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="row">
+                        <div class="col-md-3"><strong>عدد الحضور:</strong></div>
+                        <div class="col-md-9">{{ booking.attendees_count }} شخص</div>
+                    </div>
+                </div>
+
+                <!-- Booking Information -->
+                <h5 class="mb-3 mt-4">معلومات الحجز</h5>
+                <div class="info-row">
+                    <div class="row">
+                        <div class="col-md-3"><strong>تاريخ البداية:</strong></div>
+                        <div class="col-md-9">{{ booking.start_datetime|date:"l، d F Y - H:i" }}</div>
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="row">
+                        <div class="col-md-3"><strong>تاريخ النهاية:</strong></div>
+                        <div class="col-md-9">{{ booking.end_datetime|date:"l، d F Y - H:i" }}</div>
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="row">
+                        <div class="col-md-3"><strong>المدة:</strong></div>
+                        <div class="col-md-9">{{ booking.get_duration_hours|floatformat:1 }} ساعة</div>
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="row">
+                        <div class="col-md-3"><strong>السعر الإجمالي:</strong></div>
+                        <div class="col-md-9"><strong class="text-success">{{ booking.total_price }} ج.م</strong></div>
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="row">
+                        <div class="col-md-3"><strong>تاريخ الطلب:</strong></div>
+                        <div class="col-md-9">{{ booking.created_at|date:"d/m/Y H:i" }}</div>
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="row">
+                        <div class="col-md-3"><strong>رقم الحجز:</strong></div>
+                        <div class="col-md-9"><code>{{ booking.booking_id }}</code></div>
+                    </div>
+                </div>
+
+                <!-- Admin Notes -->
+                {% if booking.admin_notes %}
+                <h5 class="mb-3 mt-4">ملاحظات الإدارة</h5>
+                <div class="alert alert-info">
+                    {{ booking.admin_notes }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="col-md-4">
+            <div class="booking-detail-card">
+                <h5 class="mb-3">إجراءات الحجز</h5>
+                
+                <form method="post" class="action-buttons">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="status" class="form-label">تغيير حالة الحجز</label>
+                        <select class="form-select" id="status" name="status" required>
+                            <option value="pending" {% if booking.status == 'pending' %}selected{% endif %}>في الانتظار</option>
+                            <option value="approved" {% if booking.status == 'approved' %}selected{% endif %}>موافق عليه</option>
+                            <option value="completed" {% if booking.status == 'completed' %}selected{% endif %}>مكتمل</option>
+                            <option value="cancelled" {% if booking.status == 'cancelled' %}selected{% endif %}>ملغي</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="admin_notes" class="form-label">ملاحظات إضافية</label>
+                        <textarea class="form-control" id="admin_notes" name="admin_notes" rows="3" 
+                                  placeholder="أضف ملاحظات حول الحجز...">{{ booking.admin_notes }}</textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-save me-2"></i>حفظ التغييرات
+                    </button>
+                </form>
+
+                <!-- Quick Actions -->
+                <div class="mt-4">
+                    <h6 class="mb-3">إجراءات سريعة</h6>
+                    
+                    {% if booking.status == 'pending' %}
+                        <form method="post" class="d-inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="status" value="approved">
+                            <button type="submit" class="btn btn-success btn-sm w-100 mb-2">
+                                <i class="fas fa-check me-1"></i>موافقة سريعة
+                            </button>
+                        </form>
+                    {% endif %}
+                    
+                    {% if booking.status == 'approved' %}
+                        <form method="post" class="d-inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="status" value="completed">
+                            <button type="submit" class="btn btn-secondary btn-sm w-100 mb-2">
+                                <i class="fas fa-flag-checkered me-1"></i>تحديد كمكتمل
+                            </button>
+                        </form>
+                    {% endif %}
+                </div>
+
+                <!-- Contact Customer -->
+                <div class="mt-4">
+                    <h6 class="mb-3">التواصل مع العميل</h6>
+                    <a href="mailto:{{ booking.customer_email }}" class="btn btn-outline-primary btn-sm w-100 mb-2">
+                        <i class="fas fa-envelope me-1"></i>إرسال بريد إلكتروني
+                    </a>
+                    <a href="tel:{{ booking.customer_phone }}" class="btn btn-outline-success btn-sm w-100">
+                        <i class="fas fa-phone me-1"></i>اتصال هاتفي
+                    </a>
+                </div>
+            </div>
+
+            <!-- Hall Information -->
+            <div class="booking-detail-card">
+                <h5 class="mb-3">معلومات القاعة</h5>
+                {% if managed_hall.image %}
+                    <img src="{{ managed_hall.image.url }}" alt="{{ managed_hall.name }}" 
+                         class="img-fluid rounded mb-3">
+                {% endif %}
+                <h6>{{ managed_hall.name }}</h6>
+                <p class="text-muted mb-2">{{ managed_hall.category.name }}</p>
+                <p class="mb-1"><strong>السعة:</strong> {{ managed_hall.capacity }} شخص</p>
+                <p class="mb-1"><strong>السعر:</strong> {{ managed_hall.price_per_hour }} ج.م/ساعة</p>
+                <a href="{% url 'hall_booking:hall_detail' managed_hall.id %}" class="btn btn-outline-info btn-sm w-100 mt-2">
+                    <i class="fas fa-eye me-1"></i>عرض تفاصيل القاعة
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

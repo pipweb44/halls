@@ -1,0 +1,358 @@
+{% extends 'hall_booking/base.html' %}
+{% load static %}
+
+{% block title %}تم إرسال طلب الحجز بنجاح{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Success Message -->
+            <div class="text-center mb-5">
+                <div class="success-icon mb-4">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <h2 class="text-success mb-3">تم إرسال طلب الحجز بنجاح!</h2>
+                <p class="lead text-muted">شكراً لك، تم استلام طلب حجزك وسنتواصل معك قريباً</p>
+            </div>
+
+            <!-- Booking Details Card -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-receipt me-2"></i>
+                        تفاصيل الحجز
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="booking-info-item">
+                                <i class="fas fa-hashtag text-primary me-2"></i>
+                                <strong>رقم الحجز:</strong>
+                                <span class="text-primary fw-bold">{{ booking.booking_id }}</span>
+                            </div>
+                            <div class="booking-info-item">
+                                <i class="fas fa-building text-primary me-2"></i>
+                                <strong>القاعة:</strong> {{ booking.hall.name }}
+                            </div>
+                            <div class="booking-info-item">
+                                <i class="fas fa-calendar-alt text-primary me-2"></i>
+                                <strong>التاريخ:</strong> {{ booking.start_datetime|date:"Y-m-d" }}
+                            </div>
+                            <div class="booking-info-item">
+                                <i class="fas fa-clock text-primary me-2"></i>
+                                <strong>الوقت:</strong> {{ booking.start_datetime|time:"H:i" }} - {{ booking.end_datetime|time:"H:i" }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="booking-info-item">
+                                <i class="fas fa-user text-primary me-2"></i>
+                                <strong>اسم العميل:</strong> {{ booking.customer_name }}
+                            </div>
+                            <div class="booking-info-item">
+                                <i class="fas fa-envelope text-primary me-2"></i>
+                                <strong>البريد الإلكتروني:</strong> {{ booking.customer_email }}
+                            </div>
+                            <div class="booking-info-item">
+                                <i class="fas fa-phone text-primary me-2"></i>
+                                <strong>رقم الهاتف:</strong> {{ booking.customer_phone }}
+                            </div>
+                            <div class="booking-info-item">
+                                <i class="fas fa-users text-primary me-2"></i>
+                                <strong>عدد الحضور:</strong> {{ booking.attendees_count }} شخص
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="booking-info-item">
+                                <i class="fas fa-star text-primary me-2"></i>
+                                <strong>عنوان الحدث:</strong> {{ booking.event_title }}
+                            </div>
+                            {% if booking.event_description %}
+                            <div class="booking-info-item">
+                                <i class="fas fa-align-left text-primary me-2"></i>
+                                <strong>وصف الحدث:</strong> {{ booking.event_description }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <div class="price-summary">
+                                <div class="text-center">
+                                    <h6 class="text-primary">إجمالي التكلفة</h6>
+                                    <div class="h4 text-success">{{ booking.total_price }} ريال</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Next Steps -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list-ol me-2"></i>
+                        الخطوات التالية
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="next-step">
+                                <div class="step-number">1</div>
+                                <div class="step-content">
+                                    <h6>مراجعة الطلب</h6>
+                                    <p class="text-muted">سيقوم فريقنا بمراجعة طلب الحجز والتأكد من توفر القاعة</p>
+                                </div>
+                            </div>
+                            <div class="next-step">
+                                <div class="step-number">2</div>
+                                <div class="step-content">
+                                    <h6>التواصل معك</h6>
+                                    <p class="text-muted">سنتواصل معك خلال 24 ساعة لتأكيد الحجز</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="next-step">
+                                <div class="step-number">3</div>
+                                <div class="step-content">
+                                    <h6>دفع العربون</h6>
+                                    <p class="text-muted">بعد التأكيد، ستحتاج لدفع 50% من قيمة الحجز كعربون</p>
+                                </div>
+                            </div>
+                            <div class="next-step">
+                                <div class="step-number">4</div>
+                                <div class="step-content">
+                                    <h6>تأكيد الحجز</h6>
+                                    <p class="text-muted">بعد دفع العربون، سيتم تأكيد حجزك نهائياً</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Information -->
+            <div class="alert alert-primary">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h6 class="mb-2">
+                            <i class="fas fa-headset me-2"></i>
+                            هل تحتاج مساعدة؟
+                        </h6>
+                        <p class="mb-0">يمكنك التواصل معنا في أي وقت للاستفسار عن حجزك</p>
+                    </div>
+                    <div class="col-md-4 text-md-end">
+                        <a href="{% url 'hall_booking:contact' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-phone me-2"></i>تواصل معنا
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="text-center">
+                <a href="{% url 'hall_booking:home' %}" class="btn btn-primary btn-lg me-3">
+                    <i class="fas fa-home me-2"></i>العودة للرئيسية
+                </a>
+                <a href="{% url 'hall_booking:halls_list' %}" class="btn btn-outline-primary btn-lg">
+                    <i class="fas fa-building me-2"></i>تصفح القاعات
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Golden Black Theme Variables */
+:root {
+    --gold-primary: #FFD700;
+    --gold-secondary: #FFA500;
+    --gold-dark: #B8860B;
+    --black-primary: #000000;
+    --black-secondary: #1a1a1a;
+    --black-tertiary: #2d2d2d;
+    --gold-gradient: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+    --black-gradient: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
+    --gold-shadow: 0 10px 30px rgba(255, 215, 0, 0.3);
+    --black-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+body {
+    background: var(--black-primary);
+    color: var(--gold-primary);
+}
+
+.success-icon {
+    font-size: 5rem;
+    color: var(--gold-primary);
+    animation: bounce 1s ease-in-out;
+    text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+}
+
+@keyframes bounce {
+    0%, 20%, 60%, 100% {
+        transform: translateY(0);
+    }
+    40% {
+        transform: translateY(-20px);
+    }
+    80% {
+        transform: translateY(-10px);
+    }
+}
+
+.booking-info-item {
+    margin-bottom: 12px;
+    padding: 8px 0;
+    color: var(--gold-primary);
+}
+
+.price-summary {
+    background: var(--black-secondary);
+    padding: 20px;
+    border-radius: 10px;
+    border: 2px solid var(--gold-primary);
+    box-shadow: var(--black-shadow);
+}
+
+.next-step {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 20px;
+}
+
+.step-number {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--gold-gradient);
+    color: var(--black-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin-left: 15px;
+    flex-shrink: 0;
+    box-shadow: var(--gold-shadow);
+}
+
+.step-content h6 {
+    margin-bottom: 5px;
+    color: var(--gold-primary);
+}
+
+.step-content p {
+    margin-bottom: 0;
+    font-size: 14px;
+    color: var(--gold-secondary);
+}
+
+/* Card styling */
+.card {
+    background: var(--black-secondary);
+    border: 1px solid var(--gold-dark);
+    color: var(--gold-primary);
+}
+
+.card-header {
+    background: var(--gold-gradient);
+    border-bottom: 1px solid var(--gold-dark);
+    color: var(--black-primary);
+}
+
+.card-body {
+    background: var(--black-secondary);
+}
+
+/* Alert styling */
+.alert-success {
+    background: var(--black-secondary);
+    border: 1px solid var(--gold-primary);
+    color: var(--gold-primary);
+}
+
+/* Button styling */
+.btn-primary {
+    background: var(--gold-gradient);
+    border-color: var(--gold-primary);
+    color: var(--black-primary);
+    font-weight: bold;
+}
+
+.btn-primary:hover {
+    background: var(--gold-primary);
+    border-color: var(--gold-primary);
+    color: var(--black-primary);
+    box-shadow: var(--gold-shadow);
+    transform: translateY(-2px);
+}
+
+.btn-outline-secondary {
+    border-color: var(--gold-dark);
+    color: var(--gold-primary);
+}
+
+.btn-outline-secondary:hover {
+    background: var(--gold-primary);
+    border-color: var(--gold-primary);
+    color: var(--black-primary);
+}
+
+/* Text colors */
+.text-muted {
+    color: var(--gold-secondary) !important;
+}
+
+.text-primary {
+    color: var(--gold-primary) !important;
+}
+
+.text-success {
+    color: var(--gold-primary) !important;
+}
+
+.fw-bold {
+    color: var(--gold-primary);
+}
+
+/* Print Styles */
+@media print {
+    .btn, .alert {
+        display: none !important;
+    }
+    
+    .card {
+        border: 1px solid #ddd !important;
+        box-shadow: none !important;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // إضافة تأثير الظهور التدريجي
+    const elements = document.querySelectorAll('.card, .alert');
+    elements.forEach((element, index) => {
+        element.style.opacity = '0';
+        element.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            element.style.transition = 'all 0.5s ease';
+            element.style.opacity = '1';
+            element.style.transform = 'translateY(0)';
+        }, index * 200);
+    });
+});
+</script>
+{% endblock %}
