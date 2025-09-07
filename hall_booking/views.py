@@ -60,9 +60,12 @@ def halls_list(request):
 
     if governorate_id:
         halls = halls.filter(governorate_id=governorate_id)
-
-    if city_id:
-        halls = halls.filter(city_id=city_id)
+        # إذا تم اختيار مدينة، تأكد أنها تنتمي للمحافظة المختارة
+        if city_id:
+            halls = halls.filter(city_id=city_id, city__governorate_id=governorate_id)
+    elif city_id:
+        # إذا تم اختيار مدينة بدون محافظة، تجاهل المدينة
+        city_id = None
 
     if capacity:
         if capacity == '1-50':
@@ -86,11 +89,11 @@ def halls_list(request):
 
     categories = Category.objects.all()
     governorates = Governorate.objects.all().order_by('name')
-    cities = City.objects.all().order_by('governorate', 'name')
 
-    # إذا تم اختيار محافظة، فلتر المدن حسب المحافظة
+    # المدن تظهر فقط إذا تم اختيار محافظة
+    cities = []
     if governorate_id:
-        cities = cities.filter(governorate_id=governorate_id)
+        cities = City.objects.filter(governorate_id=governorate_id).order_by('name')
 
     context = {
         'halls': halls,
@@ -118,8 +121,17 @@ def get_cities_by_governorate(request):
 
 def hall_detail(request, hall_id):
     """تفاصيل القاعة"""
-    hall = get_object_or_404(Hall, id=hall_id)
-    
+    hall = get_object_or_404(Hall, id=hall_id, status='available')
+
+    # القاعات المشابهة (نفس الفئة أو نفس المحافظة)
+    similar_halls = Hall.objects.filter(
+        status='available'
+    ).exclude(
+        id=hall.id
+    ).filter(
+        Q(category=hall.category) | Q(governorate=hall.governorate)
+    ).select_related('category', 'governorate', 'city')[:6]
+
     # التحقق من التواريخ المتاحة
     if request.method == 'POST':
         date = request.POST.get('date')
@@ -135,12 +147,19 @@ def hall_detail(request, hall_id):
                 'hall': hall,
                 'selected_date': selected_date,
                 'bookings': bookings,
+                'similar_halls': similar_halls,
             }
         else:
-            context = {'hall': hall}
+            context = {
+                'hall': hall,
+                'similar_halls': similar_halls,
+            }
     else:
-        context = {'hall': hall}
-    
+        context = {
+            'hall': hall,
+            'similar_halls': similar_halls,
+        }
+
     return render(request, 'hall_booking/hall_detail.html', context)
 
 def booking_form(request, hall_id):

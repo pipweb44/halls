@@ -1,793 +1,610 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}{{ hall.name }} - نظام حجز القاعات{% endblock %}
-
-{% block content %}
-<!-- Hall Details Section -->
-<section class="py-5 hall-detail">
-    <div class="container">
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="{% url 'hall_booking:home' %}">الرئيسية</a></li>
-                <li class="breadcrumb-item"><a href="{% url 'hall_booking:halls_list' %}">القاعات</a></li>
-                <li class="breadcrumb-item active" aria-current="page">{{ hall.name }}</li>
-            </ol>
-        </nav>
-
-        <div class="row">
-            <!-- Hall Image and Info -->
-            <div class="col-lg-8">
-                <div class="card border-0 shadow-sm mb-4">
-                    <!-- صورة القاعة الرئيسية -->
-                    {% if hall.image %}
-                    <div class="hall-main-image mb-3">
-                        <img src="{{ hall.image.url }}" class="w-100 rounded" style="height:400px;object-fit:cover;" alt="{{ hall.name }}">
-                    </div>
-                    {% endif %}
-                    
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start mb-3">
-                            <h1 class="card-title h2">{{ hall.name }}</h1>
-                            <span class="badge bg-primary fs-6">{{ hall.category.name }}</span>
-                        </div>
-                        
-                        <p class="card-text lead">{{ hall.description }}</p>
-                        
-                        <div class="row mb-4">
-                            <div class="col-md-6">
-                                <div class="d-flex align-items-center mb-2">
-                                    <i class="fas fa-users text-primary me-2"></i>
-                                    <span class="fw-bold">السعة:</span>
-                                    <span class="ms-2">{{ hall.capacity }} شخص</span>
-                                </div>
-                                <div class="d-flex align-items-center mb-2">
-                                    <i class="fas fa-clock text-primary me-2"></i>
-                                    <span class="fw-bold">السعر:</span>
-                                    <span class="ms-2 text-success fw-bold">{{ hall.price_per_hour }} ريال/ساعة</span>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="d-flex align-items-center mb-2">
-                                    <i class="fas fa-calendar-check text-primary me-2"></i>
-                                    <span class="fw-bold">الحالة:</span>
-                                    <span class="ms-2 badge hall-{{ hall.status }}">{{ hall.get_status_display }}</span>
-                                </div>
-                                <div class="d-flex align-items-center mb-2">
-                                    <i class="fas fa-map-marker-alt text-primary me-2"></i>
-                                    <span class="fw-bold">الموقع:</span>
-                                    <span class="ms-2">{{ hall.get_location_display }}</span>
-                                </div>
-                                {% if hall.address %}
-                                <div class="d-flex align-items-center mb-2">
-                                    <i class="fas fa-home text-primary me-2"></i>
-                                    <span class="fw-bold">العنوان:</span>
-                                    <span class="ms-2">{{ hall.address }}</span>
-                                </div>
-                                {% endif %}
-                                {% if hall.phone %}
-                                <div class="d-flex align-items-center mb-2">
-                                    <i class="fas fa-phone text-primary me-2"></i>
-                                    <span class="fw-bold">الهاتف:</span>
-                                    <span class="ms-2">{{ hall.phone }}</span>
-                                </div>
-                                {% endif %}
-                                {% if hall.email %}
-                                <div class="d-flex align-items-center mb-2">
-                                    <i class="fas fa-envelope text-primary me-2"></i>
-                                    <span class="fw-bold">البريد الإلكتروني:</span>
-                                    <span class="ms-2">{{ hall.email }}</span>
-                                </div>
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        {% if hall.features %}
-                        <div class="mb-4">
-                            <h5 class="mb-3">المميزات</h5>
-                            <div class="row">
-                                {% for feature in hall.features %}
-                                <div class="col-md-6 mb-2">
-                                    <div class="d-flex align-items-center">
-                                        <i class="fas fa-check-circle text-success me-2"></i>
-                                        <span>{{ feature }}</span>
-                                    </div>
-                                </div>
-                                {% endfor %}
-                            </div>
-                        </div>
-                        {% endif %}
-
-                        <div class="d-flex gap-3">
-                            <a href="{% url 'hall_booking:booking_step1_date' hall.id %}" class="btn btn-hero-primary btn-lg">
-                                <i class="fas fa-calendar-check me-2"></i>احجز الآن
-                            </a>
-                            <button class="btn btn-hero-secondary btn-lg" onclick="checkAvailability()">
-                                <i class="fas fa-clock me-2"></i>تحقق من التوفر
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Booking Form Sidebar -->
-            <div class="col-lg-4">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0"><i class="fas fa-calendar-alt me-2"></i>احجز هذه القاعة</h5>
-                    </div>
-                    <div class="card-body">
-                        <form id="availability-form" class="mb-4">
-                            <input type="hidden" name="hall_id" value="{{ hall.id }}">
-                            
-                            <div class="mb-3">
-                                <label for="start_datetime" class="form-label">تاريخ ووقت البداية</label>
-                                <input type="datetime-local" class="form-control" id="start_datetime" name="start_datetime" required>
-                            </div>
-                            
-                            <div class="mb-3">
-                                <label for="end_datetime" class="form-label">تاريخ ووقت النهاية</label>
-                                <input type="datetime-local" class="form-control" id="end_datetime" name="end_datetime" required>
-                            </div>
-                            
-                            <button type="submit" class="btn btn-hero-primary w-100">
-                                <i class="fas fa-search me-2"></i>تحقق من التوفر
-                            </button>
-                        </form>
-
-                        <hr>
-
-                        <div class="text-center">
-                            <h6 class="text-muted mb-3">معلومات سريعة</h6>
-                            <div class="row text-center">
-                                <div class="col-6 mb-3">
-                                    <div class="bg-light rounded p-3">
-                                        <i class="fas fa-users text-primary fa-2x mb-2"></i>
-                                        <div class="fw-bold">{{ hall.capacity }}</div>
-                                        <small class="text-muted">شخص</small>
-                                    </div>
-                                </div>
-                                <div class="col-6 mb-3">
-                                    <div class="bg-light rounded p-3">
-                                        <i class="fas fa-money-bill text-success fa-2x mb-2"></i>
-                                        <div class="fw-bold">{{ hall.price_per_hour }}</div>
-                                        <small class="text-muted">ريال/ساعة</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mt-4">
-                            <h6 class="text-muted mb-3">سياسة الحجز</h6>
-                            <ul class="list-unstyled">
-                                <li class="mb-2">
-                                    <i class="fas fa-check text-success me-2"></i>
-                                    الحد الأدنى للحجز: ساعة واحدة
-                                </li>
-                                <li class="mb-2">
-                                    <i class="fas fa-check text-success me-2"></i>
-                                    الدفع مقدم أو عند الوصول
-                                </li>
-                                <li class="mb-2">
-                                    <i class="fas fa-check text-success me-2"></i>
-                                    إمكانية الإلغاء قبل 24 ساعة
-                                </li>
-                                <li class="mb-2">
-                                    <i class="fas fa-check text-success me-2"></i>
-                                    خدمة عملاء 24/7
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Availability Calendar -->
-        <div class="row mt-5">
-            <div class="col-12">
-                <div class="card border-0 shadow-sm">
-                    <div class="card-header bg-light">
-                        <h5 class="mb-0"><i class="fas fa-calendar me-2"></i>التوفر في الأيام القادمة</h5>
-                    </div>
-                    <div class="card-body">
-                        <form method="post" class="mb-3">
-                            {% csrf_token %}
-                            <div class="row">
-                                <div class="col-md-4">
-                                    <label for="date" class="form-label">اختر تاريخ</label>
-                                    <input type="date" class="form-control" id="date" name="date" 
-                                           min="{{ today|date:'Y-m-d' }}" value="{{ selected_date|date:'Y-m-d' }}">
-                                </div>
-                                <div class="col-md-4 d-flex align-items-end">
-                                    <button type="submit" class="btn btn-hero-primary">
-                                        <i class="fas fa-search me-2"></i>عرض التوفر
-                                    </button>
-                                </div>
-                            </div>
-                        </form>
-
-                        {% if selected_date and bookings %}
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>الوقت</th>
-                                        <th>الحدث</th>
-                                        <th>الحالة</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for booking in bookings %}
-                                    <tr>
-                                        <td>{{ booking.start_datetime|time:"H:i" }} - {{ booking.end_datetime|time:"H:i" }}</td>
-                                        <td>{{ booking.event_title }}</td>
-                                        <td>
-                                            <span class="badge status-{{ booking.status }}">
-                                                {{ booking.get_status_display }}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                        {% elif selected_date %}
-                        <div class="text-center py-4">
-                            <i class="fas fa-check-circle text-success fa-3x mb-3"></i>
-                            <h5 class="text-success">القاعة متاحة في هذا التاريخ!</h5>
-                            <p class="text-muted">لا توجد حجوزات في {{ selected_date|date:"Y/m/d" }}</p>
-                        </div>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Similar Halls -->
-        <div class="row mt-5">
-            <div class="col-12">
-                <h3 class="mb-4">قاعات مشابهة</h3>
-                <div class="row">
-                    {% for similar_hall in hall.category.hall_set.all|slice:":3" %}
-                    {% if similar_hall.id != hall.id %}
-                    <div class="col-md-4 mb-4">
-                        <div class="card h-100 border-0 shadow-sm hover-lift">
-                            {% if similar_hall.image %}
-                            <img src="{{ similar_hall.image.url }}" class="card-img-top" alt="{{ similar_hall.name }}" style="height: 200px; object-fit: cover;">
-                            {% else %}
-                            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
-                                <i class="fas fa-building fa-3x text-muted"></i>
-                            </div>
-                            {% endif %}
-                            <div class="card-body">
-                                <h5 class="card-title">{{ similar_hall.name }}</h5>
-                                <p class="card-text text-muted">{{ similar_hall.description|truncatewords:15 }}</p>
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <span class="price fw-bold">{{ similar_hall.price_per_hour }} ريال/ساعة</span>
-                                    <span class="badge capacity-badge">{{ similar_hall.capacity }} شخص</span>
-                                </div>
-                            </div>
-                            <div class="card-footer bg-transparent border-0">
-                                <a href="{% url 'hall_booking:hall_detail' similar_hall.id %}" class="btn btn-hero-secondary w-100">
-                                    <i class="fas fa-eye me-2"></i>عرض التفاصيل
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                    {% endif %}
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-{% endblock %}
-
-{% block extra_js %}
-<!-- Custom JavaScript for hall detail page -->
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Any custom JavaScript for hall detail page can go here
-});
-</script>
-{% endblock %}
+{% block title %}{{ hall.name }}{% endblock %}
 
 {% block extra_css %}
 <style>
-/* Golden Black Theme for Hall Detail */
+:root {
+    --gold-primary: #FFD700;
+    --gold-secondary: #FFA500;
+    --gold-dark: #B8860B;
+    --black-primary: #000000;
+    --black-secondary: #1a1a1a;
+    --black-tertiary: #2d2d2d;
+    --black-light: #404040;
+}
 
-.hall-detail {
-    background: var(--black-primary);
+body {
+    background: linear-gradient(135deg, var(--black-primary) 0%, var(--black-secondary) 100%);
     color: var(--gold-primary);
     min-height: 100vh;
 }
 
-.breadcrumb {
-    background: transparent;
-    padding: 1rem 0;
+/* Hero Section */
+.hall-hero {
+    position: relative;
+    height: 60vh;
+    overflow: hidden;
+    margin-bottom: 3rem;
 }
 
-.breadcrumb-item a {
+.hall-hero-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.hall-hero-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 100%);
+    display: flex;
+    align-items: end;
+    padding: 3rem;
+}
+
+.hall-hero-content {
+    color: white;
+    max-width: 600px;
+}
+
+.hall-hero-title {
+    font-size: 3rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
+}
+
+.hall-hero-category {
+    background: var(--gold-primary);
+    color: var(--black-primary);
+    padding: 0.5rem 1.5rem;
+    border-radius: 25px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: inline-block;
+    margin-bottom: 1rem;
+}
+
+.hall-hero-location {
+    font-size: 1.2rem;
     color: var(--gold-secondary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Back Button */
+.back-btn {
+    position: fixed;
+    top: 100px;
+    left: 2rem;
+    background: var(--black-tertiary);
+    border: 2px solid var(--gold-dark);
+    color: var(--gold-primary);
+    padding: 1rem;
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    z-index: 1000;
     text-decoration: none;
-    transition: var(--transition);
 }
 
-.breadcrumb-item a:hover {
+.back-btn:hover {
+    background: var(--gold-primary);
+    color: var(--black-primary);
+    transform: translateX(-5px);
+    text-decoration: none;
+}
+
+/* Main Content */
+.hall-details {
+    background: var(--black-tertiary);
+    border-radius: 20px;
+    padding: 3rem;
+    margin-bottom: 3rem;
+    border: 2px solid var(--gold-dark);
+    box-shadow: 0 10px 30px rgba(255, 215, 0, 0.1);
+}
+
+.hall-info-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 3rem;
+    margin-bottom: 3rem;
+}
+
+.hall-description {
+    color: var(--gold-secondary);
+    font-size: 1.1rem;
+    line-height: 1.8;
+    margin-bottom: 2rem;
+}
+
+.hall-features {
+    margin-bottom: 2rem;
+}
+
+.features-title {
     color: var(--gold-primary);
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
-.breadcrumb-item.active {
-    color: var(--gold-primary);
+.features-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
 }
 
-.breadcrumb-item + .breadcrumb-item::before {
-    color: var(--gold-dark);
-}
-
-.hall-main-image {
-    border-radius: 18px;
-    box-shadow: var(--gold-shadow);
+.feature-item {
     background: var(--black-secondary);
+    padding: 1rem;
+    border-radius: 10px;
+    border: 1px solid var(--gold-dark);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    transition: all 0.3s ease;
+}
+
+.feature-item:hover {
+    background: var(--black-light);
+    border-color: var(--gold-primary);
+}
+
+.feature-item i {
+    color: var(--gold-primary);
+    font-size: 1.2rem;
+}
+
+.feature-item span {
+    color: var(--gold-secondary);
+    font-weight: 500;
+}
+
+/* Hall Info Sidebar */
+.hall-info-sidebar {
+    background: var(--black-secondary);
+    padding: 2rem;
+    border-radius: 15px;
+    border: 2px solid var(--gold-dark);
+    height: fit-content;
+}
+
+.info-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--gold-dark);
+}
+
+.info-item:last-child {
+    border-bottom: none;
+}
+
+.info-icon {
+    background: var(--gold-primary);
+    color: var(--black-primary);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+}
+
+.info-content {
+    flex: 1;
+}
+
+.info-label {
+    color: var(--gold-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+}
+
+.info-value {
+    color: var(--gold-primary);
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+/* Booking Button */
+.booking-section {
+    background: linear-gradient(135deg, var(--gold-primary) 0%, var(--gold-secondary) 100%);
+    padding: 2rem;
+    border-radius: 15px;
+    text-align: center;
+    margin-top: 2rem;
+}
+
+.booking-price {
+    color: var(--black-primary);
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+}
+
+.booking-unit {
+    color: var(--black-secondary);
+    font-size: 1rem;
     margin-bottom: 1.5rem;
+}
+
+.btn-book-now {
+    background: var(--black-primary);
+    color: var(--gold-primary);
+    border: none;
+    padding: 1rem 3rem;
+    border-radius: 50px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-book-now:hover {
+    background: var(--black-secondary);
+    color: var(--gold-primary);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    text-decoration: none;
+}
+
+/* Similar Halls Section */
+.similar-halls {
+    margin-top: 4rem;
+}
+
+.section-title {
+    color: var(--gold-primary);
+    font-size: 2.5rem;
+    font-weight: 800;
+    text-align: center;
+    margin-bottom: 3rem;
+    position: relative;
+}
+
+.section-title::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 3px;
+    background: linear-gradient(90deg, var(--gold-primary) 0%, var(--gold-secondary) 100%);
+    border-radius: 2px;
+}
+
+.similar-halls-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+}
+
+.similar-hall-card {
+    background: var(--black-tertiary);
+    border-radius: 15px;
     overflow: hidden;
     border: 2px solid var(--gold-dark);
+    transition: all 0.3s ease;
 }
 
-.hall-main-image img {
-    border-radius: 16px;
-    transition: var(--transition);
-}
-
-.hall-main-image img:hover {
-    transform: scale(1.03);
-    box-shadow: var(--gold-shadow);
-}
-
-.card {
-    background: var(--black-secondary);
-    border: 1px solid var(--gold-dark);
-    color: var(--gold-primary);
-}
-
-.card-header {
-    background: var(--black-tertiary);
-    color: var(--gold-primary);
-    border-bottom: 1px solid var(--gold-dark);
-    font-weight: 600;
-}
-
-.card-body {
-    background: var(--black-secondary);
-}
-
-.badge {
-    background: var(--gold-gradient);
-    color: var(--black-primary);
-    font-weight: 600;
-}
-
-.btn-primary {
-    background: var(--gold-gradient);
+.similar-hall-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(255, 215, 0, 0.2);
     border-color: var(--gold-primary);
-    color: var(--black-primary);
-    font-weight: bold;
 }
 
-.btn-primary:hover {
-    background: var(--gold-primary);
-    border-color: var(--gold-primary);
+.similar-hall-image {
+    height: 200px;
+    overflow: hidden;
+}
+
+.similar-hall-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.similar-hall-card:hover .similar-hall-image img {
+    transform: scale(1.05);
+}
+
+.similar-hall-content {
+    padding: 1.5rem;
+}
+
+.similar-hall-title {
+    color: var(--gold-primary);
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.similar-hall-location {
+    color: var(--gold-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.similar-hall-price {
+    color: var(--gold-primary);
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.similar-hall-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-view-similar {
+    flex: 1;
+    background: transparent;
+    border: 2px solid var(--gold-dark);
+    color: var(--gold-primary);
+    padding: 0.75rem;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    text-align: center;
+}
+
+.btn-view-similar:hover {
+    background: var(--gold-dark);
     color: var(--black-primary);
-    box-shadow: var(--gold-shadow);
+    text-decoration: none;
+}
+
+.btn-book-similar {
+    flex: 1;
+    background: linear-gradient(135deg, var(--gold-primary) 0%, var(--gold-secondary) 100%);
+    border: none;
+    color: var(--black-primary);
+    padding: 0.75rem;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    text-align: center;
+}
+
+.btn-book-similar:hover {
     transform: translateY(-2px);
-}
-
-.btn-outline-secondary {
-    border-color: var(--gold-dark);
-    color: var(--gold-primary);
-}
-
-.btn-outline-secondary:hover {
-    background: var(--gold-primary);
-    border-color: var(--gold-primary);
+    box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
     color: var(--black-primary);
+    text-decoration: none;
 }
 
-.text-muted {
-    color: var(--gold-secondary) !important;
-}
-
-.text-primary {
-    color: var(--gold-primary) !important;
-}
-
-.list-group-item {
-    background: var(--black-tertiary);
-    border-color: var(--gold-dark);
-    color: var(--gold-primary);
-}
-
-.list-group-item:first-child {
-    border-top-left-radius: 10px;
-    border-top-right-radius: 10px;
-}
-
-.list-group-item:last-child {
-    border-bottom-left-radius: 10px;
-    border-bottom-right-radius: 10px;
-}
-body[data-theme="luxury"] .hall-detail .card-title { color: var(--lux-text); }
-body[data-theme="luxury"] .hall-detail .card-text.lead { color: var(--lux-text); opacity: .95; }
-
-/* Info rows */
-body[data-theme="luxury"] .hall-detail .fw-bold { color: var(--lux-text); }
-body[data-theme="luxury"] .hall-detail .text-success,
-body[data-theme="luxury"] .hall-detail .text-primary { color: var(--lux-gold) !important; }
-body[data-theme="luxury"] .hall-detail .badge { background: transparent; border: 1px solid var(--lux-gold); color: var(--lux-gold); }
-
-/* Quick info tiles */
-body[data-theme="luxury"] .hall-detail .bg-light { background: #121218 !important; }
-body[data-theme="luxury"] .hall-detail .text-muted { color: rgba(242,241,238,0.7) !important; }
-
-/* Table */
-body[data-theme="luxury"] .hall-detail .table { color: var(--lux-text); }
-body[data-theme="luxury"] .hall-detail .table-hover tbody tr:hover { background: rgba(212,175,55,0.06); }
-body[data-theme="luxury"] .hall-detail .table-light { background: #0b0b0d !important; color: var(--lux-gold) !important; border-bottom: 1px solid rgba(212,175,55,0.35); }
-
-/* Main Image */
-body[data-theme="luxury"] .hall-detail .hall-main-image { border-radius: 18px; background: #0b0b0d; margin-bottom: 1.5rem; border: 1px solid rgba(212,175,55,0.25); }
-body[data-theme="luxury"] .hall-detail .hall-main-image img { border-radius: 18px; transition: transform 0.2s; box-shadow: none; }
-body[data-theme="luxury"] .hall-detail .hall-main-image img:hover { transform: scale(1.03); }
-
-/* Similar halls */
-body[data-theme="luxury"] .hall-detail .price { color: var(--lux-gold); }
-body[data-theme="luxury"] .hall-detail .capacity-badge { border: 1px solid var(--lux-gold); color: var(--lux-gold); background: transparent; }
-
-/* Mobile-First Design for Hall Detail */
-@media (max-width: 767.98px) {
-    .hall-detail {
-        padding: 1rem 0;
+/* Responsive Design */
+@media (max-width: 768px) {
+    .hall-hero {
+        height: 40vh;
     }
-
-    .container {
-        padding: 0 1rem;
+    
+    .hall-hero-overlay {
+        padding: 2rem;
     }
-
-    /* Breadcrumb Mobile */
-    .breadcrumb {
-        font-size: 0.9rem;
-        padding: 0.5rem 0;
-        margin-bottom: 1rem;
+    
+    .hall-hero-title {
+        font-size: 2rem;
     }
-
-    /* Main Layout Mobile */
-    .row {
-        margin: 0;
+    
+    .hall-info-grid {
+        grid-template-columns: 1fr;
+        gap: 2rem;
     }
-
-    .col-lg-8, .col-lg-4 {
-        padding: 0;
-        margin-bottom: 2rem;
+    
+    .hall-details {
+        padding: 2rem;
     }
-
-    /* Hall Image Mobile */
-    .hall-main-image {
-        border-radius: 15px;
-        margin-bottom: 1.5rem;
-        height: 250px;
-        overflow: hidden;
+    
+    .back-btn {
+        top: 80px;
+        left: 1rem;
+        width: 50px;
+        height: 50px;
     }
-
-    .hall-main-image img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        border-radius: 15px;
+    
+    .features-list {
+        grid-template-columns: 1fr;
     }
-
-    /* Card Mobile */
-    .card {
-        border-radius: 15px;
-        margin-bottom: 1.5rem;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-    }
-
-    .card-body {
-        padding: 1.5rem;
-    }
-
-    /* Title and Badge Mobile */
-    .card-title {
-        font-size: 1.5rem;
-        margin-bottom: 1rem;
-        line-height: 1.3;
-    }
-
-    .badge {
-        font-size: 0.8rem;
-        padding: 0.5rem 1rem;
-        border-radius: 20px;
-    }
-
-    /* Description Mobile */
-    .card-text.lead {
-        font-size: 1rem;
-        line-height: 1.6;
-        margin-bottom: 1.5rem;
-    }
-
-    /* Info Grid Mobile */
-    .row.mb-4 {
-        margin-bottom: 1.5rem !important;
-    }
-
-    .col-md-6 {
-        margin-bottom: 1rem;
-    }
-
-    .d-flex.align-items-center {
-        margin-bottom: 0.8rem;
-        font-size: 0.95rem;
-    }
-
-    .d-flex.align-items-center i {
-        font-size: 1rem;
-        width: 20px;
-    }
-
-    .fw-bold {
-        font-weight: 600;
-        margin-right: 0.5rem;
-    }
-
-    /* Features Mobile */
-    .mb-4 h5 {
-        font-size: 1.2rem;
-        margin-bottom: 1rem;
-        color: var(--gold-primary);
-    }
-
-    .col-md-6.mb-2 {
-        margin-bottom: 0.8rem !important;
-    }
-
-    /* Action Buttons Mobile */
-    .d-flex.gap-3 {
-        flex-direction: column;
-        gap: 1rem !important;
-        margin-top: 2rem;
-    }
-
-    .btn-lg {
-        padding: 1rem 2rem;
-        font-size: 1.1rem;
-        border-radius: 25px;
-        font-weight: 600;
-    }
-
-    .btn-hero-primary {
-        background: var(--gold-primary);
-        border-color: var(--gold-primary);
-        color: var(--black-primary);
-    }
-
-    .btn-hero-secondary {
-        background: transparent;
-        border: 2px solid var(--gold-primary);
-        color: var(--gold-primary);
-    }
-
-    .btn-hero-secondary:hover {
-        background: var(--gold-primary);
-        color: var(--black-primary);
-    }
-
-    /* Sidebar Mobile */
-    .col-lg-4 .card {
-        position: sticky;
-        top: 1rem;
-    }
-
-    .card-header {
-        padding: 1rem 1.5rem;
-        font-size: 1.1rem;
-    }
-
-    /* Form Mobile */
-    .form-label {
-        color: var(--gold-primary);
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-    }
-
-    .form-control {
-        background: var(--black-tertiary);
-        border: 1px solid var(--gold-dark);
-        color: #fff;
-        border-radius: 8px;
-        padding: 0.8rem;
-    }
-
-    .form-control:focus {
-        background: var(--black-tertiary);
-        border-color: var(--gold-primary);
-        color: #fff;
-        box-shadow: 0 0 0 0.2rem rgba(255, 215, 0, 0.25);
-    }
-
-    /* Quick Info Mobile */
-    .text-center h6 {
-        color: var(--gold-primary);
-        font-size: 1rem;
-        margin-bottom: 1rem;
-    }
-
-    .bg-light {
-        background: var(--black-tertiary) !important;
-        border: 1px solid var(--gold-dark);
-        border-radius: 10px;
-    }
-
-    .bg-light i {
-        color: var(--gold-primary);
-    }
-
-    .bg-light .fw-bold {
-        color: var(--gold-primary);
-        font-size: 1.2rem;
-    }
-
-    .bg-light small {
-        color: #ccc;
-    }
-
-    /* Policy List Mobile */
-    .list-unstyled li {
-        padding: 0.5rem 0;
-        border-bottom: 1px solid var(--gold-dark);
-        font-size: 0.9rem;
-    }
-
-    .list-unstyled li:last-child {
-        border-bottom: none;
-    }
-
-    .list-unstyled li i {
-        color: var(--gold-primary);
-        width: 20px;
-    }
-
-    /* Availability Calendar Mobile */
-    .mt-5 {
-        margin-top: 2rem !important;
-    }
-
-    .card-header h5 {
-        font-size: 1.1rem;
-    }
-
-    .col-md-4 {
-        margin-bottom: 1rem;
-    }
-
-    .table-responsive {
-        border-radius: 10px;
-        overflow: hidden;
-    }
-
-    .table {
-        margin-bottom: 0;
-        font-size: 0.9rem;
-    }
-
-    .table th {
-        background: var(--black-tertiary);
-        color: var(--gold-primary);
-        border-color: var(--gold-dark);
-        font-weight: 600;
-        padding: 1rem 0.8rem;
-    }
-
-    .table td {
-        border-color: var(--gold-dark);
-        padding: 0.8rem;
-        color: #ccc;
-    }
-
-    .badge.status-pending {
-        background: rgba(255, 193, 7, 0.2);
-        color: #ffc107;
-        border: 1px solid #ffc107;
-    }
-
-    .badge.status-approved {
-        background: rgba(40, 167, 69, 0.2);
-        color: #28a745;
-        border: 1px solid #28a745;
-    }
-
-    .badge.status-rejected {
-        background: rgba(220, 53, 69, 0.2);
-        color: #dc3545;
-        border: 1px solid #dc3545;
-    }
-
-    /* Similar Halls Mobile */
-    .col-md-4.mb-4 {
-        margin-bottom: 1.5rem !important;
-    }
-
-    .card.h-100 {
-        height: auto !important;
-    }
-
-    .card-img-top {
-        height: 180px;
-        border-radius: 15px 15px 0 0;
-    }
-
-    .card-body {
-        padding: 1.2rem;
-    }
-
-    .card-title {
-        font-size: 1.2rem;
-        margin-bottom: 0.8rem;
-    }
-
-    .card-text {
-        font-size: 0.9rem;
-        line-height: 1.5;
-        margin-bottom: 1rem;
-    }
-
-    .price {
-        font-size: 1rem;
-        font-weight: bold;
-        color: var(--gold-primary);
-    }
-
-    .capacity-badge {
-        background: rgba(255, 215, 0, 0.1);
-        color: var(--gold-primary);
-        border: 1px solid var(--gold-dark);
-        font-size: 0.8rem;
-        padding: 0.3rem 0.8rem;
-        border-radius: 15px;
-    }
-
-    .card-footer {
-        padding: 1rem 1.2rem;
-        background: transparent;
-    }
-
-    .btn.w-100 {
-        padding: 0.8rem;
-        border-radius: 20px;
-        font-weight: 600;
-    }
-
-    /* Empty State Mobile */
-    .text-center.py-4 {
-        padding: 2rem 1rem !important;
-    }
-
-    .text-center.py-4 i {
-        font-size: 3rem;
-        margin-bottom: 1rem;
-        color: var(--gold-primary);
-    }
-
-    .text-center.py-4 h5 {
-        color: var(--gold-primary);
-        margin-bottom: 0.5rem;
-    }
-
-    .text-center.py-4 p {
-        color: #ccc;
-        font-size: 0.9rem;
+    
+    .similar-halls-grid {
+        grid-template-columns: 1fr;
     }
 }
 </style>
+{% endblock %}
+
+{% block content %}
+<!-- Back Button -->
+<a href="{% url 'hall_booking:halls_list' %}" class="back-btn">
+    <i class="fas fa-arrow-right"></i>
+</a>
+
+<!-- Hero Section -->
+<div class="hall-hero">
+    {% if hall.hallimage_set.first %}
+        <img src="{{ hall.hallimage_set.first.image.url }}" alt="{{ hall.name }}" class="hall-hero-image">
+    {% else %}
+        <div style="width: 100%; height: 100%; background: var(--black-light); display: flex; align-items: center; justify-content: center;">
+            <i class="fas fa-building" style="font-size: 5rem; color: var(--gold-dark);"></i>
+        </div>
+    {% endif %}
+    <div class="hall-hero-overlay">
+        <div class="hall-hero-content">
+            <div class="hall-hero-category">{{ hall.category.name }}</div>
+            <h1 class="hall-hero-title">{{ hall.name }}</h1>
+            <div class="hall-hero-location">
+                <i class="fas fa-map-marker-alt"></i>
+                {{ hall.get_location_display }}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Main Hall Details -->
+    <div class="hall-details">
+        <div class="hall-info-grid">
+            <div class="hall-main-info">
+                <div class="hall-description">
+                    {{ hall.description }}
+                </div>
+                
+                {% if hall.features %}
+                <div class="hall-features">
+                    <h3 class="features-title">
+                        <i class="fas fa-star"></i>
+                        مميزات القاعة
+                    </h3>
+                    <div class="features-list">
+                        {% for feature in hall.features %}
+                        <div class="feature-item">
+                            <i class="fas fa-check"></i>
+                            <span>{{ feature }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="hall-info-sidebar">
+                <div class="info-item">
+                    <div class="info-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="info-content">
+                        <div class="info-label">السعة</div>
+                        <div class="info-value">{{ hall.capacity }} شخص</div>
+                    </div>
+                </div>
+                
+                <div class="info-item">
+                    <div class="info-icon">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <div class="info-content">
+                        <div class="info-label">الموقع</div>
+                        <div class="info-value">{{ hall.get_location_display }}</div>
+                    </div>
+                </div>
+                
+                {% if hall.address %}
+                <div class="info-item">
+                    <div class="info-icon">
+                        <i class="fas fa-home"></i>
+                    </div>
+                    <div class="info-content">
+                        <div class="info-label">العنوان</div>
+                        <div class="info-value">{{ hall.address }}</div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if hall.phone %}
+                <div class="info-item">
+                    <div class="info-icon">
+                        <i class="fas fa-phone"></i>
+                    </div>
+                    <div class="info-content">
+                        <div class="info-label">الهاتف</div>
+                        <div class="info-value">{{ hall.phone }}</div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if hall.email %}
+                <div class="info-item">
+                    <div class="info-icon">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <div class="info-content">
+                        <div class="info-label">البريد الإلكتروني</div>
+                        <div class="info-value">{{ hall.email }}</div>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="booking-section">
+                    <div class="booking-price">{{ hall.price_per_hour }}</div>
+                    <div class="booking-unit">ريال للساعة الواحدة</div>
+                    <a href="{% url 'hall_booking:booking_step1_date' hall.id %}" class="btn-book-now">
+                        <i class="fas fa-calendar-check me-2"></i>احجز الآن
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Similar Halls Section -->
+    <div class="similar-halls">
+        <h2 class="section-title">قاعات مشابهة</h2>
+        <div class="similar-halls-grid">
+            {% for similar_hall in similar_halls %}
+            <div class="similar-hall-card">
+                <div class="similar-hall-image">
+                    {% if similar_hall.hallimage_set.first %}
+                        <img src="{{ similar_hall.hallimage_set.first.image.url }}" alt="{{ similar_hall.name }}">
+                    {% else %}
+                        <div style="height: 200px; background: var(--black-light); display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-building" style="font-size: 3rem; color: var(--gold-dark);"></i>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="similar-hall-content">
+                    <h4 class="similar-hall-title">{{ similar_hall.name }}</h4>
+                    <div class="similar-hall-location">
+                        <i class="fas fa-map-marker-alt"></i>
+                        {{ similar_hall.get_location_display }}
+                    </div>
+                    <div class="similar-hall-price">{{ similar_hall.price_per_hour }} ريال/ساعة</div>
+                    <div class="similar-hall-actions">
+                        <a href="{% url 'hall_booking:hall_detail' similar_hall.id %}" class="btn-view-similar">
+                            <i class="fas fa-eye me-1"></i>عرض
+                        </a>
+                        <a href="{% url 'hall_booking:booking_step1_date' similar_hall.id %}" class="btn-book-similar">
+                            <i class="fas fa-calendar-check me-1"></i>احجز
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div style="grid-column: 1 / -1; text-align: center; color: var(--gold-secondary); padding: 2rem;">
+                <i class="fas fa-search" style="font-size: 3rem; margin-bottom: 1rem; color: var(--gold-dark);"></i>
+                <p>لا توجد قاعات مشابهة في الوقت الحالي</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
 {% endblock %}
