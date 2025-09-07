@@ -251,9 +251,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: radial-gradient(circle at 20% 80%, rgba(255, 215, 0, 0.3) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(255, 165, 0, 0.2) 0%, transparent 50%),
-                radial-gradient(circle at 40% 40%, rgba(255, 215, 0, 0.1) 0%, transparent 50%);
+    background: transparent;
 }
 
 .hero-content {
@@ -267,7 +265,7 @@
     font-weight: 800;
     margin-bottom: 1.5rem;
     line-height: 1.2;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
 }
 
 .gradient-text {
@@ -315,7 +313,7 @@
     background: var(--gold-primary);
     color: var(--black-primary);
     transform: translateY(-3px);
-    box-shadow: 0 15px 35px rgba(255, 215, 0, 0.4);
+    box-shadow: 0 15px 35px rgba(255, 215, 0, 0.3);
 }
 
 .hero-btn.btn-outline-light {
@@ -345,7 +343,7 @@
     font-size: 2rem;
     font-weight: 700;
     color: var(--gold-primary);
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
 }
 
 .stat-label {
@@ -362,7 +360,7 @@
 
 .floating-card {
     position: absolute;
-    background: rgba(255, 215, 0, 0.1);
+    background: rgba(255, 215, 0, 0.05);
     backdrop-filter: blur(10px);
     border: 1px solid var(--gold-dark);
     border-radius: 20px;
@@ -418,7 +416,7 @@
     font-weight: 700;
     margin-bottom: 1rem;
     color: var(--gold-primary);
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
 }
 
 .section-subtitle {
@@ -481,11 +479,11 @@
     font-size: 1.5rem;
     font-weight: 600;
     margin-bottom: 1rem;
-    color: var(--dark-color);
+    color: var(--gold-primary);
 }
 
 .feature-description {
-    color: #666;
+    color: #ccc;
     margin-bottom: 1.5rem;
     line-height: 1.6;
 }
@@ -506,7 +504,7 @@
 }
 
 .category-card {
-    background: #fff;
+    background: var(--black-secondary);
     border-radius: var(--border-radius);
     padding: 2.5rem;
     text-align: center;
@@ -557,13 +555,13 @@
     font-size: 1.5rem;
     font-weight: 600;
     margin-bottom: 1rem;
-    color: var(--dark-color);
+    color: var(--gold-primary);
     position: relative;
     z-index: 2;
 }
 
 .category-description {
-    color: #666;
+    color: #ccc;
     margin-bottom: 1.5rem;
     line-height: 1.6;
     position: relative;
@@ -571,7 +569,7 @@
 }
 
 .category-link {
-    color: var(--primary-color);
+    color: var(--gold-primary);
     text-decoration: none;
     font-weight: 600;
     display: inline-flex;
@@ -583,7 +581,7 @@
 }
 
 .category-link:hover {
-    color: var(--secondary-color);
+    color: var(--gold-secondary);
     transform: translateX(-5px);
 }
 
@@ -594,7 +592,7 @@
 }
 
 .hall-card {
-    background: #fff;
+    background: var(--black-secondary);
     border-radius: var(--border-radius);
     overflow: hidden;
     box-shadow: var(--shadow-light);
@@ -636,7 +634,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(0, 0, 0, 0.8);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -660,11 +658,11 @@
     font-size: 1.25rem;
     font-weight: 600;
     margin-bottom: 0.5rem;
-    color: var(--dark-color);
+    color: var(--gold-primary);
 }
 
 .hall-description {
-    color: #666;
+    color: #ccc;
     margin-bottom: 1rem;
     line-height: 1.5;
 }
@@ -686,7 +684,7 @@
 }
 
 .hall-price {
-    color: var(--success-color);
+    color: var(--gold-primary);
     font-weight: 700;
     font-size: 1.1rem;
 }
@@ -698,8 +696,8 @@
 }
 
 .feature-tag {
-    background: rgba(102, 126, 234, 0.1);
-    color: var(--primary-color);
+    background: rgba(255, 215, 0, 0.1);
+    color: var(--gold-primary);
     padding: 0.25rem 0.5rem;
     border-radius: 10px;
     font-size: 0.8rem;
@@ -800,5 +798,276 @@
         font-size: 1.75rem;
     }
 }
+
+/* Mobile-First Design */
+@media (max-width: 767.98px) {
+    /* Hero Section Mobile */
+    .hero-section {
+        min-height: 60vh;
+        padding: 2rem 0;
+    }
+
+    .hero-content {
+        text-align: center;
+        padding: 1rem;
+    }
+
+    .hero-title {
+        font-size: 2rem;
+        line-height: 1.2;
+        margin-bottom: 1rem;
+    }
+
+    .hero-subtitle {
+        font-size: 1rem;
+        margin-bottom: 2rem;
+        opacity: 0.9;
+    }
+
+    .hero-buttons {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .hero-buttons .btn {
+        width: 100%;
+        padding: 1rem;
+        font-size: 1.1rem;
+    }
+
+    /* Features Section Mobile */
+    .features-section {
+        padding: 3rem 0;
+    }
+
+    .features-grid {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    .feature-card {
+        padding: 2rem 1.5rem;
+        text-align: center;
+    }
+
+    .feature-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 1.5rem;
+        margin: 0 auto 1rem;
+    }
+
+    .feature-title {
+        font-size: 1.3rem;
+        margin-bottom: 1rem;
+    }
+
+    .feature-description {
+        font-size: 0.95rem;
+        line-height: 1.6;
+    }
+
+    /* Categories Section Mobile */
+    .categories-section {
+        padding: 3rem 0;
+    }
+
+    .categories-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .category-card {
+        padding: 2rem 1.5rem;
+        text-align: center;
+        border-radius: 15px;
+    }
+
+    .category-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 1.3rem;
+        margin: 0 auto 1rem;
+    }
+
+    .category-title {
+        font-size: 1.2rem;
+        margin-bottom: 0.8rem;
+    }
+
+    .category-description {
+        font-size: 0.9rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .category-link {
+        display: inline-block;
+        padding: 0.8rem 2rem;
+        background: var(--gold-primary);
+        color: var(--black-primary);
+        text-decoration: none;
+        border-radius: 25px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .category-link:hover {
+        background: var(--gold-secondary);
+        color: var(--black-primary);
+        transform: translateY(-2px);
+    }
+
+    /* Popular Halls Mobile */
+    .popular-halls {
+        padding: 3rem 0;
+    }
+
+    .halls-grid {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    .hall-card {
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .hall-image {
+        height: 200px;
+        position: relative;
+    }
+
+    .hall-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .hall-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.4);
+        display: flex;
+        align-items: flex-end;
+        padding: 1rem;
+    }
+
+    .hall-info {
+        padding: 1.5rem;
+    }
+
+    .hall-title {
+        font-size: 1.3rem;
+        margin-bottom: 0.5rem;
+        color: var(--gold-primary);
+    }
+
+    .hall-description {
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+        color: #ccc;
+        line-height: 1.5;
+    }
+
+    .hall-features {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .hall-feature {
+        background: rgba(255, 215, 0, 0.1);
+        color: var(--gold-primary);
+        padding: 0.3rem 0.8rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        border: 1px solid var(--gold-dark);
+    }
+
+    .hall-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 1rem;
+        border-top: 1px solid var(--gold-dark);
+    }
+
+    .hall-price {
+        font-size: 1.2rem;
+        font-weight: bold;
+        color: var(--gold-primary);
+    }
+
+    .hall-btn {
+        background: var(--gold-primary);
+        color: var(--black-primary);
+        padding: 0.8rem 1.5rem;
+        border-radius: 25px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .hall-btn:hover {
+        background: var(--gold-secondary);
+        color: var(--black-primary);
+        transform: translateY(-2px);
+    }
+
+    /* Section Titles Mobile */
+    .section-title {
+        font-size: 2rem;
+        text-align: center;
+        margin-bottom: 1rem;
+    }
+
+    .section-subtitle {
+        font-size: 1rem;
+        text-align: center;
+        margin-bottom: 3rem;
+        opacity: 0.8;
+    }
+
+    /* Floating Elements - Hide on Mobile */
+    .floating-card {
+        display: none;
+    }
+
+    /* Stats Section Mobile */
+    .stats-section {
+        padding: 2rem 0;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+
+    .stat-card {
+        padding: 1.5rem 1rem;
+        text-align: center;
+        background: var(--black-secondary);
+        border: 1px solid var(--gold-dark);
+        border-radius: 10px;
+    }
+
+    .stat-number {
+        font-size: 2rem;
+        font-weight: bold;
+        color: var(--gold-primary);
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+        font-size: 0.9rem;
+        color: #ccc;
+    }
+}
 </style>
-{% endblock %} 
+{% endblock %}

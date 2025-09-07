@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'hall_booking/base.html' %}
 {% load static %}
 
 {% block title %}حجز {{ hall.name }} - اختيار التاريخ{% endblock %}
@@ -127,7 +127,8 @@
     --black-primary: #000000;
     --black-secondary: #1a1a1a;
     --black-tertiary: #2d2d2d;
-
+    --gold-gradient: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+    --black-gradient: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
     --gold-shadow: 0 10px 30px rgba(255, 215, 0, 0.3);
     --black-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
@@ -156,7 +157,7 @@ body {
     left: 15%;
     right: 15%;
     height: 3px;
-    background: var(--gold-primary);
+    background: var(--gold-gradient);
     z-index: 1;
     border-radius: 2px;
 }
@@ -188,7 +189,7 @@ body {
 }
 
 .step.active .step-number {
-    background: var(--gold-primary);
+    background: var(--gold-gradient);
     color: var(--black-primary);
     border-color: var(--gold-primary);
     box-shadow: var(--gold-shadow);
@@ -233,7 +234,7 @@ body {
 }
 
 .card-header {
-    background: var(--gold-primary);
+    background: var(--gold-gradient);
     border-bottom: 1px solid var(--gold-dark);
     color: var(--black-primary);
 }
@@ -267,7 +268,7 @@ body {
 
 /* Button styling */
 .btn-primary {
-    background: var(--gold-primary);
+    background: var(--gold-gradient);
     border-color: var(--gold-primary);
     color: var(--black-primary);
     font-weight: bold;
@@ -325,275 +326,20 @@ body {
     color: var(--gold-primary);
 }
 
-/* Mobile-First Design for Booking Step 1 */
-@media (max-width: 767.98px) {
-    .container {
-        padding: 1rem;
-    }
-
-    /* Progress Steps Mobile */
+/* Responsive */
+@media (max-width: 768px) {
     .booking-progress {
-        flex-direction: column;
-        gap: 1rem;
-        padding: 1.5rem 1rem;
-        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+        gap: 20px;
     }
-
+    
     .booking-progress::before {
         display: none;
     }
-
+    
     .step {
-        flex-direction: row;
-        justify-content: flex-start;
-        align-items: center;
-        width: 100%;
-        padding: 0.8rem;
-        background: var(--black-tertiary);
-        border-radius: 10px;
-        border: 1px solid var(--gold-dark);
-    }
-
-    .step.active {
-        background: rgba(255, 215, 0, 0.1);
-        border-color: var(--gold-primary);
-    }
-
-    .step-number {
-        width: 40px;
-        height: 40px;
-        font-size: 16px;
-        margin-bottom: 0;
-        margin-left: 1rem;
-        flex-shrink: 0;
-    }
-
-    .step-title {
-        font-size: 1rem;
-        text-align: right;
-        margin: 0;
-    }
-
-    /* Hall Info Card Mobile */
-    .col-lg-8 {
-        padding: 0;
-    }
-
-    .card {
-        border-radius: 15px;
-        margin-bottom: 1.5rem;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-    }
-
-    .card-body {
-        padding: 1.5rem;
-    }
-
-    .row.align-items-center {
-        align-items: flex-start !important;
-    }
-
-    .col-md-3 {
-        margin-bottom: 1rem;
-    }
-
-    .col-md-3 img {
-        width: 100%;
-        height: 120px;
-        object-fit: cover;
-        border-radius: 10px;
-    }
-
-    .col-md-9 h4 {
-        font-size: 1.4rem;
-        margin-bottom: 0.8rem;
-        color: var(--gold-primary);
-    }
-
-    .col-md-9 p {
-        font-size: 0.9rem;
-        margin-bottom: 1rem;
-    }
-
-    .col-sm-6 {
-        margin-bottom: 0.8rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 0.8rem;
-        background: var(--black-tertiary);
-        border-radius: 8px;
-        border: 1px solid var(--gold-dark);
-    }
-
-    .col-sm-6 small {
-        color: var(--gold-secondary);
-        font-weight: 600;
-    }
-
-    .col-sm-6 .fw-bold {
-        color: var(--gold-primary);
-        font-size: 1rem;
-    }
-
-    /* Date Selection Card Mobile */
-    .card-header {
-        padding: 1.2rem 1.5rem;
-        border-radius: 15px 15px 0 0;
-    }
-
-    .card-header h5 {
-        font-size: 1.1rem;
-        margin: 0;
-        line-height: 1.4;
-    }
-
-    .card-body {
-        padding: 2rem 1.5rem;
-    }
-
-    /* Form Mobile */
-    .row {
-        margin: 0;
-    }
-
-    .col-md-6 {
-        padding: 0;
-        margin-bottom: 2rem;
-    }
-
-    .form-label {
-        font-size: 1.1rem;
-        margin-bottom: 0.8rem;
-        color: var(--gold-primary);
-        font-weight: 600;
-    }
-
-    .form-control-lg {
-        padding: 1rem;
-        font-size: 1.1rem;
-        border-radius: 10px;
-        background: var(--black-tertiary);
-        border: 2px solid var(--gold-dark);
-        color: var(--gold-primary);
-    }
-
-    .form-control-lg:focus {
-        border-color: var(--gold-primary);
-        box-shadow: 0 0 0 0.3rem rgba(255, 215, 0, 0.25);
-        background: var(--black-tertiary);
-        color: var(--gold-primary);
-    }
-
-    .form-text {
-        font-size: 0.9rem;
-        color: var(--gold-secondary);
-        margin-top: 0.5rem;
-    }
-
-    /* Calendar Info Mobile */
-    .calendar-info {
-        padding: 1.5rem;
-        border-radius: 12px;
-        border: 2px solid var(--gold-primary);
-        background: rgba(255, 215, 0, 0.05);
-    }
-
-    .calendar-info h6 {
-        font-size: 1.1rem;
-        margin-bottom: 1rem;
-        color: var(--gold-primary);
-    }
-
-    .calendar-info ul li {
-        margin-bottom: 1rem;
-        font-size: 1rem;
-        color: #ccc;
-        display: flex;
-        align-items: center;
-        line-height: 1.5;
-    }
-
-    .calendar-info ul li i {
-        margin-left: 0.8rem;
-        font-size: 1.1rem;
-        width: 20px;
-        flex-shrink: 0;
-    }
-
-    /* Action Buttons Mobile */
-    .d-flex.justify-content-between {
-        flex-direction: column;
-        gap: 1rem;
-        margin-top: 2rem;
-    }
-
-    .btn {
-        padding: 1rem 2rem;
-        font-size: 1.1rem;
-        border-radius: 25px;
-        font-weight: 600;
-        width: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-    }
-
-    .btn-outline-secondary {
-        order: 2;
-        background: transparent;
-        border: 2px solid var(--gold-dark);
-        color: var(--gold-primary);
-    }
-
-    .btn-outline-secondary:hover {
-        background: var(--gold-dark);
-        border-color: var(--gold-dark);
-        color: var(--black-primary);
-    }
-
-    .btn-primary {
-        order: 1;
-        background: var(--gold-primary);
-        border: 2px solid var(--gold-primary);
-        color: var(--black-primary);
-        box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
-    }
-
-    .btn-primary:hover {
-        background: var(--gold-secondary);
-        border-color: var(--gold-secondary);
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(255, 215, 0, 0.4);
-    }
-
-    .btn i {
-        font-size: 1rem;
-    }
-
-    /* Background adjustments */
-    .bg-light {
-        background: var(--black-tertiary) !important;
-        border: 1px solid var(--gold-dark);
-        color: var(--gold-primary);
-    }
-
-    .bg-light i {
-        color: var(--gold-primary);
-    }
-
-    /* Text adjustments */
-    .text-success {
-        color: var(--gold-primary) !important;
-    }
-
-    .text-info {
-        color: var(--gold-secondary) !important;
-    }
-
-    .text-warning {
-        color: var(--gold-dark) !important;
+        flex: 1;
+        min-width: calc(50% - 10px);
     }
 }
 </style>

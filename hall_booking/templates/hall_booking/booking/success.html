@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'hall_booking/base.html' %}
 {% load static %}
 
 {% block title %}تم إرسال طلب الحجز بنجاح{% endblock %}
@@ -180,8 +180,8 @@
     --black-primary: #000000;
     --black-secondary: #1a1a1a;
     --black-tertiary: #2d2d2d;
-    
-    
+    --gold-gradient: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+    --black-gradient: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
     --gold-shadow: 0 10px 30px rgba(255, 215, 0, 0.3);
     --black-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
@@ -234,7 +234,7 @@ body {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background: var(--gold-primary);
+    background: var(--gold-gradient);
     color: var(--black-primary);
     display: flex;
     align-items: center;
@@ -264,7 +264,7 @@ body {
 }
 
 .card-header {
-    background: var(--gold-primary);
+    background: var(--gold-gradient);
     border-bottom: 1px solid var(--gold-dark);
     color: var(--black-primary);
 }
@@ -282,7 +282,7 @@ body {
 
 /* Button styling */
 .btn-primary {
-    background: var(--gold-primary);
+    background: var(--gold-gradient);
     border-color: var(--gold-primary);
     color: var(--black-primary);
     font-weight: bold;
@@ -324,300 +324,12 @@ body {
     color: var(--gold-primary);
 }
 
-/* Mobile-First Design for Success Page */
-@media (max-width: 767.98px) {
-    .container {
-        padding: 1rem;
-    }
-
-    /* Success Header Mobile */
-    .text-center.mb-5 {
-        margin-bottom: 2rem !important;
-        padding: 1rem;
-    }
-
-    .success-icon {
-        font-size: 4rem;
-        margin-bottom: 1.5rem !important;
-    }
-
-    .success-icon i {
-        animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.1); }
-        100% { transform: scale(1); }
-    }
-
-    h2 {
-        font-size: 1.8rem;
-        margin-bottom: 1rem !important;
-        color: var(--gold-primary);
-        line-height: 1.3;
-    }
-
-    .lead {
-        font-size: 1.1rem;
-        line-height: 1.5;
-        color: var(--gold-secondary);
-    }
-
-    /* Main Layout Mobile */
-    .col-lg-8 {
-        padding: 0;
-    }
-
-    .card {
-        border-radius: 15px;
-        margin-bottom: 1.5rem;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-    }
-
-    .card-body {
-        padding: 2rem 1.5rem;
-    }
-
-    .card-header {
-        padding: 1.2rem 1.5rem;
-        border-radius: 15px 15px 0 0;
-    }
-
-    .card-header h5 {
-        font-size: 1.2rem;
-        margin: 0;
-        line-height: 1.4;
-    }
-
-    /* Booking Details Mobile */
-    .row.mb-4 {
-        margin-bottom: 2rem !important;
-    }
-
-    .col-md-6 {
-        margin-bottom: 1.5rem;
-    }
-
-    .booking-info-item {
-        display: flex;
-        align-items: flex-start;
-        gap: 0.8rem;
-        margin-bottom: 1rem;
-        padding: 1rem;
-        background: var(--black-tertiary);
-        border-radius: 10px;
-        border: 1px solid var(--gold-dark);
-    }
-
-    .booking-info-item i {
-        color: var(--gold-primary);
-        font-size: 1.1rem;
-        margin-top: 0.2rem;
-        flex-shrink: 0;
-    }
-
-    .booking-info-item strong {
-        color: var(--gold-secondary);
-        font-weight: 600;
-        margin-left: 0.5rem;
-        font-size: 0.9rem;
-    }
-
-    .booking-info-item span {
-        color: var(--gold-primary);
-        font-weight: 600;
-    }
-
-    .booking-info-item .text-primary {
-        color: var(--gold-primary) !important;
-        font-weight: bold;
-        font-size: 1.1rem;
-    }
-
-    /* Price Summary Mobile */
-    .col-md-4 {
-        margin-top: 1rem;
-    }
-
-    .price-summary {
-        background: rgba(255, 215, 0, 0.1);
-        border: 2px solid var(--gold-primary);
-        border-radius: 15px;
-        padding: 2rem 1.5rem;
-        text-align: center;
-    }
-
-    .price-summary h6 {
-        color: var(--gold-primary);
-        font-size: 1.1rem;
-        margin-bottom: 1rem;
-    }
-
-    .price-summary .h4 {
-        font-size: 2.5rem;
-        font-weight: bold;
-        color: var(--gold-primary);
-        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-    }
-
-    /* Next Steps Mobile */
-    .next-step {
-        background: var(--black-tertiary);
-        border: 1px solid var(--gold-dark);
-        border-radius: 12px;
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
-        display: flex;
-        align-items: flex-start;
-        gap: 1rem;
-    }
-
-    .step-number {
-        width: 50px;
-        height: 50px;
-        font-size: 1.2rem;
-        margin-left: 0;
-        flex-shrink: 0;
-    }
-
-    .step-content {
-        flex: 1;
-    }
-
-    .step-content h6 {
-        font-size: 1.1rem;
-        margin-bottom: 0.8rem;
-        color: var(--gold-primary);
-    }
-
-    .step-content p {
-        font-size: 0.95rem;
-        line-height: 1.5;
-        color: #ccc;
-        margin: 0;
-    }
-
-    /* Alert Mobile */
-    .alert {
-        border-radius: 12px;
-        padding: 1.5rem;
-        margin-bottom: 2rem;
-        background: rgba(255, 215, 0, 0.1);
-        border: 1px solid var(--gold-primary);
-        color: var(--gold-primary);
-    }
-
-    .alert .row {
-        align-items: flex-start !important;
-    }
-
-    .alert .col-md-8 {
-        margin-bottom: 1rem;
-    }
-
-    .alert h6 {
-        font-size: 1.1rem;
-        margin-bottom: 0.8rem;
-        color: var(--gold-primary);
-    }
-
-    .alert p {
-        font-size: 0.95rem;
-        line-height: 1.5;
-        color: #ccc;
-        margin: 0;
-    }
-
-    .alert .col-md-4 {
-        text-align: center !important;
-        margin-top: 0;
-    }
-
-    /* Action Buttons Mobile */
-    .text-center:last-child {
-        margin-top: 2rem;
-    }
-
-    .btn {
-        padding: 1rem 2rem;
-        font-size: 1.1rem;
-        border-radius: 25px;
-        font-weight: 600;
-        margin-bottom: 1rem;
-        width: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-    }
-
-    .btn-lg {
-        padding: 1.2rem 2rem;
-        font-size: 1.2rem;
-    }
-
-    .btn-primary {
-        background: var(--gold-primary);
-        border: 2px solid var(--gold-primary);
-        color: var(--black-primary);
-        box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
-        margin-left: 0 !important;
-    }
-
-    .btn-primary:hover {
-        background: var(--gold-secondary);
-        border-color: var(--gold-secondary);
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(255, 215, 0, 0.4);
-    }
-
-    .btn-outline-primary {
-        background: transparent;
-        border: 2px solid var(--gold-dark);
-        color: var(--gold-primary);
-    }
-
-    .btn-outline-primary:hover {
-        background: var(--gold-dark);
-        border-color: var(--gold-dark);
-        color: var(--black-primary);
-    }
-
-    .btn i {
-        font-size: 1.1rem;
-    }
-
-    /* Divider Mobile */
-    hr {
-        border-color: var(--gold-dark);
-        margin: 2rem 0;
-    }
-
-    /* Text Adjustments Mobile */
-    .text-success {
-        color: var(--gold-primary) !important;
-    }
-
-    .text-info {
-        color: var(--gold-secondary) !important;
-    }
-
-    .text-muted {
-        color: #ccc !important;
-    }
-
-    .fw-bold {
-        color: var(--gold-primary);
-    }
-}
-
 /* Print Styles */
 @media print {
     .btn, .alert {
         display: none !important;
     }
-
+    
     .card {
         border: 1px solid #ddd !important;
         box-shadow: none !important;

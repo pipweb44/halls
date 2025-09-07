@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'hall_booking/base.html' %}
 {% load static %}
 
 {% block title %}حجز {{ hall.name }} - معلومات التواصل{% endblock %}
@@ -211,7 +211,8 @@
     --black-primary: #000000;
     --black-secondary: #1a1a1a;
     --black-tertiary: #2d2d2d;
-
+    --gold-gradient: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+    --black-gradient: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
     --gold-shadow: 0 10px 30px rgba(255, 215, 0, 0.3);
     --black-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
@@ -240,7 +241,7 @@ body {
     left: 15%;
     right: 15%;
     height: 3px;
-    background: var(--gold-primary);
+    background: var(--gold-gradient);
     z-index: 1;
     border-radius: 2px;
 }
@@ -272,7 +273,7 @@ body {
 }
 
 .step.active .step-number {
-    background: var(--gold-primary);
+    background: var(--gold-gradient);
     color: var(--black-primary);
     border-color: var(--gold-primary);
     box-shadow: var(--gold-shadow);
@@ -306,7 +307,7 @@ body {
 }
 
 .card-header {
-    background: var(--gold-primary);
+    background: var(--gold-gradient);
     border-bottom: 1px solid var(--gold-dark);
     color: var(--black-primary);
 }
@@ -340,7 +341,7 @@ body {
 
 /* Button styling */
 .btn-primary {
-    background: var(--gold-primary);
+    background: var(--gold-gradient);
     border-color: var(--gold-primary);
     color: var(--black-primary);
     font-weight: bold;
@@ -383,286 +384,20 @@ body {
     box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
 }
 
-/* Mobile-First Design for Booking Step 3 */
-@media (max-width: 767.98px) {
-    .container {
-        padding: 1rem;
-    }
-
-    /* Progress Steps Mobile */
+/* Responsive */
+@media (max-width: 768px) {
     .booking-progress {
-        flex-direction: column;
-        gap: 1rem;
-        padding: 1.5rem 1rem;
-        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+        gap: 20px;
     }
-
+    
     .booking-progress::before {
         display: none;
     }
-
+    
     .step {
-        flex-direction: row;
-        justify-content: flex-start;
-        align-items: center;
-        width: 100%;
-        padding: 0.8rem;
-        background: var(--black-tertiary);
-        border-radius: 10px;
-        border: 1px solid var(--gold-dark);
-    }
-
-    .step.active {
-        background: rgba(255, 215, 0, 0.1);
-        border-color: var(--gold-primary);
-    }
-
-    .step-number {
-        width: 40px;
-        height: 40px;
-        font-size: 16px;
-        margin-bottom: 0;
-        margin-left: 1rem;
-        flex-shrink: 0;
-    }
-
-    .step-title {
-        font-size: 1rem;
-        text-align: right;
-        margin: 0;
-    }
-
-    /* Main Layout Mobile */
-    .col-lg-8 {
-        padding: 0;
-    }
-
-    .card {
-        border-radius: 15px;
-        margin-bottom: 1.5rem;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-    }
-
-    .card-body {
-        padding: 2rem 1.5rem;
-    }
-
-    .card-header {
-        padding: 1.2rem 1.5rem;
-        border-radius: 15px 15px 0 0;
-    }
-
-    .card-header h5 {
-        font-size: 1.2rem;
-        margin: 0;
-        line-height: 1.4;
-    }
-
-    /* Booking Summary Mobile */
-    .booking-summary {
-        background: rgba(255, 215, 0, 0.1);
-        border: 2px solid var(--gold-primary);
-        border-radius: 15px;
-        padding: 1.5rem;
-        margin-bottom: 2rem;
-    }
-
-    .booking-summary h6 {
-        color: var(--gold-primary);
-        font-size: 1.1rem;
-        margin-bottom: 1rem;
-        text-align: center;
-    }
-
-    .summary-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 0.8rem 0;
-        border-bottom: 1px solid var(--gold-dark);
-        font-size: 0.95rem;
-    }
-
-    .summary-item:last-child {
-        border-bottom: none;
-        font-weight: bold;
-        font-size: 1.1rem;
-        color: var(--gold-primary);
-    }
-
-    .summary-item span:first-child {
-        color: #ccc;
-    }
-
-    .summary-item span:last-child {
-        color: var(--gold-primary);
-        font-weight: 600;
-    }
-
-    /* Form Mobile */
-    .row {
-        margin: 0;
-    }
-
-    .col-md-6 {
-        padding: 0;
-        margin-bottom: 1.5rem;
-    }
-
-    .form-label {
-        font-size: 1rem;
-        margin-bottom: 0.8rem;
-        color: var(--gold-primary);
-        font-weight: 600;
-    }
-
-    .form-control {
-        padding: 1rem;
-        font-size: 1rem;
-        border-radius: 10px;
-        background: var(--black-tertiary);
-        border: 2px solid var(--gold-dark);
-        color: var(--gold-primary);
-    }
-
-    .form-control:focus {
-        border-color: var(--gold-primary);
-        box-shadow: 0 0 0 0.3rem rgba(255, 215, 0, 0.25);
-        background: var(--black-tertiary);
-        color: var(--gold-primary);
-    }
-
-    .form-control::placeholder {
-        color: var(--gold-secondary);
-        opacity: 0.7;
-    }
-
-    .form-text {
-        font-size: 0.9rem;
-        color: var(--gold-secondary);
-        margin-top: 0.5rem;
-    }
-
-    /* Textarea Mobile */
-    textarea.form-control {
-        min-height: 120px;
-        resize: vertical;
-        line-height: 1.5;
-    }
-
-    /* Number Input Mobile */
-    input[type="number"].form-control {
-        -moz-appearance: textfield;
-    }
-
-    input[type="number"].form-control::-webkit-outer-spin-button,
-    input[type="number"].form-control::-webkit-inner-spin-button {
-        -webkit-appearance: none;
-        margin: 0;
-    }
-
-    /* Capacity Warning Mobile */
-    .capacity-warning {
-        background: rgba(255, 193, 7, 0.1);
-        border: 1px solid #ffc107;
-        border-radius: 10px;
-        padding: 1rem;
-        margin-top: 0.5rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .capacity-warning i {
-        color: #ffc107;
-        font-size: 1.1rem;
-    }
-
-    .capacity-warning span {
-        color: #ffc107;
-        font-size: 0.9rem;
-        font-weight: 600;
-    }
-
-    /* Action Buttons Mobile */
-    .d-flex.justify-content-between {
-        flex-direction: column;
-        gap: 1rem;
-        margin-top: 2rem;
-    }
-
-    .btn {
-        padding: 1rem 2rem;
-        font-size: 1.1rem;
-        border-radius: 25px;
-        font-weight: 600;
-        width: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-    }
-
-    .btn-outline-secondary {
-        order: 2;
-        background: transparent;
-        border: 2px solid var(--gold-dark);
-        color: var(--gold-primary);
-    }
-
-    .btn-outline-secondary:hover {
-        background: var(--gold-dark);
-        border-color: var(--gold-dark);
-        color: var(--black-primary);
-    }
-
-    .btn-primary {
-        order: 1;
-        background: var(--gold-primary);
-        border: 2px solid var(--gold-primary);
-        color: var(--black-primary);
-        box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
-    }
-
-    .btn-primary:hover {
-        background: var(--gold-secondary);
-        border-color: var(--gold-secondary);
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(255, 215, 0, 0.4);
-    }
-
-    .btn i {
-        font-size: 1rem;
-    }
-
-    /* Required Field Indicator Mobile */
-    .form-label.required::after {
-        content: " *";
-        color: #dc3545;
-        font-weight: bold;
-    }
-
-    /* Form Validation Mobile */
-    .form-control.is-invalid {
-        border-color: #dc3545;
-        background: rgba(220, 53, 69, 0.1);
-    }
-
-    .form-control.is-valid {
-        border-color: var(--gold-primary);
-        background: rgba(255, 215, 0, 0.1);
-    }
-
-    .invalid-feedback {
-        color: #dc3545;
-        font-size: 0.9rem;
-        margin-top: 0.5rem;
-    }
-
-    .valid-feedback {
-        color: var(--gold-primary);
-        font-size: 0.9rem;
-        margin-top: 0.5rem;
+        flex: 1;
+        min-width: calc(50% - 10px);
     }
 }
 </style>

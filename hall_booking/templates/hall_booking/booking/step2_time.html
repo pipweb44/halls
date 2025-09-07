@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'hall_booking/base.html' %}
 {% load static %}
 
 {% block title %}حجز {{ hall.name }} - اختيار الوقت{% endblock %}
@@ -221,7 +221,8 @@
     --black-primary: #000000;
     --black-secondary: #1a1a1a;
     --black-tertiary: #2d2d2d;
-
+    --gold-gradient: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+    --black-gradient: linear-gradient(135deg, #000000 0%, #1a1a1a 100%);
     --gold-shadow: 0 10px 30px rgba(255, 215, 0, 0.3);
     --black-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
@@ -250,7 +251,7 @@ body {
     left: 15%;
     right: 15%;
     height: 3px;
-    background: var(--gold-primary);
+    background: var(--gold-gradient);
     z-index: 1;
     border-radius: 2px;
 }
@@ -282,7 +283,7 @@ body {
 }
 
 .step.active .step-number {
-    background: var(--gold-primary);
+    background: var(--gold-gradient);
     color: var(--black-primary);
     border-color: var(--gold-primary);
     box-shadow: var(--gold-shadow);
@@ -706,7 +707,7 @@ body {
 }
 
 .card-header {
-    background: var(--gold-primary);
+    background: var(--gold-gradient);
     border-bottom: 1px solid var(--gold-dark);
     color: var(--black-primary);
 }
@@ -716,7 +717,7 @@ body {
 }
 
 .btn-primary {
-    background: var(--gold-primary);
+    background: var(--gold-gradient);
     border-color: var(--gold-primary);
     color: var(--black-primary);
     font-weight: bold;
@@ -759,7 +760,7 @@ body {
 }
 
 .modal-header {
-    background: var(--gold-primary);
+    background: var(--gold-gradient);
     color: var(--black-primary);
     border-bottom: 1px solid var(--gold-dark);
 }
@@ -842,354 +843,24 @@ body {
     color: #FFB6C1;
 }
 
-/* Mobile-First Design for Booking Step 2 */
-@media (max-width: 767.98px) {
-    .container {
-        padding: 1rem;
-    }
-
-    /* Progress Steps Mobile */
+/* Responsive */
+@media (max-width: 768px) {
     .booking-progress {
-        flex-direction: column;
-        gap: 1rem;
-        padding: 1.5rem 1rem;
-        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+        gap: 20px;
     }
-
+    
     .booking-progress::before {
         display: none;
     }
-
+    
     .step {
-        flex-direction: row;
-        justify-content: flex-start;
-        align-items: center;
-        width: 100%;
-        padding: 0.8rem;
-        background: var(--black-tertiary);
-        border-radius: 10px;
-        border: 1px solid var(--gold-dark);
+        flex: 1;
+        min-width: calc(50% - 10px);
     }
-
-    .step.active {
-        background: rgba(255, 215, 0, 0.1);
-        border-color: var(--gold-primary);
-    }
-
-    .step-number {
-        width: 40px;
-        height: 40px;
-        font-size: 16px;
-        margin-bottom: 0;
-        margin-left: 1rem;
-        flex-shrink: 0;
-    }
-
-    .step-title {
-        font-size: 1rem;
-        text-align: right;
-        margin: 0;
-    }
-
-    /* Main Layout Mobile */
-    .col-lg-8 {
-        padding: 0;
-    }
-
-    .card {
-        border-radius: 15px;
-        margin-bottom: 1.5rem;
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-    }
-
-    .card-body {
-        padding: 1.5rem;
-    }
-
-    /* Hall Info Mobile */
-    .row.align-items-center {
-        align-items: flex-start !important;
-    }
-
-    .col-md-3 {
-        margin-bottom: 1rem;
-    }
-
-    .col-md-3 img {
-        width: 100%;
-        height: 120px;
-        object-fit: cover;
-        border-radius: 10px;
-    }
-
-    .col-md-9 h4 {
-        font-size: 1.4rem;
-        margin-bottom: 0.8rem;
-        color: var(--gold-primary);
-    }
-
-    /* Clock Container Mobile */
-    .clock-container {
-        margin: 2rem 0;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .analog-clock {
-        width: 280px;
-        height: 280px;
-        margin-bottom: 2rem;
-    }
-
-    .clock-face {
-        width: 100%;
-        height: 100%;
-    }
-
-    .clock-center {
-        width: 12px;
-        height: 12px;
-    }
-
-    .hour-marker {
-        font-size: 14px;
-    }
-
-    .time-display {
-        font-size: 1.5rem;
-        margin-bottom: 1.5rem;
-        padding: 1rem;
-        background: var(--black-tertiary);
-        border: 2px solid var(--gold-primary);
-        border-radius: 15px;
-        text-align: center;
-        color: var(--gold-primary);
-        font-weight: bold;
-    }
-
-    /* Quick Time Buttons Mobile */
-    .quick-times {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 0.8rem;
-        margin-bottom: 2rem;
-        width: 100%;
-    }
-
-    .quick-time-btn {
-        padding: 0.8rem 0.5rem;
-        font-size: 0.9rem;
-        border-radius: 10px;
-        background: var(--black-tertiary);
-        border: 1px solid var(--gold-dark);
-        color: var(--gold-primary);
-        transition: all 0.3s ease;
-    }
-
-    .quick-time-btn:hover,
-    .quick-time-btn.active {
-        background: var(--gold-primary);
-        color: var(--black-primary);
-        border-color: var(--gold-primary);
-        transform: translateY(-2px);
-    }
-
-    /* Time Selection Form Mobile */
-    .time-selection-form {
-        width: 100%;
-        background: var(--black-secondary);
-        padding: 1.5rem;
-        border-radius: 15px;
-        border: 1px solid var(--gold-dark);
-    }
-
-    .time-selection-form h5 {
-        color: var(--gold-primary);
-        margin-bottom: 1.5rem;
-        text-align: center;
-        font-size: 1.2rem;
-    }
-
-    .form-group {
-        margin-bottom: 1.5rem;
-    }
-
-    .form-label {
-        font-size: 1rem;
-        margin-bottom: 0.8rem;
-        color: var(--gold-primary);
-        font-weight: 600;
-    }
-
-    .form-control {
-        padding: 1rem;
-        font-size: 1.1rem;
-        border-radius: 10px;
-        background: var(--black-tertiary);
-        border: 2px solid var(--gold-dark);
-        color: var(--gold-primary);
-    }
-
-    .form-control:focus {
-        border-color: var(--gold-primary);
-        box-shadow: 0 0 0 0.3rem rgba(255, 215, 0, 0.25);
-        background: var(--black-tertiary);
-        color: var(--gold-primary);
-    }
-
-    /* Duration and Price Display Mobile */
-    .duration-price-display {
-        background: rgba(255, 215, 0, 0.1);
-        border: 2px solid var(--gold-primary);
-        border-radius: 15px;
-        padding: 1.5rem;
-        margin: 1.5rem 0;
-        text-align: center;
-    }
-
-    .duration-price-display h6 {
-        color: var(--gold-primary);
-        margin-bottom: 1rem;
-        font-size: 1.1rem;
-    }
-
-    .duration-display,
-    .price-display {
-        background: var(--black-tertiary);
-        border: 1px solid var(--gold-dark);
-        border-radius: 10px;
-        padding: 1rem;
-        margin-bottom: 1rem;
-    }
-
-    .duration-display span,
-    .price-display span {
-        font-size: 1.3rem;
-        font-weight: bold;
-        color: var(--gold-primary);
-    }
-
-    .duration-display small,
-    .price-display small {
-        color: var(--gold-secondary);
-        font-size: 0.9rem;
-    }
-
-    /* Conflict Warning Mobile */
-    .conflict-warning {
-        background: rgba(220, 53, 69, 0.1);
-        border: 2px solid #dc3545;
-        border-radius: 10px;
-        padding: 1rem;
-        margin: 1rem 0;
-        text-align: center;
-    }
-
-    .conflict-warning i {
-        font-size: 1.5rem;
-        color: #dc3545;
-        margin-bottom: 0.5rem;
-    }
-
-    .conflict-warning p {
-        color: #dc3545;
-        margin: 0;
-        font-weight: 600;
-    }
-
-    /* Action Buttons Mobile */
-    .d-flex.justify-content-between {
-        flex-direction: column;
-        gap: 1rem;
-        margin-top: 2rem;
-    }
-
-    .btn {
-        padding: 1rem 2rem;
-        font-size: 1.1rem;
-        border-radius: 25px;
-        font-weight: 600;
-        width: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-    }
-
-    .btn-outline-secondary {
-        order: 2;
-        background: transparent;
-        border: 2px solid var(--gold-dark);
-        color: var(--gold-primary);
-    }
-
-    .btn-outline-secondary:hover {
-        background: var(--gold-dark);
-        border-color: var(--gold-dark);
-        color: var(--black-primary);
-    }
-
-    .btn-primary {
-        order: 1;
-        background: var(--gold-primary);
-        border: 2px solid var(--gold-primary);
-        color: var(--black-primary);
-        box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
-    }
-
-    .btn-primary:hover {
-        background: var(--gold-secondary);
-        border-color: var(--gold-secondary);
-        transform: translateY(-2px);
-        box-shadow: 0 8px 20px rgba(255, 215, 0, 0.4);
-    }
-
-    .btn:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-        transform: none !important;
-        box-shadow: none !important;
-    }
-
-    /* Time Slots Grid Mobile */
+    
     .time-slots {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 0.8rem;
-        margin: 1.5rem 0;
-    }
-
-    .time-slot {
-        padding: 1rem 0.8rem;
-        font-size: 0.9rem;
-        border-radius: 10px;
-        text-align: center;
-        transition: all 0.3s ease;
-    }
-
-    .time-slot.available {
-        background: var(--black-tertiary);
-        border: 1px solid var(--gold-dark);
-        color: var(--gold-primary);
-    }
-
-    .time-slot.available:hover {
-        background: var(--gold-primary);
-        color: var(--black-primary);
-        transform: translateY(-2px);
-    }
-
-    .time-slot.selected {
-        background: var(--gold-primary);
-        color: var(--black-primary);
-        border-color: var(--gold-primary);
-    }
-
-    .time-slot.booked {
-        background: rgba(220, 53, 69, 0.2);
-        border: 1px solid #dc3545;
-        color: #dc3545;
-        cursor: not-allowed;
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
     }
 }
 </style>

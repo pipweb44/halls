@@ -39,7 +39,14 @@
 <!-- Modern Search and Filter Section -->
 <section class="search-section">
     <div class="container">
-        <div class="search-card">
+        <!-- Mobile Filter Button -->
+        <div class="d-md-none mb-3">
+            <button class="btn btn-outline-primary w-100" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileFilters">
+                <i class="fas fa-filter me-2"></i>الفلاتر والبحث
+            </button>
+        </div>
+
+        <div class="search-card d-none d-md-block">
             <form method="get" class="search-form">
                 <div class="row g-3">
                     <div class="col-lg-4 col-md-6">
@@ -86,6 +93,80 @@
                     </div>
                 </div>
             </form>
+        </div>
+
+        <!-- Mobile Filters Offcanvas -->
+        <div class="offcanvas offcanvas-start d-md-none" tabindex="-1" id="mobileFilters">
+            <div class="offcanvas-header">
+                <h5 class="offcanvas-title" style="color: var(--gold-primary);">
+                    <i class="fas fa-filter me-2"></i>الفلاتر والبحث
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+            </div>
+            <div class="offcanvas-body">
+                <form method="get" class="mobile-search-form">
+                    <div class="mb-3">
+                        <label class="form-label" style="color: var(--gold-primary);">
+                            <i class="fas fa-search me-2"></i>البحث
+                        </label>
+                        <input type="text" class="form-control search-input" name="search"
+                               value="{{ search_query }}" placeholder="ابحث في القاعات...">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" style="color: var(--gold-primary);">
+                            <i class="fas fa-list me-2"></i>الفئة
+                        </label>
+                        <select class="form-control search-input" name="category">
+                            <option value="">جميع الفئات</option>
+                            {% for category in categories %}
+                            <option value="{{ category.id }}" {% if selected_category == category.id|stringformat:"s" %}selected{% endif %}>
+                                {{ category.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" style="color: var(--gold-primary);">
+                            <i class="fas fa-users me-2"></i>السعة
+                        </label>
+                        <input type="number" class="form-control search-input" name="capacity"
+                               value="{{ capacity_filter }}" placeholder="الحد الأدنى للسعة">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" style="color: var(--gold-primary);">
+                            <i class="fas fa-dollar-sign me-2"></i>السعر الأقصى
+                        </label>
+                        <input type="number" class="form-control search-input" name="max_price"
+                               value="{{ max_price_filter }}" placeholder="السعر الأقصى">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label" style="color: var(--gold-primary);">
+                            <i class="fas fa-sort me-2"></i>ترتيب حسب
+                        </label>
+                        <select class="form-control search-input" name="sort">
+                            <option value="">الترتيب الافتراضي</option>
+                            <option value="price_asc" {% if sort_by == 'price_asc' %}selected{% endif %}>السعر: من الأقل للأعلى</option>
+                            <option value="price_desc" {% if sort_by == 'price_desc' %}selected{% endif %}>السعر: من الأعلى للأقل</option>
+                            <option value="capacity_asc" {% if sort_by == 'capacity_asc' %}selected{% endif %}>السعة: من الأقل للأعلى</option>
+                            <option value="capacity_desc" {% if sort_by == 'capacity_desc' %}selected{% endif %}>السعة: من الأعلى للأقل</option>
+                            <option value="name" {% if sort_by == 'name' %}selected{% endif %}>الاسم</option>
+                        </select>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search me-2"></i>تطبيق الفلاتر
+                        </button>
+                        <a href="{% url 'hall_booking:halls_list' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-2"></i>إزالة الفلاتر
+                        </a>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </section>
@@ -299,8 +380,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: radial-gradient(circle at 20% 80%, rgba(255, 215, 0, 0.3) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(255, 165, 0, 0.2) 0%, transparent 50%);
+    background: transparent;
 }
 
 .header-title {
@@ -308,7 +388,7 @@
     font-weight: 800;
     margin-bottom: 1rem;
     color: var(--gold-primary);
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
 }
 
 .header-subtitle {
@@ -335,7 +415,7 @@
     font-size: 2rem;
     font-weight: 700;
     color: var(--gold-primary);
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
 }
 
 .stat-label {
@@ -386,8 +466,8 @@
 }
 
 .search-input:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    border-color: var(--gold-primary);
+    box-shadow: 0 0 0 0.2rem rgba(255, 215, 0, 0.25);
     background: white;
 }
 
@@ -462,9 +542,9 @@
 
 .view-btn.active,
 .view-btn:hover {
-    border-color: var(--primary-color);
-    color: var(--primary-color);
-    background: rgba(102, 126, 234, 0.1);
+    border-color: var(--gold-primary);
+    color: var(--gold-primary);
+    background: rgba(255, 215, 0, 0.1);
 }
 
 .halls-grid {
@@ -518,7 +598,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.8);
+    background: rgba(0, 0, 0, 0.9);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -595,7 +675,7 @@
 }
 
 .feature-item i {
-    color: var(--primary-color);
+    color: var(--gold-primary);
     width: 16px;
 }
 
@@ -615,7 +695,7 @@
 .price-amount {
     font-size: 1.5rem;
     font-weight: 700;
-    color: var(--success-color);
+    color: var(--gold-primary);
 }
 
 .price-unit {
@@ -669,14 +749,14 @@
 }
 
 .pagination-link:hover {
-    border-color: var(--primary-color);
-    color: var(--primary-color);
-    background: rgba(102, 126, 234, 0.1);
+    border-color: var(--gold-primary);
+    color: var(--gold-primary);
+    background: rgba(255, 215, 0, 0.1);
 }
 
 .pagination-item.active .pagination-link {
     background: var(--gold-primary);
-    border-color: var(--primary-color);
+    border-color: var(--gold-primary);
     color: white;
 }
 
@@ -789,7 +869,7 @@
 }
 
 .category-arrow {
-    color: var(--primary-color);
+    color: var(--gold-primary);
     font-size: 1.2rem;
     transition: var(--transition);
     position: relative;
@@ -800,27 +880,394 @@
     transform: translateX(-5px);
 }
 
+/* Mobile Filters Offcanvas */
+.offcanvas {
+    background: var(--black-secondary);
+    border-right: 2px solid var(--gold-primary);
+}
+
+.offcanvas-header {
+    background: var(--black-primary);
+    border-bottom: 1px solid var(--gold-dark);
+}
+
+.offcanvas-title {
+    color: var(--gold-primary);
+    font-weight: bold;
+}
+
+.btn-close-white {
+    filter: invert(1) sepia(1) saturate(5) hue-rotate(45deg);
+}
+
+.mobile-search-form .form-label {
+    color: var(--gold-primary);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.mobile-search-form .search-input {
+    background: var(--black-tertiary);
+    border: 1px solid var(--gold-dark);
+    color: #fff;
+    margin-bottom: 1rem;
+}
+
+.mobile-search-form .search-input:focus {
+    border-color: var(--gold-primary);
+    box-shadow: 0 0 0 0.2rem rgba(255, 215, 0, 0.25);
+    background: var(--black-tertiary);
+    color: #fff;
+}
+
+.mobile-search-form .btn-primary {
+    background: var(--gold-primary);
+    border-color: var(--gold-primary);
+    color: var(--black-primary);
+    font-weight: bold;
+}
+
+.mobile-search-form .btn-outline-secondary {
+    border-color: var(--gold-dark);
+    color: #ccc;
+}
+
+.mobile-search-form .btn-outline-secondary:hover {
+    background: var(--gold-dark);
+    border-color: var(--gold-dark);
+    color: var(--black-primary);
+}
+
 /* Responsive Design */
+/* Mobile-First Design for Halls List */
 @media (max-width: 768px) {
+    /* Header Mobile */
+    .halls-header {
+        padding: 2rem 0;
+        text-align: center;
+    }
+
     .header-title {
         font-size: 2rem;
+        margin-bottom: 1rem;
     }
-    
+
+    .header-subtitle {
+        font-size: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .header-stats {
+        justify-content: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .stat-item {
+        min-width: 120px;
+        padding: 1rem;
+        background: var(--black-secondary);
+        border: 1px solid var(--gold-dark);
+        border-radius: 10px;
+        text-align: center;
+    }
+
+    .stat-number {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: var(--gold-primary);
+        display: block;
+        margin-bottom: 0.3rem;
+    }
+
+    .stat-label {
+        font-size: 0.8rem;
+        color: #ccc;
+    }
+
+    /* Search Section Mobile */
+    .search-section {
+        padding: 1rem 0;
+    }
+
+    .search-card {
+        padding: 1.5rem;
+        border-radius: 15px;
+        margin-bottom: 1rem;
+    }
+
+    /* Mobile Filter Button */
+    .mobile-filter-btn {
+        background: var(--gold-primary);
+        color: var(--black-primary);
+        border: none;
+        padding: 1rem;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 1rem;
+        width: 100%;
+        margin-bottom: 2rem;
+        transition: all 0.3s ease;
+    }
+
+    .mobile-filter-btn:hover {
+        background: var(--gold-secondary);
+        transform: translateY(-2px);
+    }
+
+    /* Results Header Mobile */
+    .results-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .results-info {
+        text-align: center;
+        font-size: 1rem;
+        color: var(--gold-primary);
+        font-weight: 600;
+    }
+
+    .view-controls {
+        justify-content: center;
+        gap: 0.5rem;
+    }
+
+    .view-btn {
+        padding: 0.8rem 1.2rem;
+        border-radius: 8px;
+        font-size: 0.9rem;
+    }
+
+    /* Halls Grid Mobile */
     .halls-grid {
         grid-template-columns: 1fr;
+        gap: 2rem;
     }
-    
-    .results-header {
+
+    .hall-card {
+        border-radius: 15px;
+        overflow: hidden;
+        background: var(--black-secondary);
+        border: 1px solid var(--gold-dark);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        transition: all 0.3s ease;
+    }
+
+    .hall-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(255, 215, 0, 0.2);
+        border-color: var(--gold-primary);
+    }
+
+    .hall-image {
+        height: 220px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hall-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    .hall-card:hover .hall-image img {
+        transform: scale(1.05);
+    }
+
+    .hall-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.4);
+        display: flex;
+        align-items: flex-end;
+        padding: 1rem;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .hall-card:hover .hall-overlay {
+        opacity: 1;
+    }
+
+    .hall-badge {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: var(--gold-primary);
+        color: var(--black-primary);
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .hall-info {
+        padding: 1.5rem;
+    }
+
+    .hall-title {
+        font-size: 1.4rem;
+        font-weight: bold;
+        color: var(--gold-primary);
+        margin-bottom: 0.8rem;
+        line-height: 1.3;
+    }
+
+    .hall-description {
+        font-size: 0.9rem;
+        color: #ccc;
+        line-height: 1.5;
+        margin-bottom: 1.2rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .hall-features {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .feature-item {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        background: rgba(255, 215, 0, 0.1);
+        color: var(--gold-primary);
+        padding: 0.4rem 0.8rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        border: 1px solid var(--gold-dark);
+    }
+
+    .feature-item i {
+        font-size: 0.7rem;
+    }
+
+    .hall-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 1rem;
+        border-top: 1px solid var(--gold-dark);
+    }
+
+    .hall-price {
+        display: flex;
         flex-direction: column;
         align-items: flex-start;
     }
-    
-    .search-card {
-        padding: 1.5rem;
+
+    .price-amount {
+        font-size: 1.4rem;
+        font-weight: bold;
+        color: var(--gold-primary);
+        line-height: 1;
     }
-    
+
+    .price-unit {
+        font-size: 0.8rem;
+        color: #ccc;
+        margin-top: 0.2rem;
+    }
+
+    .hall-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .btn-view {
+        background: var(--gold-primary);
+        color: var(--black-primary);
+        padding: 0.8rem 1.2rem;
+        border-radius: 20px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+        border: none;
+    }
+
+    .btn-view:hover {
+        background: var(--gold-secondary);
+        color: var(--black-primary);
+        transform: translateY(-2px);
+    }
+
+    .btn-favorite {
+        background: transparent;
+        color: var(--gold-primary);
+        border: 1px solid var(--gold-primary);
+        padding: 0.8rem;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+
+    .btn-favorite:hover {
+        background: var(--gold-primary);
+        color: var(--black-primary);
+    }
+
+    /* Categories Grid Mobile */
     .categories-grid {
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .category-card {
+        padding: 1.5rem;
+        border-radius: 12px;
+        text-align: center;
+        background: var(--black-secondary);
+        border: 1px solid var(--gold-dark);
+        transition: all 0.3s ease;
+    }
+
+    .category-card:hover {
+        border-color: var(--gold-primary);
+        transform: translateY(-3px);
+    }
+
+    .category-icon {
+        width: 50px;
+        height: 50px;
+        margin: 0 auto 1rem;
+        background: rgba(255, 215, 0, 0.1);
+        border: 1px solid var(--gold-dark);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--gold-primary);
+        font-size: 1.2rem;
+    }
+
+    .category-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--gold-primary);
+        margin-bottom: 0.5rem;
+    }
+
+    .category-count {
+        font-size: 0.9rem;
+        color: #ccc;
     }
 }
 

@@ -50,6 +50,80 @@
             box-shadow: var(--gold-shadow);
         }
 
+        /* Bottom Navigation for Mobile */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--black-primary);
+            border-top: 2px solid var(--gold-primary);
+            z-index: 1000;
+            padding: 0.5rem 0;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .bottom-nav-container {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        .bottom-nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: #ccc;
+            font-size: 0.75rem;
+            padding: 0.25rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            position: relative;
+            min-width: 50px;
+        }
+
+        .bottom-nav-item i {
+            font-size: 1.2rem;
+            margin-bottom: 0.2rem;
+        }
+
+        .bottom-nav-item span {
+            font-size: 0.7rem;
+            font-weight: 500;
+        }
+
+        .bottom-nav-item:hover,
+        .bottom-nav-item.active {
+            color: var(--gold-primary);
+            background: rgba(255, 215, 0, 0.1);
+        }
+
+        .notification-badge-mobile {
+            position: absolute;
+            top: -2px;
+            right: 8px;
+            background: var(--gold-secondary);
+            color: var(--black-primary);
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            font-size: 0.6rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        /* Add bottom padding to body on mobile to account for bottom nav */
+        @media (max-width: 767.98px) {
+            body {
+                padding-bottom: 70px;
+            }
+        }
+
         .navbar-brand {
             font-size: 1.5rem;
             font-weight: 800;
@@ -394,13 +468,60 @@
                         </li>
                     {% else %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'admin:login' %}">
-                                <i class="fas fa-sign-in-alt"></i>تسجيل الدخول
+                            <a class="nav-link" href="{% url 'hall_booking:register' %}">
+                                <i class="fas fa-user-plus me-1"></i>تسجيل جديد
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'hall_booking:login' %}">
+                                <i class="fas fa-sign-in-alt me-1"></i>تسجيل الدخول
                             </a>
                         </li>
                     {% endif %}
                 </ul>
             </div>
+        </div>
+    </nav>
+
+    <!-- Bottom Navigation for Mobile -->
+    <nav class="bottom-nav d-md-none">
+        <div class="bottom-nav-container">
+            <a href="{% url 'hall_booking:home' %}" class="bottom-nav-item {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+                <i class="fas fa-home"></i>
+                <span>الرئيسية</span>
+            </a>
+            <a href="{% url 'hall_booking:halls_list' %}" class="bottom-nav-item {% if request.resolver_match.url_name == 'halls_list' %}active{% endif %}">
+                <i class="fas fa-building"></i>
+                <span>القاعات</span>
+            </a>
+            {% if user.is_authenticated %}
+                <a href="{% url 'hall_booking:user_bookings' %}" class="bottom-nav-item {% if 'booking' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>حجوزاتي</span>
+                </a>
+                <a href="{% url 'hall_booking:user_notifications' %}" class="bottom-nav-item {% if 'notification' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="fas fa-bell"></i>
+                    <span>الإشعارات</span>
+                    <span class="notification-badge-mobile" style="display: none;"></span>
+                </a>
+                <a href="{% url 'hall_booking:user_profile' %}" class="bottom-nav-item {% if 'profile' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="fas fa-user"></i>
+                    <span>البروفيل</span>
+                </a>
+            {% else %}
+                <a href="{% url 'hall_booking:contact' %}" class="bottom-nav-item {% if request.resolver_match.url_name == 'contact' %}active{% endif %}">
+                    <i class="fas fa-envelope"></i>
+                    <span>اتصل بنا</span>
+                </a>
+                <a href="{% url 'hall_booking:about' %}" class="bottom-nav-item {% if request.resolver_match.url_name == 'about' %}active{% endif %}">
+                    <i class="fas fa-info-circle"></i>
+                    <span>عن الموقع</span>
+                </a>
+                <a href="{% url 'hall_booking:login' %}" class="bottom-nav-item">
+                    <i class="fas fa-sign-in-alt"></i>
+                    <span>دخول</span>
+                </a>
+            {% endif %}
         </div>
     </nav>
 
@@ -493,6 +614,7 @@
                 .then(data => {
                     const badge = document.querySelector('.notification-badge');
                     const dropdownBadge = document.querySelector('.notification-count');
+                    const mobileBadge = document.querySelector('.notification-badge-mobile');
 
                     if (data.count > 0) {
                         if (badge) {
@@ -503,9 +625,14 @@
                             dropdownBadge.textContent = data.count;
                             dropdownBadge.style.display = 'inline';
                         }
+                        if (mobileBadge) {
+                            mobileBadge.textContent = data.count;
+                            mobileBadge.style.display = 'flex';
+                        }
                     } else {
                         if (badge) badge.style.display = 'none';
                         if (dropdownBadge) dropdownBadge.style.display = 'none';
+                        if (mobileBadge) mobileBadge.style.display = 'none';
                     }
                 })
                 .catch(error => console.error('Error updating notification count:', error));
