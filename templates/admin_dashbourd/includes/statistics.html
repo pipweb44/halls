@@ -1,0 +1,139 @@
+{% load custom_filters %}
+
+<!-- Statistics Section -->
+<div class="row g-3 mb-4">
+    <!-- Total Revenue Card -->
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card border-left-primary shadow h-100 py-2 stat-card">
+            <div class="card-body py-2">
+                <div class="row no-gutters align-items-center">
+                    <div class="col-8">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            إجمالي الإيرادات</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ total_revenue|default:0 }} د.ت
+                        </div>
+                    </div>
+                    <div class="col-4 text-end">
+                        <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Bookings Card -->
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card border-left-success shadow h-100 py-2 stat-card">
+            <div class="card-body py-2">
+                <div class="row no-gutters align-items-center">
+                    <div class="col-8">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            إجمالي الحجوزات</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_bookings }}</div>
+                    </div>
+                    <div class="col-4 text-end">
+                        <i class="fas fa-calendar-check fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Bookings Card -->
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card border-left-warning shadow h-100 py-2 stat-card">
+            <div class="card-body py-2">
+                <div class="row no-gutters align-items-center">
+                    <div class="col-8">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            حجوزات قيد الانتظار</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ pending_bookings }}</div>
+                    </div>
+                    <div class="col-4 text-end">
+                        <i class="fas fa-clock fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Halls Card -->
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card border-left-info shadow h-100 py-2 stat-card">
+            <div class="card-body py-2">
+                <div class="row no-gutters align-items-center">
+                    <div class="col-8">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            عدد القاعات</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_halls }}</div>
+                    </div>
+                    <div class="col-4 text-end">
+                        <i class="fas fa-building fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row g-3 mb-4">
+    <!-- Monthly Bookings Chart -->
+    <div class="col-12 col-xl-8">
+        <div class="card shadow h-100">
+            <div class="card-header py-2">
+                <h6 class="m-0 font-weight-bold text-primary">إحصائيات الحجوزات الشهرية</h6>
+            </div>
+            <div class="card-body p-2 p-sm-3">
+                <div class="chart-container" style="height: 250px;">
+                    <canvas id="monthlyBookingsChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Booking Status Chart -->
+    <div class="col-12 col-xl-4">
+        <div class="card shadow h-100">
+            <div class="card-header py-2">
+                <h6 class="m-0 font-weight-bold text-primary">حالة الحجوزات</h6>
+            </div>
+            <div class="card-body p-2 p-sm-3">
+                <div class="chart-container" style="height: 250px;">
+                    <canvas id="bookingStatusChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hall Occupancy -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header py-2">
+                <h6 class="m-0 font-weight-bold text-primary">معدل إشغال القاعات</h6>
+            </div>
+            <div class="card-body p-2 p-sm-3">
+                {% for hall in hall_occupancy %}
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="small">{{ hall.name|truncatechars:20 }}</span>
+                        <span class="small">{{ hall.occupancy_rate }}%</span>
+                    </div>
+                    <div class="progress" style="height: 0.75rem;">
+                        <div class="progress-bar bg-{{ hall.occupancy_rate|get_occupancy_color }}"
+                            role="progressbar"
+                            style="width: {{ hall.occupancy_rate }}%"
+                            aria-valuenow="{{ hall.occupancy_rate }}"
+                            aria-valuemin="0"
+                            aria-valuemax="100">
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>

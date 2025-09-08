@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
-from django.db.models import Q, Count, Sum, Avg
+from django.db.models import Q, Count, Sum, Avg, F
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, UserChangeForm
@@ -259,39 +259,175 @@ def check_availability(request):
     
     return JsonResponse({'error': 'طريقة طلب غير صحيحة'})
 
+def admin_bookings_calendar(request):
+    """Return JSON data for calendar events"""
+    if not request.user.is_staff:
+        return JsonResponse([], safe=False)
+    
+    try:
+        start_date = request.GET.get('start')
+        end_date = request.GET.get('end')
+        
+        # Convert string dates to datetime objects
+        start = timezone.datetime.fromisoformat(start_date) if start_date else None
+        end = timezone.datetime.fromisoformat(end_date) if end_date else None
+        
+        # Build the query
+        query = Q()
+        if start:
+            query &= Q(start_datetime__gte=start)
+        if end:
+            query &= Q(end_datetime__lte=end)
+            
+        # Get the bookings
+        bookings = Booking.objects.filter(query).select_related('hall', 'user')
+        
+        # Format events for FullCalendar
+        events = []
+        for booking in bookings:
+            event = {
+                'id': booking.id,
+                'title': f"{booking.hall.name} - {booking.customer_name or 'Guest'}",
+                'start': booking.start_datetime.isoformat(),
+                'end': booking.end_datetime.isoformat(),
+                'url': reverse('hall_booking:admin_booking_detail', args=[booking.id]),
+                'color': '#1cc88a' if booking.status == 'confirmed' else 
+                        '#f6c23e' if booking.status == 'pending' else '#e74a3b',
+                'textColor': '#fff',
+                'borderColor': '#fff',
+                'extendedProps': {
+                    'status': booking.status,
+                    'customer': booking.customer_name,
+                    'hall': booking.hall.name
+                }
+            }
+            events.append(event)
+            
+        return JsonResponse(events, safe=False)
+        
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+
+
 def dashboard(request):
     """لوحة الإدارة المتقدمة"""
     if not request.user.is_staff:
         return redirect('hall_booking:home')
+    
+    # إحصائيات سريعة
     total_bookings = Booking.objects.count()
     pending_bookings = Booking.objects.filter(status='pending').count()
     total_halls = Hall.objects.count()
     available_halls = Hall.objects.filter(status='available').count()
     total_users = User.objects.count()
-    total_revenue = Booking.objects.filter(status='completed').aggregate(total=Sum('total_price'))['total'] or 0
-    # بيانات الرسم البياني: عدد الحجوزات لكل شهر في آخر 12 شهر
-    from django.utils import timezone
-    import calendar
+    
+    # الحصول على أحدث الحجوزات (5 حجوزات)
+    recent_bookings = Booking.objects.select_related('hall', 'user').order_by('-created_at')[:5]
+    
+    # الحصول على الحجوزات القادمة (التي لم تنتهي بعد)
     now = timezone.now()
+    upcoming_bookings = Booking.objects.filter(
+        start_datetime__gte=now
+    ).select_related('hall', 'user').order_by('start_datetime')[:5]
+    
+    # الحصول على أحدث الرسائل (5 رسائل)
+    recent_messages = Contact.objects.order_by('-created_at')[:5]
+    
+    # عدد الرسائل غير المقروءة
+    unread_messages = Contact.objects.filter(is_read=False).count()
+    
+    # إحصائيات الإيرادات
+    total_revenue = Booking.objects.filter(status='completed').aggregate(total=Sum('total_price'))['total'] or 0
+    
+    # إحصائيات الحجوزات الشهرية
     monthly_bookings = []
     month_labels = []
+    
+    # Get the last 12 months including current month
     for i in range(11, -1, -1):
         month = (now.month - i - 1) % 12 + 1
         year = now.year if now.month - i > 0 else now.year - 1
         count = Booking.objects.filter(created_at__year=year, created_at__month=month).count()
-        monthly_bookings.append(count)
-        month_labels.append(calendar.month_name[month])
+        monthly_bookings.append(int(count))
+        # Use abbreviated month names in Arabic
+        month_name = {
+            1: 'يناير', 2: 'فبراير', 3: 'مارس', 4: 'أبريل',
+            5: 'مايو', 6: 'يونيو', 7: 'يوليو', 8: 'أغسطس',
+            9: 'سبتمبر', 10: 'أكتوبر', 11: 'نوفمبر', 12: 'ديسمبر'
+        }.get(month, '')
+        month_labels.append(month_name)
+    
+    # إحصائيات حالة الحجوزات
+    status_data = []
+    status_labels = []
+    status_choices = dict(Booking.STATUS_CHOICES)
+    
+    for status_code, status_name in Booking.STATUS_CHOICES:
+        count = Booking.objects.filter(status=status_code).count()
+        if count > 0:  # Only include statuses with data
+            status_data.append(count)
+            status_labels.append(status_name)
+    
+    # حساب معدل إشغال القاعات
+    hall_occupancy = []
+    for hall in Hall.objects.all():
+        # Calculate occupancy rate based on bookings in the last 30 days
+        thirty_days_ago = now - timedelta(days=30)
+        bookings = Booking.objects.filter(
+            hall=hall,
+            start_datetime__gte=thirty_days_ago,
+            status__in=['confirmed', 'completed']
+        )
+        
+        # Calculate total booked hours by summing the duration between start and end times
+        total_hours = 0
+        for booking in bookings:
+            duration = booking.end_datetime - booking.start_datetime
+            total_hours += duration.total_seconds() / 3600  # Convert seconds to hours
+            
+        # Convert hours to days (assuming 24 hours in a day for occupancy calculation)
+        booking_days = total_hours / 24.0
+        
+        # Calculate occupancy rate (capped at 100%)
+        occupancy_rate = min(round((booking_days / 30.0) * 100, 1), 100.0)
+        
+        hall_occupancy.append({
+            'id': hall.id,
+            'name': hall.name,
+            'occupancy_rate': occupancy_rate
+        })
+    
+    # Convert data to JSON for the template
+    from django.utils.safestring import mark_safe
+    from django.core.serializers.json import DjangoJSONEncoder
+    import json
+    
     context = {
-        'total_bookings': total_bookings,
-        'pending_bookings': pending_bookings,
-        'total_halls': total_halls,
+        'page_title': 'لوحة التحكم',
+        'halls_count': total_halls,
         'available_halls': available_halls,
-        'total_users': total_users,
+        'bookings_count': total_bookings,
+        'pending_bookings_count': pending_bookings,
+        'messages_count': Contact.objects.count(),
+        'unread_messages': unread_messages,
+        'recent_bookings': recent_bookings,
+        'recent_messages': recent_messages,
+        'upcoming_bookings': upcoming_bookings,
+        'users_count': total_users,
         'total_revenue': total_revenue,
-        'monthly_bookings': monthly_bookings,
-        'month_labels': month_labels,
+        'monthly_data': mark_safe(json.dumps(monthly_bookings, cls=DjangoJSONEncoder)),
+        'monthly_labels': mark_safe(json.dumps(month_labels, ensure_ascii=False, cls=DjangoJSONEncoder)),
+        'status_data': mark_safe(json.dumps(status_data, cls=DjangoJSONEncoder)),
+        'status_labels': mark_safe(json.dumps(status_labels, ensure_ascii=False, cls=DjangoJSONEncoder)),
+        'hall_occupancy': hall_occupancy,
+        'today': now.date(),
+        'now': now,
+        'total_bookings': total_bookings,
+        'total_halls': total_halls,
+        'pending_bookings': pending_bookings,
     }
-    return render(request, 'hall_booking/dashboard.html', context)
+    
+    return render(request, 'admin_dashbourd/dashboard_new.html', context)
 
 # إدارة القاعات
 @login_required
@@ -325,7 +461,7 @@ def admin_halls_list(request):
         'category_filter': category_filter,
         'status_filter': status_filter,
     }
-    return render(request, 'hall_booking/admin/halls_list.html', context)
+    return render(request, 'admin_dashbourd/halls_list.html', context)
 
 @login_required
 @user_passes_test(is_admin)
@@ -344,7 +480,8 @@ def admin_hall_create(request):
         'form': form,
         'title': 'إنشاء قاعة جديدة'
     }
-    return render(request, 'hall_booking/admin/hall_form.html', context)
+    
+    return render(request, 'admin_dashbourd/hall_form.html', context)
 
 @login_required
 @user_passes_test(is_admin)
@@ -370,6 +507,52 @@ def admin_hall_edit(request, hall_id):
 
 @login_required
 @user_passes_test(is_admin)
+def admin_add_booking(request):
+    """إضافة حجز جديد"""
+    if not request.user.is_staff:
+        return redirect('hall_booking:home')
+    
+    if request.method == 'POST':
+        form = BookingForm(request.POST)
+        if form.is_valid():
+            booking = form.save(commit=False)
+            booking.created_by = request.user
+            booking.save()
+            messages.success(request, 'تم إضافة الحجز بنجاح')
+            return redirect('hall_booking:admin_booking_detail', booking_id=booking.id)
+    else:
+        form = BookingForm()
+    
+    return render(request, 'admin_dashbourd/booking_form.html', {
+        'form': form,
+        'title': 'إضافة حجز جديد'
+    })
+
+@login_required
+@user_passes_test(is_admin)
+def admin_booking_detail(request, booking_id):
+    """تفاصيل الحجز"""
+    if not request.user.is_staff:
+        return redirect('hall_booking:home')
+        
+    booking = get_object_or_404(Booking, id=booking_id)
+    
+    if request.method == 'POST':
+        form = BookingForm(request.POST, instance=booking)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'تم تحديث حالة الحجز بنجاح')
+            return redirect('hall_booking:admin_booking_detail', booking_id=booking.id)
+    else:
+        form = BookingForm(instance=booking)
+    
+    return render(request, 'admin_dashbourd/booking_detail.html', {
+        'booking': booking,
+        'form': form
+    })
+
+@login_required
+@user_passes_test(is_admin)
 def admin_hall_delete(request, hall_id):
     """حذف قاعة"""
     hall = get_object_or_404(Hall, id=hall_id)
@@ -382,7 +565,7 @@ def admin_hall_delete(request, hall_id):
     context = {
         'hall': hall
     }
-    return render(request, 'hall_booking/admin/hall_confirm_delete.html', context)
+    return render(request, 'admin_dashbourd/hall_confirm_delete.html', context)
 
 # إدارة الحجوزات
 @login_required
@@ -418,7 +601,18 @@ def admin_bookings_list(request):
         'status_filter': status_filter,
         'hall_filter': hall_filter,
     }
-    return render(request, 'hall_booking/admin/bookings_list.html', context)
+    # إضافة إحصائيات للصفحة
+    pending_count = bookings.filter(status='pending').count()
+    approved_count = bookings.filter(status='approved').count()
+    completed_count = bookings.filter(status='completed').count()
+
+    context.update({
+        'pending_count': pending_count,
+        'approved_count': approved_count,
+        'completed_count': completed_count,
+    })
+
+    return render(request, 'admin_dashbourd/bookings_list.html', context)
 
 @login_required
 @user_passes_test(is_admin)
@@ -475,7 +669,7 @@ def admin_contacts_list(request):
         'contacts': contacts,
         'search_query': search_query,
     }
-    return render(request, 'hall_booking/admin/contacts_list.html', context)
+    return render(request, 'admin_dashbourd/contacts_list.html', context)
 
 @login_required
 @user_passes_test(is_admin)

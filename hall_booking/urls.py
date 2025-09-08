@@ -22,6 +22,8 @@ urlpatterns = [
     
     path('dashboard/bookings/', views.admin_bookings_list, name='admin_bookings_list'),
     path('dashboard/bookings/<int:booking_id>/', views.admin_booking_detail, name='admin_booking_detail'),
+    path('dashboard/bookings/calendar/', views.admin_bookings_calendar, name='admin_bookings_calendar'),
+    path('dashboard/bookings/add/', views.admin_add_booking, name='admin_add_booking'),
     path('dashboard/bookings/<int:booking_id>/delete/', views.admin_booking_delete, name='admin_booking_delete'),
     
     path('dashboard/contacts/', views.admin_contacts_list, name='admin_contacts_list'),

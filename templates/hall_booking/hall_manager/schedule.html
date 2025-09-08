@@ -8,76 +8,180 @@
     .schedule-card {
         background: white;
         border-radius: 15px;
-        padding: 30px;
+        padding: 15px;
         margin-bottom: 20px;
         box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     }
+    
+    /* Calendar container for horizontal scrolling on mobile */
+    .calendar-container {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        margin-bottom: 1rem;
+    }
+    
     .calendar-table {
         width: 100%;
+        min-width: 700px; /* Minimum width before scrolling */
         border-collapse: collapse;
     }
+    
     .calendar-table th,
     .calendar-table td {
         border: 1px solid #dee2e6;
-        padding: 10px;
+        padding: 8px 4px;
         text-align: center;
         vertical-align: top;
-        height: 120px;
+        height: 100px;
         width: 14.28%;
     }
+    
     .calendar-table th {
         background-color: #f8f9fa;
-        height: 50px;
+        height: 40px;
         font-weight: bold;
+        font-size: 0.85rem;
+        white-space: nowrap;
     }
+    
     .calendar-day {
         position: relative;
         height: 100%;
     }
+    
     .day-number {
         font-weight: bold;
-        margin-bottom: 5px;
+        margin-bottom: 3px;
+        font-size: 0.9rem;
     }
+    
     .booking-item {
         background: #007bff;
         color: white;
         border-radius: 3px;
-        padding: 2px 4px;
+        padding: 2px 3px;
         margin: 1px 0;
-        font-size: 0.75rem;
+        font-size: 0.7rem;
         cursor: pointer;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+        line-height: 1.2;
     }
+    
     .booking-item.pending {
         background: #ffc107;
         color: #000;
     }
+    
     .booking-item.approved {
         background: #28a745;
     }
+    
     .booking-item.completed {
         background: #6c757d;
     }
-    .booking-item.cancelled {
-        background: #dc3545;
-    }
+    
+    .booking-item.cancelled,
     .booking-item.rejected {
         background: #dc3545;
     }
+    
     .today {
         background-color: #e3f2fd;
     }
+    
     .other-month {
         color: #ccc;
         background-color: #f9f9f9;
     }
+    
     .navigation-buttons {
         display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 15px;
+    }
+    
+    .month-title {
+        order: -1;
+        text-align: center;
+        margin: 10px 0;
+    }
+    
+    .nav-buttons {
+        display: flex;
         justify-content: space-between;
+        gap: 10px;
+    }
+    
+    .nav-buttons .btn {
+        flex: 1;
+        white-space: nowrap;
+        padding: 0.375rem 0.5rem;
+        font-size: 0.9rem;
+    }
+    
+    /* Responsive legend */
+    .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 15px;
+    }
+    
+    .legend-item {
+        display: flex;
         align-items: center;
-        margin-bottom: 20px;
+        font-size: 0.8rem;
+        margin-bottom: 5px;
+    }
+    
+    .legend-color {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border-radius: 3px;
+        margin-left: 5px;
+    }
+    
+    /* Responsive adjustments */
+    @media (min-width: 768px) {
+        .schedule-card {
+            padding: 25px;
+        }
+        
+        .navigation-buttons {
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .month-title {
+            order: 0;
+            margin: 0;
+        }
+        
+        .nav-buttons {
+            flex: 0 0 auto;
+            width: auto;
+        }
+        
+        .nav-buttons .btn {
+            padding: 0.375rem 0.75rem;
+        }
+        
+        .calendar-table th,
+        .calendar-table td {
+            padding: 10px;
+            height: 120px;
+        }
+        
+        .booking-item {
+            font-size: 0.75rem;
+            padding: 2px 4px;
+        }
     }
 </style>
 {% endblock %}
@@ -107,17 +211,22 @@
             <div class="schedule-card">
                 <!-- Navigation -->
                 <div class="navigation-buttons">
-                    <a href="?year={{ prev_year }}&month={{ prev_month }}" class="btn btn-outline-primary">
-                        <i class="fas fa-chevron-right me-1"></i>الشهر السابق
-                    </a>
-                    <h3 class="mb-0">{{ month_name }} {{ current_year }}</h3>
-                    <a href="?year={{ next_year }}&month={{ next_month }}" class="btn btn-outline-primary">
-                        الشهر التالي<i class="fas fa-chevron-left ms-1"></i>
-                    </a>
+                    <div class="month-title">
+                        <h3 class="mb-0">{{ month_name }} {{ current_year }}</h3>
+                    </div>
+                    <div class="nav-buttons">
+                        <a href="?year={{ prev_year }}&month={{ prev_month }}" class="btn btn-outline-primary">
+                            <i class="fas fa-chevron-right me-1"></i>السابق
+                        </a>
+                        <a href="?year={{ next_year }}&month={{ next_month }}" class="btn btn-outline-primary">
+                            التالي<i class="fas fa-chevron-left ms-1"></i>
+                        </a>
+                    </div>
                 </div>
 
                 <!-- Calendar Table -->
-                <table class="calendar-table">
+                <div class="calendar-container">
+                    <table class="calendar-table">
                     <thead>
                         <tr>
                             <th>الأحد</th>
@@ -156,29 +265,30 @@
                         {% endfor %}
                     </tbody>
                 </table>
+                </div>
 
                 <!-- Legend -->
                 <div class="mt-4">
                     <h6>دليل الألوان:</h6>
-                    <div class="row">
-                        <div class="col-md-2">
-                            <span class="booking-item pending d-inline-block mb-1" style="width: 20px; height: 20px;"></span>
+                    <div class="legend">
+                        <div class="legend-item">
+                            <span class="legend-color booking-item pending"></span>
                             في الانتظار
                         </div>
-                        <div class="col-md-2">
-                            <span class="booking-item approved d-inline-block mb-1" style="width: 20px; height: 20px;"></span>
+                        <div class="legend-item">
+                            <span class="legend-color booking-item approved"></span>
                             موافق عليه
                         </div>
-                        <div class="col-md-2">
-                            <span class="booking-item completed d-inline-block mb-1" style="width: 20px; height: 20px;"></span>
+                        <div class="legend-item">
+                            <span class="legend-color booking-item completed"></span>
                             مكتمل
                         </div>
-                        <div class="col-md-2">
-                            <span class="booking-item cancelled d-inline-block mb-1" style="width: 20px; height: 20px;"></span>
+                        <div class="legend-item">
+                            <span class="legend-color booking-item cancelled"></span>
                             ملغي
                         </div>
-                        <div class="col-md-2">
-                            <span class="booking-item rejected d-inline-block mb-1" style="width: 20px; height: 20px;"></span>
+                        <div class="legend-item">
+                            <span class="legend-color booking-item rejected"></span>
                             مرفوض
                         </div>
                     </div>
