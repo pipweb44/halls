@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}تأكيد حذف القاعة{% endblock %}
+
+{% block extra_css %}
+<style>
+    .delete-container {
+        background: var(--black-secondary);
+        border-radius: 10px;
+        padding: 30px;
+        max-width: 600px;
+        margin: 50px auto;
+        text-align: center;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+    }
+    
+    .delete-icon {
+        font-size: 4rem;
+        color: #dc3545;
+        margin-bottom: 20px;
+    }
+    
+    .delete-message {
+        color: #fff;
+        font-size: 1.2rem;
+        margin-bottom: 30px;
+    }
+    
+    .hall-info {
+        background: var(--black-tertiary);
+        border-radius: 8px;
+        padding: 15px;
+        margin: 20px 0;
+        text-align: right;
+    }
+    
+    .hall-name {
+        color: var(--gold-primary);
+        font-size: 1.3rem;
+        margin-bottom: 10px;
+    }
+    
+    .hall-details {
+        color: #aaa;
+        font-size: 0.95rem;
+    }
+    
+    .btn-delete {
+        background: #dc3545;
+        color: white;
+        border: none;
+        padding: 10px 30px;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-delete:hover {
+        background: #c82333;
+        transform: translateY(-2px);
+    }
+    
+    .btn-cancel {
+        background: #6c757d;
+        color: white;
+        border: none;
+        padding: 10px 30px;
+        border-radius: 8px;
+        font-weight: 600;
+        margin-right: 15px;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-cancel:hover {
+        background: #5a6268;
+        transform: translateY(-2px);
+    }
+    
+    @media (max-width: 576px) {
+        .delete-container {
+            padding: 20px 15px;
+            margin: 20px 10px;
+        }
+        
+        .delete-icon {
+            font-size: 3rem;
+        }
+        
+        .delete-message {
+            font-size: 1rem;
+        }
+        
+        .btn {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        
+        .btn-cancel {
+            margin-right: 0;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="delete-container">
+    <div class="delete-icon">
+        <i class="fas fa-exclamation-triangle"></i>
+    </div>
+    
+    <h2 class="text-danger mb-4">تأكيد الحذف</h2>
+    
+    <p class="delete-message">
+        هل أنت متأكد من رغبتك في حذف القاعة التالية؟<br>
+        <span class="text-warning">هذا الإجراء لا يمكن التراجع عنه!</span>
+    </p>
+    
+    <div class="hall-info">
+        <div class="hall-name">{{ hall.name }}</div>
+        <div class="hall-details">
+            <div><i class="fas fa-layer-group me-2"></i> {{ hall.category.name }}</div>
+            <div><i class="fas fa-users me-2"></i> السعة: {{ hall.capacity }} شخص</div>
+            <div><i class="fas fa-dollar-sign me-2"></i> السعر: {{ hall.price_per_hour }} ج.م / ساعة</div>
+        </div>
+    </div>
+    
+    <form method="post" class="mt-4">
+        {% csrf_token %}
+        <button type="button" class="btn btn-cancel" onclick="window.history.back()">
+            <i class="fas fa-times me-2"></i>إلغاء
+        </button>
+        <button type="submit" class="btn btn-delete">
+            <i class="fas fa-trash-alt me-2"></i>حذف القاعة
+        </button>
+    </form>
+    
+    <div class="alert alert-warning mt-4 text-right">
+        <i class="fas fa-exclamation-circle me-2"></i>
+        <strong>تنبيه:</strong> سيتم حذف جميع البيانات المرتبطة بهذه القاعة بما في ذلك الحجوزات والصور.
+    </div>
+</div>
+{% endblock %}

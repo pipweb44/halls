@@ -3,7 +3,8 @@ from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
-from django.db.models import Q, Count, Sum, Avg, F
+from django.db.models import Q, Count, Sum, Avg, F, Value
+from django.db.models.functions import TruncMonth, TruncDay, TruncWeek, TruncYear
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, UserChangeForm
@@ -16,6 +17,7 @@ from django.db.models import Sum
 import calendar
 from django.core.paginator import Paginator
 from django.contrib.auth import update_session_auth_hash
+from collections import defaultdict
 
 def is_admin(user):
     return user.is_staff
@@ -503,7 +505,7 @@ def admin_hall_edit(request, hall_id):
         'hall': hall,
         'title': 'تعديل القاعة'
     }
-    return render(request, 'hall_booking/admin/hall_form.html', context)
+    return render(request, 'admin_dashbourd/hall_form.html', context)
 
 @login_required
 @user_passes_test(is_admin)
