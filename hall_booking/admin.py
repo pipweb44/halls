@@ -1,358 +1,137 @@
 from django.contrib import admin
-from django.contrib.auth.models import User
-from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
-from django.contrib import admin
-from django.contrib.admin import AdminSite
+from django.contrib.admin import AdminSite, TabularInline
 from django.utils.html import format_html
 from django.urls import path
 from django.shortcuts import render
 from django.db.models import Count, Sum, Avg
 from django.utils import timezone
 from datetime import datetime, timedelta
-from .models import Category, Hall, Booking, Contact, HallImage, HallManager, Notification, Governorate, City
+from .models import (
+    Category, Hall, Booking, Contact, HallImage, HallManager, Notification, 
+    Governorate, City, Ingredient, Meal, MealIngredient, HallMeal,
+    AdditionalService, BookingService, BookingMeal
+)
 
-# تخصيص لوحة الإدارة
-class HallBookingAdminSite(AdminSite):
-    site_header = "نظام إدارة حجز القاعات"
-    site_title = "لوحة الإدارة"
-    index_title = "مرحباً بك في نظام إدارة حجز القاعات"
-    
-    def get_urls(self):
-        urls = super().get_urls()
-        custom_urls = [
-            path('dashboard/', self.admin_view(self.dashboard_view), name='dashboard'),
-        ]
-        return custom_urls + urls
-    
-    def dashboard_view(self, request):
-        # إحصائيات عامة
-        total_halls = Hall.objects.count()
-        total_bookings = Booking.objects.count()
-        pending_bookings = Booking.objects.filter(status='pending').count()
-        completed_bookings = Booking.objects.filter(status='completed').count()
-        total_revenue = Booking.objects.filter(status='completed').aggregate(total=Sum('total_price'))['total'] or 0
-        
-        # إحصائيات الشهر الحالي
-        current_month = timezone.now().month
-        current_year = timezone.now().year
-        monthly_bookings = Booking.objects.filter(
-            created_at__month=current_month,
-            created_at__year=current_year
-        ).count()
-        
-        # إحصائيات القاعات حسب الفئة
-        category_stats = Category.objects.annotate(
-            hall_count=Count('hall'),
-            booking_count=Count('hall__booking')
-        )
-        
-        # آخر الحجوزات
-        recent_bookings = Booking.objects.select_related('hall').order_by('-created_at')[:10]
-        
-        # رسائل التواصل الجديدة
-        new_contacts = Contact.objects.filter(is_read=False).order_by('-created_at')[:5]
-        
-        context = {
-            'total_halls': total_halls,
-            'total_bookings': total_bookings,
-            'pending_bookings': pending_bookings,
-            'completed_bookings': completed_bookings,
-            'total_revenue': total_revenue,
-            'monthly_bookings': monthly_bookings,
-            'category_stats': category_stats,
-            'recent_bookings': recent_bookings,
-            'new_contacts': new_contacts,
-        }
-        
-        return render(request, 'admin/dashboard.html', context)
+# ===========================================
+# Custom Admin Classes
+# ===========================================
 
-# إنشاء نسخة مخصصة من لوحة الإدارة
-admin_site = HallBookingAdminSite(name='hall_booking_admin')
+class GovernorateAdmin(admin.ModelAdmin):
+    list_display = ['name', 'name_en', 'code', 'region']
+    search_fields = ['name', 'name_en', 'code']
+    list_filter = ['region']
 
-# تخصيص نموذج الفئات
-@admin.register(Category)
+class CityAdmin(admin.ModelAdmin):
+    list_display = ['name', 'name_en', 'governorate', 'is_capital']
+    search_fields = ['name', 'name_en']
+    list_filter = ['governorate', 'is_capital']
+    autocomplete_fields = ['governorate']
+
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ['name', 'hall_count', 'description']
-    list_filter = ['name']
+    list_display = ['name', 'icon']
     search_fields = ['name', 'description']
-    ordering = ['name']
-    
-    def hall_count(self, obj):
-        return obj.hall_set.count()
-    hall_count.short_description = 'عدد القاعات'
 
-# تخصيص نموذج صور القاعات (inline)
 class HallImageInline(admin.TabularInline):
     model = HallImage
     extra = 1
-    fields = ['image', 'image_type', 'title', 'is_featured', 'order', 'uploaded_at']
-    readonly_fields = ['uploaded_at']
+    fields = ['image', 'image_type', 'title', 'is_featured', 'order']
 
-# تخصيص نموذج مديري القاعات (inline)
-class HallManagerInline(admin.TabularInline):
-    model = HallManager
-    extra = 0
-    fields = ['user', 'permission_level', 'is_active', 'assigned_at']
-    readonly_fields = ['assigned_at']
-
-# تخصيص نموذج القاعات
-@admin.register(Hall)
 class HallAdmin(admin.ModelAdmin):
-    list_display = ['name', 'category', 'governorate', 'city', 'capacity', 'price_per_hour', 'status', 'get_manager_display', 'booking_count', 'created_at']
-    list_filter = ['category', 'governorate', 'city', 'status', 'created_at']
-    search_fields = ['name', 'description', 'address', 'governorate__name', 'city__name']
-    ordering = ['-created_at']
-    readonly_fields = ['created_at', 'updated_at']
-    inlines = [HallImageInline, HallManagerInline]
-    fieldsets = (
-        ('معلومات أساسية', {
-            'fields': ('name', 'category', 'description')
-        }),
-        ('الموقع', {
-            'fields': ('governorate', 'city', 'address', 'latitude', 'longitude')
-        }),
-        ('المواصفات', {
-            'fields': ('capacity', 'price_per_hour', 'features')
-        }),
-        ('معلومات الاتصال', {
-            'fields': ('phone', 'email', 'website'),
-            'classes': ('collapse',)
-        }),
-        ('الحالة', {
-            'fields': ('status',)
-        }),
-        ('التواريخ', {
-            'fields': ('created_at', 'updated_at'),
-            'classes': ('collapse',)
-        }),
-    )
+    list_display = ['name', 'category', 'city', 'price_per_hour', 'status']
+    list_filter = ['status', 'category', 'city__governorate', 'city']
+    search_fields = ['name', 'description', 'address']
+    inlines = [HallImageInline]
+    autocomplete_fields = ['category', 'governorate', 'city']
 
-    def booking_count(self, obj):
-        return obj.booking_set.count()
-    booking_count.short_description = 'عدد الحجوزات'
-
-    def get_manager_display(self, obj):
-        manager = obj.get_manager()
-        if manager:
-            return f"{manager.user.get_full_name() or manager.user.username}"
-        return "غير محدد"
-    get_manager_display.short_description = 'مدير القاعة'
-
-# تخصيص نموذج الحجوزات
-@admin.register(Booking)
 class BookingAdmin(admin.ModelAdmin):
-    list_display = ['event_title', 'customer_name', 'hall', 'start_datetime', 'end_datetime', 'status', 'total_price', 'created_at']
-    list_filter = ['status', 'created_at', 'hall__category']
-    search_fields = ['customer_name', 'customer_email', 'event_title', 'hall__name']
-    ordering = ['-created_at']
-    readonly_fields = ['created_at', 'total_price']
-    
-    fieldsets = (
-        ('معلومات العميل', {
-            'fields': ('customer_name', 'customer_email', 'customer_phone')
-        }),
-        ('معلومات الحدث', {
-            'fields': ('event_title', 'event_description', 'attendees_count')
-        }),
-        ('تفاصيل الحجز', {
-            'fields': ('hall', 'start_datetime', 'end_datetime', 'total_price')
-        }),
-        ('الحالة', {
-            'fields': ('status',)
-        }),
-        ('التواريخ', {
-            'fields': ('created_at',),
-            'classes': ('collapse',)
-        }),
-    )
-    
-    actions = ['approve_bookings', 'reject_bookings', 'mark_as_completed']
-    
-    def approve_bookings(self, request, queryset):
-        updated = queryset.update(status='approved')
-        self.message_user(request, f'تم الموافقة على {updated} حجز بنجاح.')
-    approve_bookings.short_description = "الموافقة على الحجوزات المحددة"
-    
-    def reject_bookings(self, request, queryset):
-        updated = queryset.update(status='rejected')
-        self.message_user(request, f'تم رفض {updated} حجز بنجاح.')
-    reject_bookings.short_description = "رفض الحجوزات المحددة"
-    
-    def mark_as_completed(self, request, queryset):
-        updated = queryset.update(status='completed')
-        self.message_user(request, f'تم تحديد {updated} حجز كمكتمل بنجاح.')
-    mark_as_completed.short_description = "تحديد الحجوزات كمكتملة"
+    list_display = ['event_title', 'customer_name', 'hall', 'start_datetime', 'end_datetime', 'status']
+    list_filter = ['status', 'hall']
+    search_fields = ['event_title', 'customer_name', 'customer_email', 'customer_phone']
+    autocomplete_fields = ['hall', 'user']
 
-# Inline للحجوزات ضمن صفحة المستخدم في لوحة الإدارة
-class BookingInline(admin.TabularInline):
-    model = Booking
-    extra = 0
-    fields = (
-        'hall', 'event_title', 'start_datetime', 'end_datetime', 'status', 'total_price',
-    )
-    readonly_fields = ('total_price',)
-    show_change_link = True
-
-class UserAdmin(DjangoUserAdmin):
-    inlines = [BookingInline]
-
-# تسجيل التخصيص في لوحة الإدارة الافتراضية
-try:
-    admin.site.unregister(User)
-except admin.sites.NotRegistered:
-    pass
-admin.site.register(User, UserAdmin)
-
-# وتسجيله أيضاً في لوحة الإدارة المخصصة إن كنت تستخدمها
-try:
-    admin_site.unregister(User)
-except Exception:
-    pass
-admin_site.register(User, UserAdmin)
-
-# تخصيص نموذج التواصل
-@admin.register(Contact)
-class ContactAdmin(admin.ModelAdmin):
-    list_display = ['name', 'email', 'subject', 'is_read', 'created_at']
-    list_filter = ['is_read', 'created_at']
-    search_fields = ['name', 'email', 'subject', 'message']
-    ordering = ['-created_at']
-    readonly_fields = ['created_at']
-    
-    fieldsets = (
-        ('معلومات المرسل', {
-            'fields': ('name', 'email', 'phone')
-        }),
-        ('محتوى الرسالة', {
-            'fields': ('subject', 'message')
-        }),
-        ('الحالة', {
-            'fields': ('is_read',)
-        }),
-        ('التواريخ', {
-            'fields': ('created_at',),
-            'classes': ('collapse',)
-        }),
-    )
-    
-    actions = ['mark_as_read', 'mark_as_unread']
-    
-    def mark_as_read(self, request, queryset):
-        updated = queryset.update(is_read=True)
-        self.message_user(request, f'تم تحديد {updated} رسالة كمقروءة بنجاح.')
-    mark_as_read.short_description = "تحديد الرسائل كمقروءة"
-    
-    def mark_as_unread(self, request, queryset):
-        updated = queryset.update(is_read=False)
-        self.message_user(request, f'تم تحديد {updated} رسالة كغير مقروءة بنجاح.')
-    mark_as_unread.short_description = "تحديد الرسائل كغير مقروءة"
-
-# تخصيص نموذج مديري القاعات
-@admin.register(HallManager)
 class HallManagerAdmin(admin.ModelAdmin):
-    list_display = ['user', 'hall', 'permission_level', 'is_active', 'assigned_at']
-    list_filter = ['permission_level', 'is_active', 'assigned_at', 'hall__category']
-    search_fields = ['user__username', 'user__first_name', 'user__last_name', 'hall__name']
-    ordering = ['-assigned_at']
-    readonly_fields = ['assigned_at']
+    list_display = ['user', 'hall', 'permission_level', 'is_active']
+    list_filter = ['permission_level', 'is_active']
+    search_fields = ['user__username', 'hall__name']
+    autocomplete_fields = ['user', 'hall']
 
-    fieldsets = (
-        ('معلومات التعيين', {
-            'fields': ('user', 'hall', 'permission_level')
-        }),
-        ('الحالة', {
-            'fields': ('is_active',)
-        }),
-        ('ملاحظات', {
-            'fields': ('notes',)
-        }),
-        ('التواريخ', {
-            'fields': ('assigned_at',),
-            'classes': ('collapse',)
-        }),
-    )
+class ContactAdmin(admin.ModelAdmin):
+    list_display = ['name', 'email', 'subject', 'created_at', 'is_read']
+    list_filter = ['is_read']
+    search_fields = ['name', 'email', 'subject', 'message']
+    readonly_fields = ['created_at']
 
-    def formfield_for_foreignkey(self, db_field, request, **kwargs):
-        if db_field.name == "user":
-            # عرض المستخدمين الذين ليسوا مديرين لقاعات أخرى
-            assigned_users = HallManager.objects.filter(is_active=True).values_list('user_id', flat=True)
-            kwargs["queryset"] = User.objects.exclude(id__in=assigned_users)
-        elif db_field.name == "hall":
-            # عرض القاعات التي ليس لها مدير
-            assigned_halls = HallManager.objects.filter(is_active=True).values_list('hall_id', flat=True)
-            kwargs["queryset"] = Hall.objects.exclude(id__in=assigned_halls)
-        return super().formfield_for_foreignkey(db_field, request, **kwargs)
-
-# تخصيص نموذج الإشعارات
-@admin.register(Notification, site=admin_site)
 class NotificationAdmin(admin.ModelAdmin):
-    list_display = ['title', 'user', 'notification_type', 'is_read', 'created_at']
-    list_filter = ['notification_type', 'is_read', 'created_at']
-    search_fields = ['title', 'message', 'user__username', 'user__email']
-    ordering = ['-created_at']
+    list_display = ['user', 'title', 'notification_type', 'is_read', 'created_at']
+    list_filter = ['notification_type', 'is_read']
+    search_fields = ['user__username', 'title', 'message']
     readonly_fields = ['created_at']
 
-    fieldsets = (
-        ('معلومات الإشعار', {
-            'fields': ('user', 'booking', 'notification_type', 'title', 'message')
-        }),
-        ('الحالة', {
-            'fields': ('is_read',)
-        }),
-        ('التواريخ', {
-            'fields': ('created_at',),
-            'classes': ('collapse',)
-        }),
-    )
+# ===========================================
+# Meal and Services Admin Classes
+# ===========================================
 
-    actions = ['mark_as_read', 'mark_as_unread']
+class IngredientAdmin(admin.ModelAdmin):
+    list_display = ['name', 'is_allergen']
+    search_fields = ['name', 'description']
+    list_filter = ['is_allergen']
 
-    def mark_as_read(self, request, queryset):
-        updated = queryset.update(is_read=True)
-        self.message_user(request, f'تم تحديد {updated} إشعار كمقروء.')
-    mark_as_read.short_description = "تحديد كمقروء"
+class MealAdmin(admin.ModelAdmin):
+    list_display = ['name', 'meal_type', 'price_per_person', 'is_available']
+    list_filter = ['meal_type', 'is_available']
+    search_fields = ['name', 'description']
 
-    def mark_as_unread(self, request, queryset):
-        updated = queryset.update(is_read=False)
-        self.message_user(request, f'تم تحديد {updated} إشعار كغير مقروء.')
-    mark_as_unread.short_description = "تحديد كغير مقروء"
+class MealIngredientAdmin(admin.ModelAdmin):
+    list_display = ['meal', 'ingredient', 'quantity', 'is_optional']
+    list_filter = ['is_optional', 'ingredient']
+    search_fields = ['meal__name', 'ingredient__name', 'notes']
+    autocomplete_fields = ['meal', 'ingredient']
+    list_select_related = ['meal', 'ingredient']
 
-# إدارة المحافظات
-@admin.register(Governorate)
-class GovernorateAdmin(admin.ModelAdmin):
-    list_display = ['name', 'name_en', 'code', 'region', 'cities_count', 'created_at']
-    list_filter = ['region', 'created_at']
-    search_fields = ['name', 'name_en', 'code']
-    ordering = ['name']
-    readonly_fields = ['created_at']
+class HallMealAdmin(admin.ModelAdmin):
+    list_display = ['hall', 'meal', 'is_available', 'get_price']
+    list_filter = ['is_available', 'hall']
+    search_fields = ['meal__name', 'hall__name']
+    autocomplete_fields = ['hall', 'meal']
 
-    def cities_count(self, obj):
-        return obj.cities.count()
-    cities_count.short_description = "عدد المدن"
+class AdditionalServiceAdmin(admin.ModelAdmin):
+    list_display = ['name', 'hall', 'service_type', 'price', 'is_available']
+    list_filter = ['service_type', 'is_available', 'hall']
+    search_fields = ['name', 'description']
+    autocomplete_fields = ['hall']
 
-# إدارة المدن
-class CityInline(admin.TabularInline):
-    model = City
-    extra = 1
-    fields = ['name', 'name_en', 'is_capital']
+class BookingServiceInline(admin.TabularInline):
+    model = BookingService
+    extra = 0
+    autocomplete_fields = ['service']
 
-@admin.register(City)
-class CityAdmin(admin.ModelAdmin):
-    list_display = ['name', 'name_en', 'governorate', 'is_capital', 'halls_count', 'created_at']
-    list_filter = ['governorate', 'is_capital', 'created_at']
-    search_fields = ['name', 'name_en', 'governorate__name']
-    ordering = ['governorate', 'name']
-    readonly_fields = ['created_at']
+class BookingMealInline(admin.TabularInline):
+    model = BookingMeal
+    extra = 0
+    autocomplete_fields = ['hall_meal']
 
-    def halls_count(self, obj):
-        return obj.hall_set.count()
-    halls_count.short_description = "عدد القاعات"
+# Update BookingAdmin to include inlines
+BookingAdmin.inlines = [BookingServiceInline, BookingMealInline]
 
-# تسجيل النماذج في لوحة الإدارة المخصصة
-admin_site.register(Governorate, GovernorateAdmin)
-admin_site.register(City, CityAdmin)
-admin_site.register(Category, CategoryAdmin)
-admin_site.register(Hall, HallAdmin)
-admin_site.register(Booking, BookingAdmin)
-admin_site.register(Contact, ContactAdmin)
-admin_site.register(HallManager, HallManagerAdmin)
+# ===========================================
+# Register Models
+# ===========================================
+
+# Core Models
+admin.site.register(Governorate, GovernorateAdmin)
+admin.site.register(City, CityAdmin)
+admin.site.register(Category, CategoryAdmin)
+admin.site.register(Hall, HallAdmin)
+admin.site.register(Booking, BookingAdmin)
+admin.site.register(HallManager, HallManagerAdmin)
+admin.site.register(Contact, ContactAdmin)
+admin.site.register(Notification, NotificationAdmin)
+
+# Meal and Service Models
+admin.site.register(Ingredient, IngredientAdmin)
+admin.site.register(Meal, MealAdmin)
+admin.site.register(MealIngredient, MealIngredientAdmin)
+admin.site.register(HallMeal, HallMealAdmin)
+admin.site.register(AdditionalService, AdditionalServiceAdmin)
+admin.site.register(BookingService)
+admin.site.register(BookingMeal)

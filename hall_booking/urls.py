@@ -40,6 +40,7 @@ urlpatterns = [
 
     # مسارات مديري القاعات
     path('hall-manager/', views.hall_manager_dashboard, name='hall_manager_dashboard'),
+    path('hall-manager/edit/', views.hall_manager_edit_hall, name='hall_manager_edit_hall'),
     path('hall-manager/bookings/', views.hall_manager_bookings, name='hall_manager_bookings'),
     path('hall-manager/bookings/<int:booking_id>/', views.hall_manager_booking_detail, name='hall_manager_booking_detail'),
     path('hall-manager/schedule/', views.hall_manager_schedule, name='hall_manager_schedule'),

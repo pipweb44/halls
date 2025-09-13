@@ -164,10 +164,13 @@
                             <i class="fas fa-users me-2"></i>
                             السعة: {{ managed_hall.capacity }} شخص
                         </p>
-                        <p class="text-muted">
+                        <p class="text-muted mb-3">
                             <i class="fas fa-dollar-sign me-2"></i>
                             السعر: {{ managed_hall.price_per_hour }} ج.م / ساعة
                         </p>
+                        <a href="{% url 'hall_booking:hall_manager_edit_hall' %}" class="btn btn-primary">
+                            <i class="fas fa-edit me-2"></i>تعديل بيانات القاعة
+                        </a>
                     </div>
                     <div class="col-md-4 text-center">
                         {% if managed_hall.image %}

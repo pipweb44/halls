@@ -1067,6 +1067,38 @@ def admin_user_detail(request, user_id):
 
 @login_required
 @user_passes_test(is_hall_manager)
+def hall_manager_edit_hall(request):
+    """تعديل بيانات القاعة - لوحة مدير القاعة"""
+    managed_hall = get_user_managed_hall(request.user)
+    if not managed_hall:
+        messages.error(request, 'لا يمكنك الوصول لهذه الصفحة')
+        return redirect('hall_booking:home')
+
+    if request.method == 'POST':
+        form = HallForm(request.POST, request.FILES, instance=managed_hall)
+        if form.is_valid():
+            hall = form.save(commit=False)
+            # تحديث بيانات القاعة
+            hall.save()
+            messages.success(request, 'تم تحديث بيانات القاعة بنجاح')
+            return redirect('hall_booking:hall_manager_dashboard')
+    else:
+        form = HallForm(instance=managed_hall)
+    
+    # تحميل المحافظات والمدن للقوائم المنسدلة
+    governorates = Governorate.objects.all().order_by('name')
+    cities = City.objects.filter(governorate=managed_hall.governorate).order_by('name')
+    
+    context = {
+        'form': form,
+        'managed_hall': managed_hall,
+        'governorates': governorates,
+        'cities': cities,
+    }
+    return render(request, 'hall_booking/hall_manager/edit_hall.html', context)
+
+@login_required
+@user_passes_test(is_hall_manager)
 def hall_manager_dashboard(request):
     """لوحة تحكم مدير القاعة"""
     managed_hall = get_user_managed_hall(request.user)

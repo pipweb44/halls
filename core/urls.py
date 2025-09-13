@@ -18,11 +18,9 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from hall_booking.admin import admin_site
 
 urlpatterns = [
-    path('admin/', admin.site.urls),  # لوحة الإدارة الافتراضية
-    path('admin-site/', admin_site.urls),  # لوحة الإدارة المخصصة إذا أردت الاحتفاظ بها
+    path('admin/', admin.site.urls),  # لوحة الإدارة
     path('', include('hall_booking.urls')),
 ]
 
