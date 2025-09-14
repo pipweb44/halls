@@ -8,6 +8,8 @@ import uuid
 from django.utils.text import slugify
 from django.core.exceptions import ValidationError
 
+# Move the Meal model to the top to resolve circular imports
+
 # نموذج المحافظات المصرية
 class Governorate(models.Model):
     name = models.CharField(max_length=100, unique=True, verbose_name="اسم المحافظة")
@@ -310,12 +312,39 @@ class Notification(models.Model):
 # ===========================================
 # نماذج إدارة الوجبات والخدمات
 # ===========================================
+# Note: Meal-related models have been moved to the meal_system app
+
+class IngredientImage(models.Model):
+    """نموذج صور المكونات"""
+    ingredient = models.ForeignKey('Ingredient', on_delete=models.CASCADE, related_name='images', verbose_name="المكون")
+    image = models.ImageField(upload_to='ingredients/', verbose_name="الصورة")
+    caption = models.CharField(max_length=200, blank=True, null=True, verbose_name="تعليق")
+    is_primary = models.BooleanField(default=False, verbose_name="صورة رئيسية")
+    order = models.PositiveIntegerField(default=0, verbose_name="ترتيب العرض")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاريخ الإضافة")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="تاريخ التحديث")
+
+    class Meta:
+        verbose_name = "صورة المكون"
+        verbose_name_plural = "صور المكونات"
+        ordering = ['order', '-is_primary', 'created_at']
+
+    def __str__(self):
+        return f"صورة لـ {self.ingredient.name}"
+
+    def save(self, *args, **kwargs):
+        # Ensure only one primary image per ingredient
+        if self.is_primary:
+            IngredientImage.objects.filter(ingredient=self.ingredient, is_primary=True).update(is_primary=False)
+        super().save(*args, **kwargs)
+
 
 class Ingredient(models.Model):
     """نموذج المكونات المستخدمة في تحضير الوجبات"""
     name = models.CharField(max_length=100, verbose_name="اسم المكون")
     description = models.TextField(blank=True, null=True, verbose_name="وصف المكون")
     is_allergen = models.BooleanField(default=False, verbose_name="مسبب للحساسية")
+    image = models.ImageField(upload_to='ingredients/main/', blank=True, null=True, verbose_name="الصورة الرئيسية")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاريخ الإضافة")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="تاريخ التحديث")
 
@@ -326,6 +355,31 @@ class Ingredient(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class MealImage(models.Model):
+    """نموذج صور الوجبات"""
+    meal = models.ForeignKey('Meal', on_delete=models.CASCADE, related_name='meal_images', verbose_name="الوجبة")
+    image = models.ImageField(upload_to='meals/gallery/', verbose_name="الصورة")
+    caption = models.CharField(max_length=200, blank=True, null=True, verbose_name="تعليق")
+    is_primary = models.BooleanField(default=False, verbose_name="صورة رئيسية")
+    order = models.PositiveIntegerField(default=0, verbose_name="ترتيب العرض")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاريخ الإضافة")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="تاريخ التحديث")
+
+    class Meta:
+        verbose_name = "صورة الوجبة"
+        verbose_name_plural = "صور الوجبات"
+        ordering = ['order', '-is_primary', 'created_at']
+
+    def __str__(self):
+        return f"صورة لـ {self.meal.name}"
+
+    def save(self, *args, **kwargs):
+        # Ensure only one primary image per meal
+        if self.is_primary:
+            MealImage.objects.filter(meal=self.meal, is_primary=True).update(is_primary=False)
+        super().save(*args, **kwargs)
 
 
 class Meal(models.Model):
@@ -346,7 +400,7 @@ class Meal(models.Model):
     is_available = models.BooleanField(default=True, verbose_name="متاح للطلب")
     preparation_time = models.PositiveIntegerField(help_text="مدة التحضير بالدقائق", verbose_name="مدة التحضير")
     ingredients = models.ManyToManyField('Ingredient', through='MealIngredient', verbose_name="المكونات")
-    image = models.ImageField(upload_to='meals/', blank=True, null=True, verbose_name="صورة الوجبة")
+    image = models.ImageField(upload_to='meals/main/', blank=True, null=True, verbose_name="الصورة الرئيسية")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاريخ الإضافة")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="تاريخ التحديث")
 
@@ -489,7 +543,9 @@ class BookingMeal(models.Model):
     
     def save(self, *args, **kwargs):
         """حساب السعر الإجمالي تلقائياً"""
-        self.total_price = self.quantity * self.price_per_unit
+        if not self.price_per_unit and self.hall_meal:
+            self.price_per_unit = self.hall_meal.get_price()
+        self.total_price = self.quantity * (self.price_per_unit or 0)
         super().save(*args, **kwargs)
 
 

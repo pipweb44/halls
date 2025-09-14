@@ -8,8 +8,7 @@ from django.utils import timezone
 from datetime import datetime, timedelta
 from .models import (
     Category, Hall, Booking, Contact, HallImage, HallManager, Notification, 
-    Governorate, City, Ingredient, Meal, MealIngredient, HallMeal,
-    AdditionalService, BookingService, BookingMeal
+    Governorate, City
 )
 
 # ===========================================
@@ -68,52 +67,6 @@ class NotificationAdmin(admin.ModelAdmin):
     readonly_fields = ['created_at']
 
 # ===========================================
-# Meal and Services Admin Classes
-# ===========================================
-
-class IngredientAdmin(admin.ModelAdmin):
-    list_display = ['name', 'is_allergen']
-    search_fields = ['name', 'description']
-    list_filter = ['is_allergen']
-
-class MealAdmin(admin.ModelAdmin):
-    list_display = ['name', 'meal_type', 'price_per_person', 'is_available']
-    list_filter = ['meal_type', 'is_available']
-    search_fields = ['name', 'description']
-
-class MealIngredientAdmin(admin.ModelAdmin):
-    list_display = ['meal', 'ingredient', 'quantity', 'is_optional']
-    list_filter = ['is_optional', 'ingredient']
-    search_fields = ['meal__name', 'ingredient__name', 'notes']
-    autocomplete_fields = ['meal', 'ingredient']
-    list_select_related = ['meal', 'ingredient']
-
-class HallMealAdmin(admin.ModelAdmin):
-    list_display = ['hall', 'meal', 'is_available', 'get_price']
-    list_filter = ['is_available', 'hall']
-    search_fields = ['meal__name', 'hall__name']
-    autocomplete_fields = ['hall', 'meal']
-
-class AdditionalServiceAdmin(admin.ModelAdmin):
-    list_display = ['name', 'hall', 'service_type', 'price', 'is_available']
-    list_filter = ['service_type', 'is_available', 'hall']
-    search_fields = ['name', 'description']
-    autocomplete_fields = ['hall']
-
-class BookingServiceInline(admin.TabularInline):
-    model = BookingService
-    extra = 0
-    autocomplete_fields = ['service']
-
-class BookingMealInline(admin.TabularInline):
-    model = BookingMeal
-    extra = 0
-    autocomplete_fields = ['hall_meal']
-
-# Update BookingAdmin to include inlines
-BookingAdmin.inlines = [BookingServiceInline, BookingMealInline]
-
-# ===========================================
 # Register Models
 # ===========================================
 
@@ -127,11 +80,8 @@ admin.site.register(HallManager, HallManagerAdmin)
 admin.site.register(Contact, ContactAdmin)
 admin.site.register(Notification, NotificationAdmin)
 
-# Meal and Service Models
-admin.site.register(Ingredient, IngredientAdmin)
-admin.site.register(Meal, MealAdmin)
-admin.site.register(MealIngredient, MealIngredientAdmin)
-admin.site.register(HallMeal, HallMealAdmin)
-admin.site.register(AdditionalService, AdditionalServiceAdmin)
-admin.site.register(BookingService)
-admin.site.register(BookingMeal)
+# Meal related models
+# admin.site.register(Meal, MealAdmin)
+# admin.site.register(MealImage)
+# admin.site.register(MealItem, MealItemAdmin)
+# admin.site.register(MealItemImage)
