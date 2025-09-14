@@ -122,6 +122,8 @@ class HallMeal(models.Model):
     base_price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="السعر الأساسي")
     is_available = models.BooleanField(default=True, verbose_name="متاح")
     image = models.ImageField(upload_to='hall_meals/', blank=True, null=True, verbose_name="صورة الوجبة")
+    min_components = models.PositiveIntegerField(default=0, verbose_name="الحد الأدنى للمكونات")
+    max_components = models.PositiveIntegerField(null=True, blank=True, verbose_name="الحد الأقصى للمكونات")
     order_in_category = models.PositiveIntegerField(default=0, verbose_name="ترتيب العرض في التصنيف")
     components = models.ManyToManyField(
         'HallMealComponent',
