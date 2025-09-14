@@ -83,22 +83,53 @@ class HallMealComponent(models.Model):
     image_tag.short_description = 'صورة مصغرة'
     image_tag.allow_tags = True
 
+class HallMealComponentItem(models.Model):
+    """مكونات كل وجبة قاعة"""
+    meal = models.ForeignKey('HallMeal', on_delete=models.CASCADE, related_name='meal_components', verbose_name="الوجبة")
+    component = models.ForeignKey('HallMealComponent', on_delete=models.CASCADE, verbose_name="المكون")
+    quantity = models.PositiveIntegerField(default=1, verbose_name="الكمية")
+    is_optional = models.BooleanField(default=False, verbose_name="اختياري")
+    additional_price = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="سعر إضافي")
+    order = models.PositiveIntegerField(default=0, verbose_name="ترتيب العرض")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاريخ الإضافة")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="تاريخ التحديث")
+
+    class Meta:
+        verbose_name = "مكون الوجبة"
+        verbose_name_plural = "مكونات الوجبات"
+        ordering = ['order', 'component__name']
+        unique_together = ['meal', 'component']
+
+    def __str__(self):
+        return f"{self.component.name} - {self.meal.name}"
+
+    def total_price(self):
+        return (self.component.price + self.additional_price) * self.quantity
+    total_price.short_description = 'السعر الإجمالي'
+
 class HallMeal(models.Model):
     """الوجبات الخاصة بكل قاعة"""
     hall = models.ForeignKey('hall_booking.Hall', on_delete=models.CASCADE, related_name='meals', verbose_name="القاعة")
     category = models.ForeignKey(
-        'HallMealCategory',
-        on_delete=models.PROTECT,
-        related_name='meals',
-        verbose_name="التصنيف",
-        help_text="يجب اختيار تصنيف موجود مسبقاً"
-    )
+            'HallMealCategory',
+            on_delete=models.PROTECT,
+            related_name='meals',
+            verbose_name="التصنيف",
+            help_text="يجب اختيار تصنيف موجود مسبقاً"
+        )
     name = models.CharField(max_length=200, verbose_name="اسم الوجبة")
     description = models.TextField(verbose_name="وصف الوجبة")
     base_price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="السعر الأساسي")
     is_available = models.BooleanField(default=True, verbose_name="متاح")
     image = models.ImageField(upload_to='hall_meals/', blank=True, null=True, verbose_name="صورة الوجبة")
     order_in_category = models.PositiveIntegerField(default=0, verbose_name="ترتيب العرض في التصنيف")
+    components = models.ManyToManyField(
+        'HallMealComponent',
+        through='HallMealComponentItem',
+        through_fields=('meal', 'component'),
+        related_name='meals',
+        verbose_name="المكونات"
+    )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاريخ الإضافة")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="تاريخ التحديث")
 
@@ -106,19 +137,17 @@ class HallMeal(models.Model):
     available = HallSpecificManager()
 
     class Meta:
-        verbose_name = "وجبة القاعة"
+        verbose_name = "وجبة قاعة"
         verbose_name_plural = "وجبات القاعات"
-        ordering = ['category__order', 'order_in_category', 'name']
-        unique_together = ['hall', 'name']
+        ordering = ['category', 'order_in_category', 'name']
+        unique_together = ['hall', 'category', 'name']
 
     def clean(self):
         if self.category and self.category.hall_id != self.hall_id:
-            raise ValidationError({
-                'category': 'يجب أن يكون التصنيف تابعاً لنفس قاعة الوجبة'
-            })
+            raise ValidationError({'category': 'يجب أن يكون التصنيف تابعاً لنفس قاعة الوجبة'})
 
     def save(self, *args, **kwargs):
-        self.clean()
+        self.full_clean()
         if not self.pk:
             last_order = HallMeal.objects.filter(
                 hall=self.hall,
