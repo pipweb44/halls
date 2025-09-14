@@ -73,7 +73,6 @@ class MealItemImage(models.Model):
 
 
 class MealComponent(models.Model):
-    """نموذج مكونات الوجبة"""
     COMPONENT_TYPE_CHOICES = [
         ('main', 'طبق رئيسي'),
         ('side', 'طبق جانبي'),
@@ -85,23 +84,37 @@ class MealComponent(models.Model):
         ('other', 'أخرى'),
     ]
     
-    meal = models.ForeignKey(MealItem, on_delete=models.CASCADE, related_name='components', verbose_name="الوجبة")
     name = models.CharField(max_length=200, verbose_name="اسم المكون")
     component_type = models.CharField(max_length=20, choices=COMPONENT_TYPE_CHOICES, default='main', verbose_name="نوع المكون")
     description = models.TextField(blank=True, null=True, verbose_name="الوصف")
-    quantity = models.CharField(max_length=100, blank=True, null=True, verbose_name="الكمية")
-    is_optional = models.BooleanField(default=False, verbose_name="اختياري")
-    order = models.PositiveIntegerField(default=0, verbose_name="ترتيب العرض")
+    is_available = models.BooleanField(default=True, verbose_name="متوفر")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاريخ الإضافة")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="تاريخ التحديث")
 
     class Meta:
-        verbose_name = "مكون وجبة"
-        verbose_name_plural = "مكونات الوجبات"
-        ordering = ['order', 'name']
+        verbose_name = 'مكون الوجبة'
+        verbose_name_plural = 'مكونات الوجبات'
+        ordering = ['component_type', 'name']
 
     def __str__(self):
-        return f"{self.name} - {self.meal.name}"
+        return f"{self.name} ({self.get_component_type_display()})"
+
+
+class MealItemComponent(models.Model):
+    meal = models.ForeignKey(MealItem, on_delete=models.CASCADE, related_name='meal_components', verbose_name="الوجبة")
+    component = models.ForeignKey(MealComponent, on_delete=models.CASCADE, verbose_name="المكون")
+    quantity = models.CharField(max_length=100, blank=True, null=True, verbose_name="الكمية")
+    is_optional = models.BooleanField(default=False, verbose_name="اختياري")
+    order = models.PositiveIntegerField(default=0, verbose_name="ترتيب العرض")
+
+    class Meta:
+        verbose_name = 'مكون الوجبة'
+        verbose_name_plural = 'مكونات الوجبات'
+        ordering = ['order']
+        unique_together = ('meal', 'component')
+
+    def __str__(self):
+        return f"{self.meal.name} - {self.component.name}"
 
 
 class MealComponentImage(models.Model):

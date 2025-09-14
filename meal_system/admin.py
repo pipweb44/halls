@@ -1,6 +1,8 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import MealCategory, MealItem, MealItemImage, MealComponent, MealComponentImage
+from django import forms
+from django.contrib.admin.widgets import FilteredSelectMultiple
+from .models import MealCategory, MealItem, MealItemImage, MealComponent, MealComponentImage, MealItemComponent
 
 
 class MealItemImageInline(admin.StackedInline):
@@ -12,12 +14,13 @@ class MealItemImageInline(admin.StackedInline):
     verbose_name_plural = 'صور الوجبة'
 
 
-class MealComponentInline(admin.StackedInline):
-    model = MealComponent
+class MealItemComponentInline(admin.TabularInline):
+    model = MealItemComponent
     extra = 1
-    fields = ['name', 'component_type', 'description', 'quantity', 'is_optional', 'order']
+    fields = ['component', 'quantity', 'is_optional', 'order']
     verbose_name = 'مكون'
     verbose_name_plural = 'مكونات الوجبة'
+    autocomplete_fields = ['component']
 
 
 @admin.register(MealCategory)
@@ -41,10 +44,10 @@ class MealCategoryAdmin(admin.ModelAdmin):
 
 @admin.register(MealItem)
 class MealItemAdmin(admin.ModelAdmin):
-    list_display = ['name', 'get_category', 'price', 'is_available', 'order', 'created_at', 'get_primary_image']
+    list_display = ['name', 'category', 'price', 'is_available', 'order', 'created_at', 'get_primary_image']
     list_filter = ['is_available', 'category']
     search_fields = ['name', 'description', 'category__name']
-    inlines = [MealItemImageInline, MealComponentInline]
+    inlines = [MealItemImageInline, MealItemComponentInline]
     fieldsets = [
         ('معلومات الوجبة', {
             'fields': [
@@ -59,11 +62,6 @@ class MealItemAdmin(admin.ModelAdmin):
     ]
     readonly_fields = ['created_at', 'updated_at']
 
-    def get_category(self, obj):
-        return obj.category.name
-    get_category.short_description = 'الصنف'
-    get_category.admin_order_field = 'category__name'
-
     def get_primary_image(self, obj):
         primary_img = obj.images.filter(is_primary=True).first() or obj.images.first()
         if primary_img and hasattr(primary_img, 'image_tag'):
@@ -75,14 +73,14 @@ class MealItemAdmin(admin.ModelAdmin):
 
 @admin.register(MealComponent)
 class MealComponentAdmin(admin.ModelAdmin):
-    list_display = ['name', 'get_meal', 'component_type', 'is_optional', 'order', 'created_at']
-    list_filter = ['component_type', 'is_optional']
-    search_fields = ['name', 'description', 'meal__name']
+    list_display = ['name', 'component_type', 'is_available', 'created_at']
+    list_filter = ['component_type', 'is_available']
+    search_fields = ['name', 'description']
     fieldsets = [
         ('معلومات المكون', {
             'fields': [
-                'meal', 'name', 'component_type', 'description',
-                'quantity', 'is_optional', 'order'
+                'name', 'component_type', 'description',
+                'is_available'
             ]
         }),
         ('التواريخ', {
@@ -91,11 +89,7 @@ class MealComponentAdmin(admin.ModelAdmin):
         }),
     ]
     readonly_fields = ['created_at', 'updated_at']
-
-    def get_meal(self, obj):
-        return obj.meal.name
-    get_meal.short_description = 'الوجبة'
-    get_meal.admin_order_field = 'meal__name'
+    inlines = [MealItemComponentInline]
 
 
 @admin.register(MealItemImage)
@@ -114,3 +108,11 @@ class MealComponentImageAdmin(admin.ModelAdmin):
     search_fields = ['component__name', 'caption']
     readonly_fields = ['created_at', 'updated_at', 'image_tag']
     fields = ['component', 'image', 'image_tag', 'caption', 'is_primary', 'created_at', 'updated_at']
+
+
+@admin.register(MealItemComponent)
+class MealItemComponentAdmin(admin.ModelAdmin):
+    list_display = ['meal', 'component', 'quantity', 'is_optional', 'order']
+    list_filter = ['is_optional']
+    search_fields = ['meal__name', 'component__name']
+    autocomplete_fields = ['meal', 'component']
