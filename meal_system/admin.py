@@ -5,7 +5,33 @@ from django.contrib.admin.widgets import FilteredSelectMultiple
 
 # Import hall meal models
 from .hall_meals_models import HallMealCategory, HallMeal, HallMealComponent
+from .models import HallAdditionalService
 
+
+@admin.register(HallAdditionalService)
+class HallAdditionalServiceAdmin(admin.ModelAdmin):
+    list_display = ['name', 'hall', 'price', 'is_available', 'created_at']
+    list_filter = ['hall', 'is_available']
+    search_fields = ['name', 'description', 'hall__name']
+    list_editable = ['price', 'is_available']
+    readonly_fields = ['created_at', 'updated_at']
+    fieldsets = [
+        ('معلومات الخدمة', {
+            'fields': [
+                'hall', 'name', 'description',
+                'price', 'is_available'
+            ]
+        }),
+        ('التواريخ', {
+            'classes': ('collapse',),
+            'fields': ['created_at', 'updated_at'],
+        }),
+    ]
+    
+    def get_readonly_fields(self, request, obj=None):
+        if obj:  # Editing an existing object
+            return self.readonly_fields + ['hall']
+        return self.readonly_fields
 
 
 @admin.register(HallMealCategory)

@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils.html import format_html
 from django.core.exceptions import ValidationError
+from django.utils.translation import gettext_lazy as _
 
 class HallSpecificManager(models.Manager):
     def get_queryset(self):
