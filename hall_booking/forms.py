@@ -1,10 +1,76 @@
 from django import forms
 from django.core.validators import MinValueValidator
 from datetime import datetime, timedelta
-from .models import Booking, Contact, Hall
+from .models import Booking, Contact, Hall, BookingMealItem, BookingServiceItem
+from meal_system.hall_meals_models import HallMeal
+from meal_system.models.additional_services import HallAdditionalService
 from django.utils import timezone
+from django.forms import inlineformset_factory
+
 # Define a custom validator for the start and end datetime fields
 # This validator checks that the start datetime is before the end datetime
+
+class BookingMealItemForm(forms.ModelForm):
+    class Meta:
+        model = BookingMealItem
+        fields = ['meal', 'quantity', 'notes']
+        widgets = {
+            'meal': forms.Select(attrs={'class': 'form-select meal-select'}),
+            'quantity': forms.NumberInput(attrs={'class': 'form-control quantity', 'min': 1, 'value': 1}),
+            'notes': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'ملاحظات إضافية'}),
+        }
+        labels = {
+            'meal': 'الوجبة',
+            'quantity': 'الكمية',
+            'notes': 'ملاحظات',
+        }
+
+    def __init__(self, *args, **kwargs):
+        hall = kwargs.pop('hall', None)
+        super().__init__(*args, **kwargs)
+        if hall:
+            self.fields['meal'].queryset = HallMeal.objects.filter(hall=hall, is_available=True)
+
+
+class BookingServiceItemForm(forms.ModelForm):
+    class Meta:
+        model = BookingServiceItem
+        fields = ['service', 'quantity', 'notes']
+        widgets = {
+            'service': forms.Select(attrs={'class': 'form-select service-select'}),
+            'quantity': forms.NumberInput(attrs={'class': 'form-control quantity', 'min': 1, 'value': 1}),
+            'notes': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'ملاحظات إضافية'}),
+        }
+        labels = {
+            'service': 'الخدمة',
+            'quantity': 'الكمية',
+            'notes': 'ملاحظات',
+        }
+
+    def __init__(self, *args, **kwargs):
+        hall = kwargs.pop('hall', None)
+        super().__init__(*args, **kwargs)
+        if hall:
+            self.fields['service'].queryset = HallAdditionalService.objects.filter(hall=hall, is_available=True)
+
+
+# Create formset factories
+MealItemFormSet = inlineformset_factory(
+    Booking, 
+    BookingMealItem, 
+    form=BookingMealItemForm,
+    extra=1,
+    can_delete=True
+)
+
+ServiceItemFormSet = inlineformset_factory(
+    Booking, 
+    BookingServiceItem, 
+    form=BookingServiceItemForm,
+    extra=1,
+    can_delete=True
+)
+
 
 class BookingForm(forms.ModelForm):
     class Meta:
@@ -33,25 +99,77 @@ class BookingForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        self.hall = kwargs.pop('hall', None)
         super().__init__(*args, **kwargs)
         # Accept the HTML5 datetime-local format (e.g. 2025-08-27T18:30)
         dt_formats = ['%Y-%m-%dT%H:%M', '%Y-%m-%d %H:%M:%S', '%Y-%m-%d %H:%M']
         self.fields['start_datetime'].input_formats = dt_formats
         self.fields['end_datetime'].input_formats = dt_formats
+        
+        # Set initial values if hall is provided
+        if self.hall:
+            self.fields['event_title'].initial = f'حجز قاعة {self.hall.name}'
+            
+        # Add classes for price calculation
+        for field in ['start_datetime', 'end_datetime', 'attendees_count']:
+            self.fields[field].widget.attrs['class'] += ' price-calc-trigger'
 
     def clean(self):
         cleaned_data = super().clean()
         start_datetime = cleaned_data.get('start_datetime')
         end_datetime = cleaned_data.get('end_datetime')
+        attendees_count = cleaned_data.get('attendees_count')
         
         if start_datetime and end_datetime:
             if start_datetime >= end_datetime:
                 raise forms.ValidationError('تاريخ النهاية يجب أن يكون بعد تاريخ البداية')
             
+            # Check if the hall is available for the selected time
+            if self.hall and hasattr(self, 'instance'):
+                conflicting_bookings = Booking.objects.filter(
+                    hall=self.hall,
+                    status__in=['pending', 'approved'],
+                    start_datetime__lt=end_datetime,
+                    end_datetime__gt=start_datetime
+                )
+                
+                if self.instance.pk:
+                    conflicting_bookings = conflicting_bookings.exclude(pk=self.instance.pk)
+                
+                if conflicting_bookings.exists():
+                    raise forms.ValidationError('القاعة محجوزة بالفعل في هذا التوقيت')
+        
+        if attendees_count and self.hall and attendees_count > self.hall.capacity:
+            raise forms.ValidationError(f'عدد الحضور يتجاوز سعة القاعة. السعة القصوى: {self.hall.capacity}')
+            
             if start_datetime < timezone.now():
                 raise forms.ValidationError('لا يمكن حجز تاريخ في الماضي')
         
         return cleaned_data
+        
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        
+        # Set the hall if it was passed to the form
+        if hasattr(self, 'hall'):
+            instance.hall = self.hall
+        
+        if commit:
+            instance.save()
+            
+            # Save the meal and service items if they exist
+            if hasattr(self, 'meal_formset'):
+                self.meal_formset.instance = instance
+                self.meal_formset.save()
+                
+            if hasattr(self, 'service_formset'):
+                self.service_formset.instance = instance
+                self.service_formset.save()
+                
+            # Update the prices
+            instance.save()
+            
+        return instance
 
 class ContactForm(forms.ModelForm):
     class Meta:

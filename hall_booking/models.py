@@ -169,6 +169,86 @@ class HallImage(models.Model):
 
 
 # نموذج الحجوزات
+class BookingMealItem(models.Model):
+    """نموذج لتخزين الوجبات المختارة في الحجز مع تفاصيل إضافية"""
+    booking = models.ForeignKey('Booking', on_delete=models.CASCADE, related_name='meal_items', verbose_name="الحجز")
+    meal = models.ForeignKey('meal_system.HallMeal', on_delete=models.CASCADE, verbose_name="الوجبة")
+    quantity = models.PositiveIntegerField(default=1, verbose_name="الكمية")
+    price_at_booking = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="السعر للفرد")
+    total_price = models.DecimalField(max_digits=12, decimal_places=2, verbose_name="السعر الإجمالي")
+    serving_time = models.TimeField(verbose_name="وقت التقديم", null=True, blank=True)
+    special_instructions = models.TextField(blank=True, null=True, verbose_name="تعليمات خاصة")
+    is_vegetarian = models.BooleanField(default=False, verbose_name="نباتي")
+    is_vegan = models.BooleanField(default=False, verbose_name="نباتي صرف")
+    is_gluten_free = models.BooleanField(default=False, verbose_name="خال من الجلوتين")
+    is_halal = models.BooleanField(default=True, verbose_name="حلال")
+    notes = models.TextField(blank=True, null=True, verbose_name="ملاحظات إضافية")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاريخ الإضافة")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="تاريخ التحديث")
+    
+    class Meta:
+        verbose_name = "وجبة مطلوبة في الحجز"
+        verbose_name_plural = "الوجبات المطلوبة في الحجوزات"
+        ordering = ['serving_time', 'meal__name']
+    
+    def __str__(self):
+        return f"{self.quantity} × {self.meal.name} - {self.booking}"
+    
+    def save(self, *args, **kwargs):
+        # حساب السعر الإجمالي عند الحفظ
+        self.total_price = self.quantity * self.price_at_booking
+        super().save(*args, **kwargs)
+        # تحديث إجمالي سعر الحجز
+        if self.booking:
+            self.booking.calculate_meals_price()
+            self.booking.calculate_total_price()
+            self.booking.save()
+
+
+class BookingServiceItem(models.Model):
+    """نموذج لتخزين الخدمات الإضافية المختارة في الحجز مع تفاصيل إضافية"""
+    SERVICE_STATUS_CHOICES = [
+        ('pending', 'قيد الانتظار'),
+        ('confirmed', 'مؤكد'),
+        ('in_progress', 'قيد التنفيذ'),
+        ('completed', 'مكتمل'),
+        ('cancelled', 'ملغي'),
+    ]
+    
+    booking = models.ForeignKey('Booking', on_delete=models.CASCADE, related_name='service_items', verbose_name="الحجز")
+    service = models.ForeignKey('meal_system.HallAdditionalService', on_delete=models.CASCADE, verbose_name="الخدمة")
+    quantity = models.PositiveIntegerField(default=1, verbose_name="الكمية")
+    price_at_booking = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="سعر الوحدة")
+    total_price = models.DecimalField(max_digits=12, decimal_places=2, verbose_name="السعر الإجمالي")
+    status = models.CharField(max_length=20, choices=SERVICE_STATUS_CHOICES, default='pending', verbose_name="حالة الخدمة")
+    start_time = models.DateTimeField(verbose_name="وقت البداية", null=True, blank=True)
+    end_time = models.DateTimeField(verbose_name="وقت النهاية", null=True, blank=True)
+    assigned_to = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, 
+                                  verbose_name="المسؤول عن الخدمة")
+    special_requirements = models.TextField(blank=True, null=True, verbose_name="متطلبات خاصة")
+    notes = models.TextField(blank=True, null=True, verbose_name="ملاحظات إضافية")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاريخ الإضافة")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="تاريخ التحديث")
+    
+    class Meta:
+        verbose_name = "خدمة مطلوبة في الحجز"
+        verbose_name_plural = "الخدمات المطلوبة في الحجوزات"
+        ordering = ['start_time', 'service__name']
+    
+    def __str__(self):
+        return f"{self.quantity} × {self.service.name} - {self.booking}"
+    
+    def save(self, *args, **kwargs):
+        # حساب السعر الإجمالي عند الحفظ
+        self.total_price = self.quantity * self.price_at_booking
+        super().save(*args, **kwargs)
+        # تحديث إجمالي سعر الحجز
+        if self.booking:
+            self.booking.calculate_services_price()
+            self.booking.calculate_total_price()
+            self.booking.save()
+
+
 class Booking(models.Model):
     STATUS_CHOICES = [
         ('pending', 'في الانتظار'),
@@ -189,9 +269,18 @@ class Booking(models.Model):
     start_datetime = models.DateTimeField(verbose_name="تاريخ ووقت البداية")
     end_datetime = models.DateTimeField(verbose_name="تاريخ ووقت النهاية")
     attendees_count = models.PositiveIntegerField(verbose_name="عدد الحضور")
-    total_price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="السعر الإجمالي")
+    
+    # الحقول المالية
+    hall_price = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="سعر القاعة")
+    meals_price = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="إجمالي سعر الوجبات")
+    services_price = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name="إجمالي سعر الخدمات")
+    total_price = models.DecimalField(max_digits=12, decimal_places=2, verbose_name="السعر الإجمالي")
+    
+    # حالة الحجز
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name="الحالة")
     admin_notes = models.TextField(blank=True, null=True, verbose_name="ملاحظات الإدارة")
+    
+    # التواريخ
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاريخ الطلب")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="تاريخ التحديث")
 
@@ -205,19 +294,63 @@ class Booking(models.Model):
 
     def get_duration_hours(self):
         """حساب مدة الحجز بالساعات"""
-        duration = self.end_datetime - self.start_datetime
-        return round(duration.total_seconds() / 3600, 2)
+        if not self.start_datetime or not self.end_datetime:
+            return 0
+        try:
+            duration = self.end_datetime - self.start_datetime
+            return round(duration.total_seconds() / 3600, 2)
+        except (TypeError, AttributeError):
+            return 0
 
+    def calculate_hall_price(self):
+        """حساب سعر حجز القاعة بناءً على المدة"""
+        if not hasattr(self, 'hall') or not self.hall or not hasattr(self.hall, 'price_per_hour') or self.hall.price_per_hour is None:
+            return 0
+        duration_hours = self.get_duration_hours()
+        try:
+            return round(float(duration_hours) * float(self.hall.price_per_hour), 2)
+        except (TypeError, ValueError):
+            return 0
+    
+    def calculate_meals_price(self):
+        """حساب إجمالي سعر الوجبات المختارة"""
+        total = sum(float(item.total_price) for item in self.meal_items.all() if item.total_price is not None)
+        self.meals_price = total
+        return total
+    
+    def calculate_services_price(self):
+        """حساب إجمالي سعر الخدمات المختارة"""
+        return sum(item.total_price() for item in self.service_items.all())
+    
     def calculate_total_price(self):
         """حساب السعر الإجمالي للحجز"""
-        duration_hours = self.get_duration_hours()
-        return round(float(duration_hours) * float(self.hall.price_per_hour), 2)
+        hall_price = float(self.hall_price) if self.hall_price else 0
+        meals_price = float(self.meals_price) if self.meals_price else 0
+        services_price = float(self.services_price) if self.services_price else 0
+        
+        self.total_price = hall_price + meals_price + services_price
+        return self.total_price
 
     def save(self, *args, **kwargs):
-        """حفظ الحجز مع حساب السعر الإجمالي"""
-        if not self.pk:  # إذا كان الحجز جديداً
-            self.total_price = self.calculate_total_price()
+        """حفظ الحجز مع حساب الأسعار"""
+        is_new = not self.pk
+        
+        if is_new:
+            # لحجز جديد، حساب سعر القاعة
+            self.hall_price = self.calculate_hall_price()
+        
+        # حساب إجمالي الأسعار
+        if not is_new:
+            self.meals_price = self.calculate_meals_price()
+            self.services_price = self.calculate_services_price()
+        
+        self.total_price = self.calculate_total_price()
+        
         super().save(*args, **kwargs)
+        
+        # بعد الحفظ، تأكد من تحديث الأسعار في حالة التعديل على الوجبات أو الخدمات
+        if not is_new:
+            self.refresh_from_db()
 
 
 # نموذج مدير القاعة

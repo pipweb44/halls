@@ -21,7 +21,7 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),  # لوحة الإدارة
-    path('', include('hall_booking.urls')),
+    path('', include('hall_booking.urls')),  # روابط التطبيق الرئيسية
 ]
 
 if settings.DEBUG:
