@@ -74,7 +74,7 @@
 | price_per_unit | DecimalField | سعر الوحدة |
 | is_vegetarian | BooleanField | نباتية؟ |
 | is_available | BooleanField | متاحة؟ |
-| images | JSONField | روابط الصور |
+| images | listimages| ر الصور |
 | created_at | DateTimeField | تاريخ الإضافة |
 
 ## جدول صور القاعات (HallImage)
