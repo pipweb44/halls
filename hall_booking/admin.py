@@ -9,7 +9,9 @@ from django.shortcuts import render
 from django.db.models import Count, Sum, Avg
 from django.utils import timezone
 from datetime import datetime, timedelta
-from .models import Category, Hall, Booking, Contact, HallImage, HallManager, Notification, Governorate, City
+from .models import (Category, Hall, Booking, Contact, HallImage, HallManager, 
+                    Notification, Governorate, City, HallService, HallMeal, 
+                    BookingService, BookingMeal)
 
 # تخصيص لوحة الإدارة
 class HallBookingAdminSite(AdminSite):
@@ -88,6 +90,38 @@ class HallImageInline(admin.TabularInline):
     fields = ['image', 'image_type', 'title', 'is_featured', 'order', 'uploaded_at']
     readonly_fields = ['uploaded_at']
 
+# Inline for Hall Services
+class HallServiceInline(admin.StackedInline):
+    model = HallService
+    extra = 1
+    fields = ['name', 'description', 'price', 'is_available']
+    show_change_link = True
+    min_num = 0
+    verbose_name = "خدمة"
+    verbose_name_plural = "الخدمات"
+    
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if 'object_id' in request.resolver_match.kwargs:
+            return qs.filter(hall_id=request.resolver_match.kwargs['object_id'])
+        return qs.none()
+
+# Inline for Hall Meals
+class HallMealInline(admin.StackedInline):
+    model = HallMeal
+    extra = 1
+    fields = ['name', 'meal_type', 'price_per_person', 'is_available', 'is_vegetarian', 'min_order']
+    show_change_link = True
+    min_num = 0
+    verbose_name = "وجبة"
+    verbose_name_plural = "الوجبات"
+    
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        if 'object_id' in request.resolver_match.kwargs:
+            return qs.filter(hall_id=request.resolver_match.kwargs['object_id'])
+        return qs.none()
+
 # تخصيص نموذج مديري القاعات (inline)
 class HallManagerInline(admin.TabularInline):
     model = HallManager
@@ -98,12 +132,18 @@ class HallManagerInline(admin.TabularInline):
 # تخصيص نموذج القاعات
 @admin.register(Hall)
 class HallAdmin(admin.ModelAdmin):
-    list_display = ['name', 'category', 'governorate', 'city', 'capacity', 'price_per_hour', 'status', 'get_manager_display', 'booking_count', 'created_at']
-    list_filter = ['category', 'governorate', 'city', 'status', 'created_at']
-    search_fields = ['name', 'description', 'address', 'governorate__name', 'city__name']
-    ordering = ['-created_at']
-    readonly_fields = ['created_at', 'updated_at']
-    inlines = [HallImageInline, HallManagerInline]
+    list_display = ['name', 'category', 'governorate', 'city', 'price_per_hour', 'status', 'created_at']
+    list_filter = ['status', 'category', 'governorate', 'city']
+    search_fields = ['name', 'description', 'address']
+    readonly_fields = ['created_at', 'updated_at', 'get_thumbnail_preview']
+    inlines = [HallImageInline, HallServiceInline, HallMealInline]
+    
+    def get_inline_instances(self, request, obj=None):
+        # Only show inlines when editing an existing object
+        if obj:
+            return [inline(self.model, self.admin_site) for inline in self.inlines]
+        return []
+
     fieldsets = (
         ('معلومات أساسية', {
             'fields': ('name', 'category', 'description')
@@ -127,16 +167,20 @@ class HallAdmin(admin.ModelAdmin):
         }),
     )
 
-    def booking_count(self, obj):
-        return obj.booking_set.count()
-    booking_count.short_description = 'عدد الحجوزات'
+# Inline for Booking Services
+class BookingServiceInline(admin.TabularInline):
+    model = BookingService
+    extra = 1
+    fields = ['service', 'quantity', 'price', 'notes']
+    autocomplete_fields = ['service']
 
-    def get_manager_display(self, obj):
-        manager = obj.get_manager()
-        if manager:
-            return f"{manager.user.get_full_name() or manager.user.username}"
-        return "غير محدد"
-    get_manager_display.short_description = 'مدير القاعة'
+# Inline for Booking Meals
+class BookingMealInline(admin.TabularInline):
+    model = BookingMeal
+    extra = 1
+    fields = ['meal', 'quantity', 'price_per_person', 'total_price', 'serving_time', 'notes']
+    autocomplete_fields = ['meal']
+    readonly_fields = ['total_price']
 
 # تخصيص نموذج الحجوزات
 @admin.register(Booking)
@@ -145,7 +189,8 @@ class BookingAdmin(admin.ModelAdmin):
     list_filter = ['status', 'created_at', 'hall__category']
     search_fields = ['customer_name', 'customer_email', 'event_title', 'hall__name']
     ordering = ['-created_at']
-    readonly_fields = ['created_at', 'total_price']
+    readonly_fields = ['created_at', 'total_price', 'updated_at']
+    inlines = [BookingServiceInline, BookingMealInline]
     
     fieldsets = (
         ('معلومات العميل', {
@@ -349,10 +394,70 @@ class CityAdmin(admin.ModelAdmin):
     halls_count.short_description = "عدد القاعات"
 
 # تسجيل النماذج في لوحة الإدارة المخصصة
+# Register new models
+@admin.register(HallService)
+class HallServiceAdmin(admin.ModelAdmin):
+    list_display = ['name', 'hall', 'price', 'is_available', 'created_at']
+    list_filter = ['is_available', 'hall', 'created_at']
+    search_fields = ['name', 'description', 'hall__name']
+    list_select_related = ['hall']
+    ordering = ['hall__name', 'name']
+    readonly_fields = ['created_at', 'updated_at']
+    autocomplete_fields = ['hall']
+
+
+@admin.register(HallMeal)
+class HallMealAdmin(admin.ModelAdmin):
+    list_display = ['name', 'hall', 'meal_type_display', 'price_per_person', 'is_available', 'is_vegetarian', 'created_at']
+    list_filter = ['meal_type', 'is_available', 'is_vegetarian', 'hall', 'created_at']
+    search_fields = ['name', 'description', 'hall__name']
+    list_select_related = ['hall']
+    ordering = ['hall__name', 'meal_type', 'name']
+    readonly_fields = ['created_at', 'updated_at']
+    autocomplete_fields = ['hall']
+    
+    def meal_type_display(self, obj):
+        return obj.get_meal_type_display()
+    meal_type_display.short_description = 'نوع الوجبة'
+
+
+@admin.register(BookingService)
+class BookingServiceAdmin(admin.ModelAdmin):
+    list_display = ['booking', 'service', 'quantity', 'price', 'total_price']
+    list_filter = ['service']
+    search_fields = ['booking__customer_name', 'service__name']
+    autocomplete_fields = ['booking', 'service']
+    
+    def get_readonly_fields(self, request, obj=None):
+        return ['created_at'] if obj else []
+    
+    def total_price(self, obj):
+        return obj.quantity * obj.price
+    total_price.short_description = 'الإجمالي'
+
+
+@admin.register(BookingMeal)
+class BookingMealAdmin(admin.ModelAdmin):
+    list_display = ['booking', 'meal', 'quantity', 'price_per_person', 'total_price', 'serving_time']
+    list_filter = ['meal__meal_type', 'serving_time']
+    search_fields = ['booking__customer_name', 'meal__name']
+    autocomplete_fields = ['booking', 'meal']
+    
+    def get_readonly_fields(self, request, obj=None):
+        return ['total_price']
+    
+    def total_price(self, obj):
+        return obj.quantity * obj.price_per_person
+    total_price.short_description = 'الإجمالي'
+
+
+# Register models with the custom admin site
 admin_site.register(Governorate, GovernorateAdmin)
 admin_site.register(City, CityAdmin)
 admin_site.register(Category, CategoryAdmin)
 admin_site.register(Hall, HallAdmin)
+admin_site.register(HallService, HallServiceAdmin)
+admin_site.register(HallMeal, HallMealAdmin)
 admin_site.register(Booking, BookingAdmin)
 admin_site.register(Contact, ContactAdmin)
 admin_site.register(HallManager, HallManagerAdmin)

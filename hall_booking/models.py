@@ -5,6 +5,7 @@ from django.utils import timezone
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 import uuid
+from django.utils.text import slugify
 
 # نموذج المحافظات المصرية
 class Governorate(models.Model):
@@ -77,6 +78,7 @@ class Hall(models.Model):
     image = models.ImageField(upload_to='halls/', verbose_name="الصورة")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='available', verbose_name="الحالة")
     features = models.JSONField(default=list, verbose_name="المميزات")
+    # تم نقل العلاقات إلى النماذج الفرعية (HallService و HallMeal) كـ ForeignKey
     # معلومات إضافية
     phone = models.CharField(max_length=20, blank=True, null=True, verbose_name="رقم الهاتف")
     email = models.EmailField(blank=True, null=True, verbose_name="البريد الإلكتروني")
@@ -119,6 +121,14 @@ class Hall(models.Model):
         if manager:
             return manager.user.get_full_name() or manager.user.username
         return "غير محدد"
+        
+    def get_thumbnail_preview(self):
+        """عرض معاينة مصغرة للصورة"""
+        if self.image and hasattr(self.image, 'url'):
+            from django.utils.html import format_html
+            return format_html('<img src="{}" style="max-height: 200px; max-width: 200px;" />', self.image.url)
+        return "لا توجد صورة"
+    get_thumbnail_preview.short_description = "معاينة الصورة"
 
 # نموذج صور القاعة
 class HallImage(models.Model):
@@ -238,6 +248,94 @@ class HallManager(models.Model):
     def can_edit_hall(self):
         """تحقق من إمكانية تعديل بيانات القاعة"""
         return self.permission_level == 'manage' and self.is_active
+
+class HallService(models.Model):
+    """خدمات إضافية خاصة بكل قاعة"""
+    hall = models.ForeignKey('Hall', on_delete=models.CASCADE, related_name='hall_services', verbose_name="القاعة")
+    name = models.CharField(max_length=100, verbose_name="اسم الخدمة")
+    description = models.TextField(blank=True, null=True, verbose_name="الوصف")
+    price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="السعر")
+    is_available = models.BooleanField(default=True, verbose_name="متاحة")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاريخ الإضافة")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="تاريخ التحديث")
+
+    class Meta:
+        verbose_name = "خدمة القاعة"
+        verbose_name_plural = "خدمات القاعات"
+        ordering = ['name']
+
+    def __str__(self):
+        return f"{self.name} - {self.price} ج.م"
+
+
+class HallMeal(models.Model):
+    """وجبات طعام خاصة بكل قاعة"""
+    MEAL_TYPES = [
+        ('breakfast', 'إفطار'),
+        ('lunch', 'غداء'),
+        ('dinner', 'عشاء'),
+        ('snack', 'سناك'),
+        ('buffet', 'بوفيه مفتوح'),
+    ]
+    
+    hall = models.ForeignKey('Hall', on_delete=models.CASCADE, related_name='hall_meals', verbose_name="القاعة")
+    name = models.CharField(max_length=100, verbose_name="اسم الوجبة")
+    description = models.TextField(blank=True, null=True, verbose_name="الوصف")
+    meal_type = models.CharField(max_length=20, choices=MEAL_TYPES, verbose_name="نوع الوجبة")
+    price_per_person = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="السعر للفرد")
+    is_vegetarian = models.BooleanField(default=False, verbose_name="نباتية")
+    is_available = models.BooleanField(default=True, verbose_name="متاحة")
+    min_order = models.PositiveIntegerField(default=1, verbose_name="الحد الأدنى للطلب")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاريخ الإضافة")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="تاريخ التحديث")
+
+    class Meta:
+        verbose_name = "وجبة القاعة"
+        verbose_name_plural = "وجبات القاعات"
+        ordering = ['meal_type', 'name']
+
+    def __str__(self):
+        return f"{self.get_meal_type_display()} - {self.name}"
+
+
+class BookingService(models.Model):
+    """خدمات إضافية تم اختيارها في الحجز"""
+    booking = models.ForeignKey(Booking, on_delete=models.CASCADE, related_name='booking_services', verbose_name="الحجز")
+    service = models.ForeignKey('HallService', on_delete=models.CASCADE, verbose_name="الخدمة")
+    quantity = models.PositiveIntegerField(default=1, verbose_name="الكمية")
+    price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="السعر")
+    notes = models.TextField(blank=True, null=True, verbose_name="ملاحظات")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاريخ الإضافة")
+    
+    class Meta:
+        unique_together = ['booking', 'service']  # منع تكرار نفس الخدمة في الحجز
+        verbose_name_plural = "خدمات الحجوزات"
+
+    def __str__(self):
+        return f"{self.service.name} - {self.booking.booking_id}"
+
+
+class BookingMeal(models.Model):
+    """وجبات طعام تم اختيارها في الحجز"""
+    booking = models.ForeignKey(Booking, on_delete=models.CASCADE, related_name='booking_meals', verbose_name="الحجز")
+    meal = models.ForeignKey('HallMeal', on_delete=models.CASCADE, verbose_name="الوجبة")
+    quantity = models.PositiveIntegerField(verbose_name="العدد")
+    price_per_person = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="السعر للفرد")
+    total_price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="السعر الإجمالي")
+    serving_time = models.TimeField(verbose_name="موعد التقديم")
+    notes = models.TextField(blank=True, null=True, verbose_name="ملاحظات")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاريخ الإضافة")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="تاريخ التحديث")
+    
+    class Meta:
+        unique_together = ['booking', 'meal', 'serving_time']  # منع تكرار نفس الوجبة في نفس الوقت
+
+    def save(self, *args, **kwargs):
+        self.total_price = self.quantity * self.price_per_person
+        super().save(*args, **kwargs)
+
+        return f"{self.meal.name} - {self.booking.booking_id}"
+
 
 class Contact(models.Model):
     name = models.CharField(max_length=200, verbose_name="الاسم")
