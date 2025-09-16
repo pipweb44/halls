@@ -1,4 +1,4 @@
-# مخطط قاعدة البيانات لنظام حجز القاعات
+# مخطط قاعدة البيانات لنظام حجز القاعات (بعد التعديل )
 
 ## جدول المحافظات (Governorate)
 | الحقل | النوع | الوصف |
@@ -7,14 +7,14 @@
 | name | CharField | اسم المحافظة |
 | name_en | CharField | الاسم بالإنجليزية |
 | code | CharField | كود المحافظة |
-| region | CharField | المنطقة (القاهرة الكبرى، الدلتا، إلخ) |
+| region | CharField | المنطقة |
 | created_at | DateTimeField | تاريخ الإنشاء |
 
 ## جدول المدن (City)
 | الحقل | النوع | الوصف |
 |-------|-------|---------|
 | id | AutoField | المعرف الفريد |
-| name | CharField | اسم المدينة/المركز |
+| name | CharField | اسم المدينة |
 | name_en | CharField | الاسم بالإنجليزية |
 | governorate | ForeignKey | المحافظة التابعة لها |
 | is_capital | BooleanField | هل هي عاصمة المحافظة؟ |
@@ -35,15 +35,17 @@
 | name | CharField | اسم القاعة |
 | category | ForeignKey | الفئة |
 | governorate | ForeignKey | المحافظة |
-| city | ForeignKey | المدينة/المركز |
-| address | TextField | العنوان التفصيلي |
+| city | ForeignKey | المدينة |
+| address | TextField | العنوان |
 | description | TextField | الوصف |
 | capacity | PositiveIntegerField | السعة |
 | price_per_hour | DecimalField | السعر للساعة |
 | image | ImageField | الصورة الرئيسية |
-| status | CharField | الحالة (متاح، صيانة، محجوز) |
+| status | CharField | الحالة |
 | features | JSONField | المميزات |
-| phone | CharField | رقم الهاتف |
+| services | ManyToManyField → HallService | قائمة الخدمات المتاحة لهذه القاعة |
+| meals | ManyToManyField → HallMeal | قائمة الوجبات المتاحة لهذه القاعة |
+| phone | CharField | الهاتف |
 | email | EmailField | البريد الإلكتروني |
 | website | URLField | الموقع الإلكتروني |
 | latitude | DecimalField | خط العرض |
@@ -51,13 +53,37 @@
 | created_at | DateTimeField | تاريخ الإنشاء |
 | updated_at | DateTimeField | تاريخ التحديث |
 
+## جدول خدمات القاعة (HallService)
+| الحقل | النوع | الوصف |
+|-------|-------|---------|
+| id | AutoField | المعرف الفريد |
+| hall | ForeignKey | القاعة المرتبطة |
+| name | CharField | اسم الخدمة |
+| description | TextField | وصف الخدمة |
+| price | DecimalField | سعر الخدمة |
+| is_available | BooleanField | متاحة؟ |
+| created_at | DateTimeField | تاريخ الإضافة |
+
+## جدول وجبات القاعة (HallMeal)
+| الحقل | النوع | الوصف |
+|-------|-------|---------|
+| id | AutoField | المعرف الفريد |
+| hall | ForeignKey | القاعة المرتبطة |
+| name | CharField | اسم الوجبة |
+| description | TextField | وصف الوجبة |
+| price_per_unit | DecimalField | سعر الوحدة |
+| is_vegetarian | BooleanField | نباتية؟ |
+| is_available | BooleanField | متاحة؟ |
+| images | JSONField | روابط الصور |
+| created_at | DateTimeField | تاريخ الإضافة |
+
 ## جدول صور القاعات (HallImage)
 | الحقل | النوع | الوصف |
 |-------|-------|---------|
 | id | AutoField | المعرف الفريد |
 | hall | ForeignKey | القاعة |
 | image | ImageField | الصورة |
-| image_type | CharField | نوع الصورة (رئيسية، معرض، إلخ) |
+| image_type | CharField | نوع الصورة |
 | title | CharField | عنوان الصورة |
 | description | TextField | وصف الصورة |
 | is_featured | BooleanField | صورة مميزة |
@@ -67,21 +93,23 @@
 ## جدول الحجوزات (Booking)
 | الحقل | النوع | الوصف |
 |-------|-------|---------|
-| booking_id | UUIDField | معرف الحجز الفريد |
+| booking_id | UUIDField | معرف الحجز |
 | hall | ForeignKey | القاعة |
 | user | ForeignKey | المستخدم |
 | customer_name | CharField | اسم العميل |
-| customer_email | EmailField | البريد الإلكتروني للعميل |
+| customer_email | EmailField | بريد العميل |
 | customer_phone | CharField | هاتف العميل |
 | event_title | CharField | عنوان الحدث |
 | event_description | TextField | وصف الحدث |
-| start_datetime | DateTimeField | تاريخ ووقت البداية |
-| end_datetime | DateTimeField | تاريخ ووقت النهاية |
+| start_datetime | DateTimeField | وقت البداية |
+| end_datetime | DateTimeField | وقت النهاية |
 | attendees_count | PositiveIntegerField | عدد الحضور |
+| selected_services | ManyToManyField → HallService | الخدمات المختارة للحجز |
+| selected_meals | ManyToManyField → HallMeal | الوجبات المختارة للحجز |
 | total_price | DecimalField | السعر الإجمالي |
-| status | CharField | حالة الحجز (في الانتظار، موافق عليه، إلخ) |
+| status | CharField | حالة الحجز |
 | admin_notes | TextField | ملاحظات الإدارة |
-| created_at | DateTimeField | تاريخ الطلب |
+| created_at | DateTimeField | تاريخ الإنشاء |
 | updated_at | DateTimeField | تاريخ التحديث |
 
 ## جدول مديري القاعات (HallManager)
@@ -101,7 +129,7 @@
 | id | AutoField | المعرف الفريد |
 | name | CharField | الاسم |
 | email | EmailField | البريد الإلكتروني |
-| phone | CharField | رقم الهاتف |
+| phone | CharField | الهاتف |
 | subject | CharField | الموضوع |
 | message | TextField | الرسالة |
 | created_at | DateTimeField | تاريخ الإرسال |
@@ -112,7 +140,7 @@
 |-------|-------|---------|
 | id | AutoField | المعرف الفريد |
 | user | ForeignKey | المستخدم |
-| booking | ForeignKey | الحجز (اختياري) |
+| booking | ForeignKey | الحجز |
 | notification_type | CharField | نوع الإشعار |
 | title | CharField | العنوان |
 | message | TextField | الرسالة |
@@ -120,25 +148,11 @@
 | created_at | DateTimeField | تاريخ الإنشاء |
 
 ## العلاقات بين الجداول
-1. **المدينة (City) → المحافظة (Governorate)**: علاقة many-to-one (مدينة واحدة تنتمي لمحافظة واحدة)
-2. **القاعة (Hall) → الفئة (Category)**: علاقة many-to-one (قاعة واحدة تنتمي لفئة واحدة)
-3. **القاعة (Hall) → المحافظة (Governorate)**: علاقة many-to-one (قاعة واحدة في محافظة واحدة)
-4. **القاعة (Hall) → المدينة (City)**: علاقة many-to-one (قاعة واحدة في مدينة واحدة)
-5. **صورة القاعة (HallImage) → القاعة (Hall)**: علاقة many-to-one (عدة صور لقاعة واحدة)
-6. **الحجز (Booking) → القاعة (Hall)**: علاقة many-to-one (عدة حجوزات لقاعة واحدة)
-7. **الحجز (Booking) → المستخدم (User)**: علاقة many-to-one (عدة حجوزات لمستخدم واحد)
-8. **مدير القاعة (HallManager) → المستخدم (User)**: علاقة one-to-one (مدير واحد لكل مستخدم)
-9. **مدير القاعة (HallManager) → القاعة (Hall)**: علاقة one-to-one (مدير واحد لكل قاعة)
-10. **الإشعار (Notification) → المستخدم (User)**: علاقة many-to-one (عدة إشعارات لمستخدم واحد)
-11. **الإشعار (Notification) → الحجز (Booking)**: علاقة many-to-one (عدة إشعارات لحجز واحد)
-
-## مؤشرات الأداء
-يتم استخدام الفهارس التالية لتحسين أداء الاستعلامات:
-- فهارس تلقائية على الحقول الأساسية (id)
-- فهارس على الحقول المستخدمة في عمليات البحث والتصفية
-- فهارس فريدة على الأزواج الفريدة من الحقول
-
-## قيود النزاهة
-- القيم الفارغة غير مسموح بها في الحقول الإلزامية
-- القيم الفريدة مفروضة على الحقول المطلوبة
-- قيود التكامل المرجعي مفعلة على جميع العلاقات
+1. City → Governorate: many-to-one
+2. Hall → Category, Governorate, City: many-to-one
+3. Hall → HallService, HallMeal: many-to-many (خدمات ووجبات مخصصة لكل قاعة)
+4. Booking → Hall: many-to-one
+5. Booking → HallService, HallMeal: many-to-many (الخدمات والوجبات المختارة)
+6. HallImage → Hall: many-to-one
+7. HallManager → User, Hall: one-to-one
+8. Notification → User, Booking: many-to-one
