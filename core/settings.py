@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+from django.templatetags.static import static
+from django.urls import reverse_lazy
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -31,7 +33,13 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'jazzmin',
+    "unfold",  # before django.contrib.admin
+    "unfold.contrib.filters",  # optional, if special filters are needed
+    "unfold.contrib.forms",  # optional, if special form elements are needed
+    "unfold.contrib.inlines",  # optional, if special inlines are needed
+    "unfold.contrib.import_export",  # optional, if django-import-export package is used
+    "unfold.contrib.guardian",  # optional, if django-guardian package is used
+    "unfold.contrib.simple_history",  # optional, if django-simple-history package is used
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -131,9 +139,177 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-JAZZMIN_SETTINGS = {
-    "site_title": "admin",
-    "site_header": "admin",
-    "site_brand": "admin",
-    # يمكنك إضافة تخصيصات أخرى هنا لاحقًا
+# Unfold Admin Configuration
+UNFOLD = {
+    "SITE_TITLE": "نظام إدارة القاعات",
+    "SITE_HEADER": "لوحة تحكم القاعات",
+    "SITE_URL": "/",
+    # "SITE_ICON": {
+    #     "light": lambda request: static("images/logo-light.svg"),  # light mode
+    #     "dark": lambda request: static("images/logo-dark.svg"),  # dark mode
+    # },
+    # "SITE_LOGO": {
+    #     "light": lambda request: static("images/logo-light.svg"),  # light mode
+    #     "dark": lambda request: static("images/logo-dark.svg"),  # dark mode
+    # },
+    "SITE_SYMBOL": "🏛️",  # symbol for when icon is not available
+    "SHOW_HISTORY": True,  # show/hide "History" button, default: True
+    "SHOW_VIEW_ON_SITE": True,  # show/hide "View on site" button, default: True
+    "ENVIRONMENT": "core.settings.environment_callback",
+    "DASHBOARD_CALLBACK": "core.settings.dashboard_callback",
+    "LOGIN": {
+        "redirect_after": lambda request: reverse_lazy("admin:index"),
+    },
+    "COLORS": {
+        "primary": {
+            "50": "250 245 255",
+            "100": "243 232 255", 
+            "200": "233 213 255",
+            "300": "216 180 254",
+            "400": "196 141 253",
+            "500": "168 85 247",
+            "600": "147 51 234",
+            "700": "126 34 206",
+            "800": "107 33 168",
+            "900": "88 28 135",
+            "950": "59 7 100",
+        },
+    },
+    "EXTENSIONS": {
+        "modeltranslation": {
+            "flags": {
+                "en": "🇬🇧",
+                "ar": "🇪🇬",
+            },
+        },
+    },
+    "SIDEBAR": {
+        "show_search": True,  # Search in applications and models names
+        "show_all_applications": True,  # Dropdown with all applications and models
+        "navigation": [
+            {
+                "title": "الملاحة",
+                "separator": True,  # Top border
+                "items": [
+                    {
+                        "title": "لوحة التحكم",
+                        "icon": "dashboard",  # Supported icon set: https://fonts.google.com/icons
+                        "link": reverse_lazy("admin:index"),
+                    },
+                    {
+                        "title": "الإحصائيات والتقارير",
+                        "icon": "analytics",
+                        "link": "/admin/statistics/",
+                    },
+                ],
+            },
+            {
+                "title": "إدارة القاعات",
+                "separator": True,
+                "collapsible": True,
+                "items": [
+                    {
+                        "title": "القاعات",
+                        "icon": "business",
+                        "link": reverse_lazy("admin:hall_booking_hall_changelist"),
+                    },
+                    {
+                        "title": "فئات القاعات",
+                        "icon": "category",
+                        "link": reverse_lazy("admin:hall_booking_category_changelist"),
+                    },
+                    {
+                        "title": "صور القاعات",
+                        "icon": "photo_library",
+                        "link": reverse_lazy("admin:hall_booking_hallimage_changelist"),
+                    },
+                ],
+            },
+            {
+                "title": "الخدمات والوجبات",
+                "separator": True,
+                "collapsible": True,
+                "items": [
+                    {
+                        "title": "خدمات القاعات",
+                        "icon": "room_service",
+                        "link": reverse_lazy("admin:hall_booking_hallservice_changelist"),
+                    },
+                    {
+                        "title": "وجبات القاعات",
+                        "icon": "restaurant",
+                        "link": reverse_lazy("admin:hall_booking_hallmeal_changelist"),
+                    },
+                ],
+            },
+            {
+                "title": "الحجوزات",
+                "separator": True,
+                "collapsible": True,
+                "items": [
+                    {
+                        "title": "جميع الحجوزات",
+                        "icon": "event",
+                        "link": reverse_lazy("admin:hall_booking_booking_changelist"),
+                    },
+                    {
+                        "title": "خدمات الحجوزات",
+                        "icon": "build",
+                        "link": reverse_lazy("admin:hall_booking_bookingservice_changelist"),
+                    },
+                    {
+                        "title": "وجبات الحجوزات",
+                        "icon": "fastfood",
+                        "link": reverse_lazy("admin:hall_booking_bookingmeal_changelist"),
+                    },
+                ],
+            },
+            {
+                "title": "المواقع",
+                "separator": True,
+                "collapsible": True,
+                "items": [
+                    {
+                        "title": "المحافظات",
+                        "icon": "location_city",
+                        "link": reverse_lazy("admin:hall_booking_governorate_changelist"),
+                    },
+                    {
+                        "title": "المدن",
+                        "icon": "place",
+                        "link": reverse_lazy("admin:hall_booking_city_changelist"),
+                    },
+                ],
+            },
+            {
+                "title": "إدارة المستخدمين",
+                "separator": True,
+                "collapsible": True,
+                "items": [
+                    {
+                        "title": "المستخدمون",
+                        "icon": "people",
+                        "link": reverse_lazy("admin:auth_user_changelist"),
+                    },
+                    {
+                        "title": "مديرو القاعات",
+                        "icon": "admin_panel_settings",
+                        "link": reverse_lazy("admin:hall_booking_hallmanager_changelist"),
+                    },
+                ],
+            },
+        ],
+    },
 }
+
+def environment_callback(request):
+    """
+    Callback to show environment info
+    """
+    return ["Development", "success"]  # info, success, warning, danger
+
+def dashboard_callback(request, context):
+    """
+    Callback to provide additional context for the dashboard
+    """
+    return context

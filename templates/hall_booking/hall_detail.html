@@ -420,6 +420,165 @@
     display: inline-block;
     margin-top: 0.5rem;
 }
+
+/* Images Gallery */
+.hall-images-gallery {
+    margin-bottom: 2rem;
+}
+
+.hall-images-gallery h3 {
+    color: var(--gold-primary);
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.images-gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.gallery-image-item {
+    position: relative;
+    border-radius: 15px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+.gallery-image-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(255, 215, 0, 0.2);
+}
+
+.gallery-image-item img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.gallery-image-item:hover img {
+    transform: scale(1.05);
+}
+
+.gallery-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    color: var(--gold-primary);
+    font-size: 2rem;
+}
+
+.gallery-image-item:hover .gallery-overlay {
+    opacity: 1;
+}
+
+.gallery-image-title {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+    color: white;
+    padding: 1rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+/* Image Fullscreen Modal */
+.image-fullscreen-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.image-fullscreen-modal.show {
+    opacity: 1;
+}
+
+.fullscreen-backdrop {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.fullscreen-content {
+    max-width: 90%;
+    max-height: 90%;
+    background: var(--black-secondary);
+    border-radius: 15px;
+    overflow: hidden;
+    cursor: default;
+    border: 2px solid var(--gold-primary);
+}
+
+.fullscreen-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: var(--black-tertiary);
+    border-bottom: 1px solid var(--gold-primary);
+}
+
+.fullscreen-header h5 {
+    color: var(--gold-primary);
+    margin: 0;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    color: var(--gold-primary);
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.close-btn:hover {
+    background: var(--gold-primary);
+    color: var(--black-primary);
+}
+
+.fullscreen-image {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.fullscreen-image img {
+    max-width: 100%;
+    max-height: 70vh;
+    object-fit: contain;
+    border-radius: 10px;
+}
 </style>
 {% endblock %}
 
@@ -574,6 +733,26 @@
             </div>
             {% endif %}
 
+            <!-- Images Gallery Section -->
+            {% if hall.images.all %}
+            <div class="hall-images-gallery">
+                <h3>معرض صور القاعة</h3>
+                <div class="images-gallery-grid">
+                    {% for image in hall.images.all %}
+                    <div class="gallery-image-item" onclick="viewImageFullscreen('{{ image.image.url }}', '{{ image.title|escapejs }}')">
+                        <img src="{{ image.image.url }}" alt="{{ image.title }}" loading="lazy">
+                        <div class="gallery-overlay">
+                            <i class="fas fa-search-plus"></i>
+                        </div>
+                        {% if image.title %}
+                        <div class="gallery-image-title">{{ image.title }}</div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
             <!-- Booking Section -->
             <div class="booking-section">
                 <a href="{% url 'hall_booking:booking_step1_date' hall.id %}" class="booking-btn">
@@ -683,4 +862,45 @@
     }
 }
 </style>
+
+<script>
+// دالة عرض الصورة بحجم كامل
+function viewImageFullscreen(imageUrl, title) {
+    const modal = document.createElement('div');
+    modal.className = 'image-fullscreen-modal';
+    modal.innerHTML = `
+        <div class="fullscreen-backdrop" onclick="closeImageModal()">
+            <div class="fullscreen-content" onclick="event.stopPropagation()">
+                <div class="fullscreen-header">
+                    <h5>${title || 'صورة القاعة'}</h5>
+                    <button class="close-btn" onclick="closeImageModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="fullscreen-image">
+                    <img src="${imageUrl}" alt="${title}" />
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    setTimeout(() => modal.classList.add('show'), 10);
+}
+
+function closeImageModal() {
+    const modal = document.querySelector('.image-fullscreen-modal');
+    if (modal) {
+        modal.classList.remove('show');
+        setTimeout(() => modal.remove(), 300);
+    }
+}
+
+// إغلاق النافذة بالضغط على ESC
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeImageModal();
+    }
+});
+</script>
 {% endblock %}

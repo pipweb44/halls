@@ -1,20 +1,19 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib import messages
+from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.utils import timezone
-from django.db.models import Q, Count, Sum, Avg, F, Value
-from django.db.models.functions import TruncMonth, TruncDay, TruncWeek, TruncYear
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib.auth import login, authenticate, logout
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, UserChangeForm
+from django.contrib.admin.views.decorators import staff_member_required
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib import messages
+from django.utils import timezone
+from django.db.models import Q, Count, Sum, Avg
 from datetime import datetime, timedelta
-import json
-from .models import Hall, Category, Booking, Contact, HallManager, Notification, Governorate, City, HallService, HallMeal, BookingService, BookingMeal
+from .models import (Hall, Booking, Category, Governorate, City, HallService, 
+                    HallMeal, BookingService, BookingMeal, HallManager, HallImage, 
+                    Contact, Notification)
 from .forms import BookingForm, ContactForm, HallForm
 from django.contrib.auth.models import User
-from django.db.models import Sum
 import calendar
+import json
 from django.core.paginator import Paginator
 from django.contrib.auth import update_session_auth_hash
 from collections import defaultdict
@@ -37,7 +36,7 @@ def get_user_managed_hall(user):
 def home(request):
     """الصفحة الرئيسية"""
     categories = Category.objects.all()
-    featured_halls = Hall.objects.filter(status='available')[:6]
+    featured_halls = Hall.objects.filter(status='available').prefetch_related('images')[:6]
     recent_bookings = Booking.objects.filter(status='approved').order_by('-created_at')[:3]
     
     context = {
@@ -55,7 +54,7 @@ def halls_list(request):
     search_query = request.GET.get('search')
     capacity = request.GET.get('capacity')
 
-    halls = Hall.objects.filter(status='available').select_related('category', 'governorate', 'city')
+    halls = Hall.objects.filter(status='available').select_related('category', 'governorate', 'city').prefetch_related('images')
 
     if category_id:
         halls = halls.filter(category_id=category_id)
@@ -125,9 +124,10 @@ def hall_detail(request, hall_id):
     """تفاصيل القاعة"""
     hall = get_object_or_404(Hall, id=hall_id, status='available')
 
-    # الحصول على الخدمات والوجبات المتاحة للقاعة
+    # الحصول على الخدمات والوجبات والصور المتاحة للقاعة
     hall_services = hall.hall_services.filter(is_available=True).order_by('name')
     hall_meals = hall.hall_meals.filter(is_available=True).order_by('meal_type', 'name')
+    hall_images = hall.images.all().order_by('order', '-uploaded_at')
 
     # القاعات المشابهة (نفس الفئة أو نفس المحافظة)
     similar_halls = Hall.objects.filter(
@@ -136,7 +136,7 @@ def hall_detail(request, hall_id):
         id=hall.id
     ).filter(
         Q(category=hall.category) | Q(governorate=hall.governorate)
-    ).select_related('category', 'governorate', 'city')[:6]
+    ).select_related('category', 'governorate', 'city').prefetch_related('images')[:6]
 
     # التحقق من التواريخ المتاحة
     if request.method == 'POST':
@@ -153,6 +153,7 @@ def hall_detail(request, hall_id):
                 'hall': hall,
                 'hall_services': hall_services,
                 'hall_meals': hall_meals,
+                'hall_images': hall_images,
                 'selected_date': selected_date,
                 'bookings': bookings,
                 'similar_halls': similar_halls,
@@ -162,6 +163,7 @@ def hall_detail(request, hall_id):
                 'hall': hall,
                 'hall_services': hall_services,
                 'hall_meals': hall_meals,
+                'hall_images': hall_images,
                 'similar_halls': similar_halls,
             }
     else:
@@ -169,6 +171,7 @@ def hall_detail(request, hall_id):
             'hall': hall,
             'hall_services': hall_services,
             'hall_meals': hall_meals,
+            'hall_images': hall_images,
             'similar_halls': similar_halls,
         }
 
@@ -2467,4 +2470,130 @@ def booking_details_modal(request, booking_id):
     return JsonResponse({
         'success': True,
         'html': html
+    })
+
+# ==================== Admin Statistics Views ====================
+
+@staff_member_required
+def admin_statistics_view(request):
+    """صفحة الإحصائيات مع الرسوم البيانية"""
+    # إحصائيات عامة
+    total_halls = Hall.objects.count()
+    total_bookings = Booking.objects.count()
+    total_revenue = Booking.objects.filter(status='completed').aggregate(total=Sum('total_price'))['total'] or 0
+    
+    # إحصائيات الحجوزات حسب الحالة
+    booking_stats = {
+        'pending': Booking.objects.filter(status='pending').count(),
+        'approved': Booking.objects.filter(status='approved').count(),
+        'completed': Booking.objects.filter(status='completed').count(),
+        'cancelled': Booking.objects.filter(status='cancelled').count(),
+        'rejected': Booking.objects.filter(status='rejected').count(),
+    }
+    
+    # إحصائيات القاعات حسب الفئة
+    category_stats = Category.objects.annotate(
+        hall_count=Count('hall'),
+        booking_count=Count('hall__bookings')
+    ).values('name', 'hall_count', 'booking_count')
+    
+    # إحصائيات المحافظات
+    governorate_stats = Governorate.objects.annotate(
+        hall_count=Count('hall'),
+        booking_count=Count('hall__bookings')
+    ).values('name', 'hall_count', 'booking_count')
+    
+    # أفضل القاعات (الأكثر حجزاً)
+    top_halls = Hall.objects.annotate(
+        booking_count=Count('bookings')
+    ).order_by('-booking_count')[:10]
+    
+    # إحصائيات الإيرادات الشهرية (آخر 12 شهر)
+    monthly_revenue = []
+    for i in range(12):
+        date = timezone.now() - timedelta(days=30*i)
+        revenue = Booking.objects.filter(
+            status='completed',
+            created_at__year=date.year,
+            created_at__month=date.month
+        ).aggregate(total=Sum('total_price'))['total'] or 0
+        monthly_revenue.append({
+            'month': date.strftime('%Y-%m'),
+            'revenue': float(revenue)
+        })
+    
+    context = {
+        'title': 'الإحصائيات والتقارير',
+        'total_halls': total_halls,
+        'total_bookings': total_bookings,
+        'total_revenue': total_revenue,
+        'booking_stats': booking_stats,
+        'category_stats': list(category_stats),
+        'governorate_stats': list(governorate_stats),
+        'top_halls': top_halls,
+        'monthly_revenue': monthly_revenue[::-1],  # عكس الترتيب للحصول على الأحدث أولاً
+    }
+    
+    return render(request, 'admin/statistics.html', context)
+
+@staff_member_required
+def admin_bookings_chart_api(request):
+    """API للحصول على بيانات مخطط الحجوزات"""
+    # بيانات الحجوزات حسب الشهر (آخر 12 شهر)
+    months = []
+    bookings_data = []
+    
+    for i in range(12):
+        date = timezone.now() - timedelta(days=30*i)
+        month_name = date.strftime('%Y-%m')
+        booking_count = Booking.objects.filter(
+            created_at__year=date.year,
+            created_at__month=date.month
+        ).count()
+        
+        months.append(month_name)
+        bookings_data.append(booking_count)
+    
+    return JsonResponse({
+        'labels': months[::-1],
+        'data': bookings_data[::-1]
+    })
+
+@staff_member_required
+def admin_revenue_chart_api(request):
+    """API للحصول على بيانات مخطط الإيرادات"""
+    # بيانات الإيرادات حسب الشهر (آخر 12 شهر)
+    months = []
+    revenue_data = []
+    
+    for i in range(12):
+        date = timezone.now() - timedelta(days=30*i)
+        month_name = date.strftime('%Y-%m')
+        revenue = Booking.objects.filter(
+            status='completed',
+            created_at__year=date.year,
+            created_at__month=date.month
+        ).aggregate(total=Sum('total_price'))['total'] or 0
+        
+        months.append(month_name)
+        revenue_data.append(float(revenue))
+    
+    return JsonResponse({
+        'labels': months[::-1],
+        'data': revenue_data[::-1]
+    })
+
+@staff_member_required
+def admin_halls_chart_api(request):
+    """API للحصول على بيانات مخطط القاعات حسب الفئة"""
+    categories = Category.objects.annotate(
+        hall_count=Count('hall')
+    ).values('name', 'hall_count')
+    
+    labels = [cat['name'] for cat in categories]
+    data = [cat['hall_count'] for cat in categories]
+    
+    return JsonResponse({
+        'labels': labels,
+        'data': data
     })

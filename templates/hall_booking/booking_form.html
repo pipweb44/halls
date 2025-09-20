@@ -225,8 +225,8 @@
                         <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>معلومات القاعة</h5>
                     </div>
                     <div class="card-body">
-                        {% if hall.image %}
-                        <img src="{{ hall.image.url }}" class="img-fluid rounded mb-3" alt="{{ hall.name }}">
+                        {% if hall.images.first %}
+                        <img src="{{ hall.images.first.image.url }}" class="img-fluid rounded mb-3" alt="{{ hall.name }}">
                         {% endif %}
                         
                         <h6 class="text-primary">{{ hall.name }}</h6>

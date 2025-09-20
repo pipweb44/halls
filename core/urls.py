@@ -19,10 +19,18 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from hall_booking.admin import admin_site
+from hall_booking import views
 
 urlpatterns = [
+    # مسارات الإحصائيات في الإدارة - يجب أن تكون قبل admin/
+    path('admin/statistics/', views.admin_statistics_view, name='admin_statistics'),
+    path('admin/statistics/api/bookings-chart/', views.admin_bookings_chart_api, name='admin_bookings_chart_api'),
+    path('admin/statistics/api/revenue-chart/', views.admin_revenue_chart_api, name='admin_revenue_chart_api'),
+    path('admin/statistics/api/halls-chart/', views.admin_halls_chart_api, name='admin_halls_chart_api'),
+    
     path('admin/', admin.site.urls),  # لوحة الإدارة الافتراضية
     path('admin-site/', admin_site.urls),  # لوحة الإدارة المخصصة إذا أردت الاحتفاظ بها
+    
     path('', include('hall_booking.urls')),
 ]
 

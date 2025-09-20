@@ -827,8 +827,8 @@ body {
         {% for hall in halls %}
         <div class="hall-card">
             <div class="hall-image">
-                {% if hall.hallimage_set.first %}
-                    <img src="{{ hall.hallimage_set.first.image.url }}" alt="{{ hall.name }}">
+                {% if hall.images.first %}
+                    <img src="{{ hall.images.first.image.url }}" alt="{{ hall.name }}">
                 {% else %}
                     <div style="height: 250px; background: var(--black-light); display: flex; align-items: center; justify-content: center;">
                         <i class="fas fa-building" style="font-size: 3rem; color: var(--gold-dark);"></i>
