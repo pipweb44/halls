@@ -1914,27 +1914,38 @@ def booking_success(request, booking_id):
 @login_required
 @user_passes_test(lambda u: u.is_staff or hasattr(u, 'hall_manager'))
 def hall_manager_dashboard(request):
-    """لوحة تحكم مدير القاعة"""
-    try:
-        hall_manager = request.user.hall_manager
-        halls = Hall.objects.filter(manager=hall_manager)
-    except:
-        # إذا كان المستخدم admin
-        halls = Hall.objects.all()
+    """لوحة تحكم مدير القاعة الجديدة مع الشريط الجانبي"""
+    # التحقق من الصلاحيات
+    if not request.user.is_staff:
+        if not hasattr(request.user, 'hall_manager'):
+            return redirect('hall_booking:home')
     
-    # إضافة الإحصائيات لكل قاعة
-    halls_with_stats = []
+    # الحصول على القاعات المخصصة للمدير
+    if request.user.is_staff:
+        halls = Hall.objects.all()
+    else:
+        halls = Hall.objects.filter(manager=request.user.hall_manager)
+    
+    # حساب الإحصائيات العامة
+    total_bookings = 0
+    total_pending_bookings = 0
+    total_revenue = 0
+    
     for hall in halls:
-        hall_stats = {
-            'hall': hall,
-            'total_bookings': hall.bookings.count(),
-            'pending_bookings': hall.bookings.filter(status='pending').count(),
-            'approved_bookings': hall.bookings.filter(status='approved').count(),
-        }
-        halls_with_stats.append(hall_stats)
+        hall_bookings = Booking.objects.filter(hall=hall)
+        total_bookings += hall_bookings.count()
+        total_pending_bookings += hall_bookings.filter(status='pending').count()
+        
+        # حساب الإيرادات من الحجوزات المؤكدة
+        approved_bookings = hall_bookings.filter(status='approved')
+        for booking in approved_bookings:
+            total_revenue += booking.total_price or 0
     
     context = {
-        'halls_with_stats': halls_with_stats,
+        'halls': halls,
+        'total_bookings': total_bookings,
+        'total_pending_bookings': total_pending_bookings,
+        'total_revenue': total_revenue,
     }
     return render(request, 'hall_booking/manager/dashboard.html', context)
 
