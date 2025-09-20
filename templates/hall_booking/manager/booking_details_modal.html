@@ -1,0 +1,317 @@
+<div class="booking-details-content">
+    <!-- معلومات العميل -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="detail-card">
+                <h5 class="text-warning mb-3"><i class="fas fa-user me-2"></i>معلومات العميل</h5>
+                <div class="detail-item">
+                    <strong>الاسم:</strong> {{ booking.customer_name }}
+                </div>
+                <div class="detail-item">
+                    <strong>البريد الإلكتروني:</strong> {{ booking.customer_email }}
+                </div>
+                <div class="detail-item">
+                    <strong>رقم الهاتف:</strong> {{ booking.customer_phone }}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="detail-card">
+                <h5 class="text-warning mb-3"><i class="fas fa-calendar me-2"></i>تفاصيل الحجز</h5>
+                <div class="detail-item">
+                    <strong>رقم الحجز:</strong> {{ booking.id }}
+                </div>
+                <div class="detail-item">
+                    <strong>تاريخ الإنشاء:</strong> {{ booking.created_at|date:"Y-m-d H:i" }}
+                </div>
+                <div class="detail-item">
+                    <strong>الحالة:</strong> 
+                    <span class="badge 
+                        {% if booking.status == 'pending' %}bg-warning
+                        {% elif booking.status == 'approved' %}bg-success
+                        {% elif booking.status == 'rejected' %}bg-danger
+                        {% else %}bg-secondary{% endif %}">
+                        {{ booking.get_status_display }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- تفاصيل الحدث -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="detail-card">
+                <h5 class="text-warning mb-3"><i class="fas fa-star me-2"></i>تفاصيل الحدث</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="detail-item">
+                            <strong>عنوان الحدث:</strong> {{ booking.event_title }}
+                        </div>
+                        <div class="detail-item">
+                            <strong>عدد الحضور:</strong> {{ booking.attendees_count }} شخص
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="detail-item">
+                            <strong>تاريخ البداية:</strong> {{ booking.start_datetime|date:"Y-m-d H:i" }}
+                        </div>
+                        <div class="detail-item">
+                            <strong>تاريخ النهاية:</strong> {{ booking.end_datetime|date:"Y-m-d H:i" }}
+                        </div>
+                    </div>
+                </div>
+                {% if booking.event_description %}
+                <div class="detail-item mt-3">
+                    <strong>وصف الحدث:</strong>
+                    <p class="mt-2 p-3 bg-secondary rounded">{{ booking.event_description }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- الخدمات المطلوبة -->
+    {% if booking_services %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="detail-card">
+                <h5 class="text-warning mb-3"><i class="fas fa-concierge-bell me-2"></i>الخدمات المطلوبة</h5>
+                <div class="table-responsive">
+                    <table class="table table-dark table-striped">
+                        <thead>
+                            <tr>
+                                <th>اسم الخدمة</th>
+                                <th>الكمية</th>
+                                <th>السعر الوحدة</th>
+                                <th>الإجمالي</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for bs in booking_services %}
+                            <tr>
+                                <td>{{ bs.service.name }}</td>
+                                <td>{{ bs.quantity }}</td>
+                                <td>{{ bs.service.price }} جنيه</td>
+                                <td>{{ bs.service.price|floatformat:0 }} جنيه</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-warning">
+                                <th colspan="3">إجمالي الخدمات:</th>
+                                <th>{{ services_cost|floatformat:0 }} جنيه</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- الوجبات المطلوبة -->
+    {% if booking_meals %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="detail-card">
+                <h5 class="text-warning mb-3"><i class="fas fa-utensils me-2"></i>الوجبات المطلوبة</h5>
+                <div class="table-responsive">
+                    <table class="table table-dark table-striped">
+                        <thead>
+                            <tr>
+                                <th>اسم الوجبة</th>
+                                <th>النوع</th>
+                                <th>الكمية</th>
+                                <th>السعر للفرد</th>
+                                <th>الإجمالي</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for bm in booking_meals %}
+                            <tr>
+                                <td>
+                                    {{ bm.meal.name }}
+                                    {% if bm.meal.is_vegetarian %}
+                                        <span class="badge bg-success ms-2">نباتي</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ bm.meal.get_meal_type_display }}</td>
+                                <td>{{ bm.quantity }}</td>
+                                <td>{{ bm.meal.price_per_person }} جنيه</td>
+                                <td>{{ bm.meal.price_per_person|floatformat:0 }} جنيه</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-warning">
+                                <th colspan="4">إجمالي الوجبات:</th>
+                                <th>{{ meals_cost|floatformat:0 }} جنيه</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ملخص التكلفة -->
+    <div class="row mb-4">
+        <div class="col-md-6 offset-md-6">
+            <div class="detail-card">
+                <h5 class="text-warning mb-3"><i class="fas fa-calculator me-2"></i>ملخص التكلفة</h5>
+                <div class="cost-summary">
+                    <div class="cost-item d-flex justify-content-between">
+                        <span>تكلفة القاعة:</span>
+                        <span>{{ hall_cost|floatformat:0 }} جنيه</span>
+                    </div>
+                    {% if services_cost > 0 %}
+                    <div class="cost-item d-flex justify-content-between">
+                        <span>تكلفة الخدمات:</span>
+                        <span>{{ services_cost|floatformat:0 }} جنيه</span>
+                    </div>
+                    {% endif %}
+                    {% if meals_cost > 0 %}
+                    <div class="cost-item d-flex justify-content-between">
+                        <span>تكلفة الوجبات:</span>
+                        <span>{{ meals_cost|floatformat:0 }} جنيه</span>
+                    </div>
+                    {% endif %}
+                    <hr class="border-warning">
+                    <div class="cost-item d-flex justify-content-between fw-bold text-warning">
+                        <span>الإجمالي:</span>
+                        <span>{{ booking.total_price|floatformat:0 }} جنيه</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ملاحظات الإدارة -->
+    {% if booking.admin_notes %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="detail-card">
+                <h5 class="text-warning mb-3"><i class="fas fa-sticky-note me-2"></i>ملاحظات الإدارة</h5>
+                <p class="p-3 bg-secondary rounded">{{ booking.admin_notes }}</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- أزرار الإجراءات -->
+    {% if booking.status == 'pending' %}
+    <div class="row">
+        <div class="col-12">
+            <div class="booking-actions-buttons text-center">
+                <button class="btn btn-success me-2" onclick="manageBookingStatus({{ booking.id }}, 'approve')">
+                    <i class="fas fa-check me-2"></i>موافقة
+                </button>
+                <button class="btn btn-danger me-2" onclick="manageBookingStatus({{ booking.id }}, 'reject')">
+                    <i class="fas fa-times me-2"></i>رفض
+                </button>
+                <button class="btn btn-warning" onclick="addAdminNotes({{ booking.id }})">
+                    <i class="fas fa-edit me-2"></i>إضافة ملاحظة
+                </button>
+            </div>
+        </div>
+    </div>
+    {% elif booking.status == 'approved' %}
+    <div class="row">
+        <div class="col-12">
+            <div class="booking-actions-buttons text-center">
+                <button class="btn btn-danger me-2" onclick="manageBookingStatus({{ booking.id }}, 'cancel')">
+                    <i class="fas fa-ban me-2"></i>إلغاء الحجز
+                </button>
+                <button class="btn btn-warning" onclick="addAdminNotes({{ booking.id }})">
+                    <i class="fas fa-edit me-2"></i>تحديث الملاحظة
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.detail-card {
+    background: rgba(45, 45, 45, 0.8);
+    border-radius: 10px;
+    padding: 1.5rem;
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    margin-bottom: 1rem;
+}
+
+.detail-item {
+    margin-bottom: 0.8rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.detail-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.cost-summary .cost-item {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.booking-actions-buttons .btn {
+    margin: 0.25rem;
+    min-width: 120px;
+}
+
+.table-dark {
+    --bs-table-bg: rgba(45, 45, 45, 0.8);
+}
+
+.table-dark th,
+.table-dark td {
+    border-color: rgba(255, 215, 0, 0.2);
+}
+</style>
+
+<script>
+function manageBookingStatus(bookingId, action) {
+    let notes = '';
+    if (action === 'reject') {
+        notes = prompt('سبب الرفض (اختياري):') || '';
+    } else if (action === 'cancel') {
+        notes = prompt('سبب الإلغاء (اختياري):') || '';
+    }
+    
+    const formData = new FormData();
+    formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+    formData.append('action', action);
+    formData.append('admin_notes', notes);
+    
+    fetch(`{% url "hall_booking:manage_booking_status" booking.hall.id booking.id %}`, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            bootstrap.Modal.getInstance(document.getElementById('bookingModal')).hide();
+            location.reload();
+        } else {
+            alert('خطأ: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('حدث خطأ في الاتصال');
+    });
+}
+
+function addAdminNotes(bookingId) {
+    const notes = prompt('أدخل الملاحظة:');
+    if (notes) {
+        manageBookingStatus(bookingId, 'note');
+    }
+}
+</script>

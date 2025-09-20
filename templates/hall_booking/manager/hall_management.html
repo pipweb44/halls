@@ -473,14 +473,18 @@
                 
                 <div class="services-grid">
                     {% for service in hall_services %}
-                    <div class="service-card">
+                    <div class="service-card" 
+                         data-id="{{ service.id }}" 
+                         data-name="{{ service.name }}" 
+                         data-description="{{ service.description }}" 
+                         data-price="{{ service.price }}">
                         <div class="card-header">
                             <div class="card-title">{{ service.name }}</div>
                             <div class="card-price">{{ service.price }} جنيه</div>
                         </div>
                         <div class="card-description">{{ service.description|default:"لا يوجد وصف" }}</div>
                         <div class="card-actions">
-                            <button class="btn-sm btn-edit" onclick="editService({{ service.id }})">
+                            <button class="btn-sm btn-edit" onclick="editServiceFromCard(this)">
                                 <i class="fas fa-edit"></i> تعديل
                             </button>
                             <button class="btn-sm btn-delete" onclick="deleteService({{ service.id }})">
@@ -513,7 +517,13 @@
                 
                 <div class="meals-grid">
                     {% for meal in hall_meals %}
-                    <div class="meal-card">
+                    <div class="meal-card" 
+                         data-id="{{ meal.id }}" 
+                         data-name="{{ meal.name }}" 
+                         data-description="{{ meal.description }}" 
+                         data-price="{{ meal.price_per_person }}"
+                         data-type="{{ meal.meal_type }}"
+                         data-vegetarian="{{ meal.is_vegetarian|yesno:'true,false' }}">
                         <div class="card-header">
                             <div class="card-title">{{ meal.name }}</div>
                             <div class="card-price">{{ meal.price_per_person }} جنيه/فرد</div>
@@ -524,7 +534,7 @@
                             <p class="mt-2">{{ meal.description|default:"لا يوجد وصف" }}</p>
                         </div>
                         <div class="card-actions">
-                            <button class="btn-sm btn-edit" onclick="editMeal({{ meal.id }})">
+                            <button class="btn-sm btn-edit" onclick="editMealFromCard(this)">
                                 <i class="fas fa-edit"></i> تعديل
                             </button>
                             <button class="btn-sm btn-delete" onclick="deleteMeal({{ meal.id }})">
@@ -557,29 +567,47 @@
                 
                 <div class="images-grid">
                     {% for image in hall_images %}
-                    <div class="image-card">
-                        <div class="image-preview">
+                    <div class="image-card" data-id="{{ image.id }}">
+                        <div class="image-preview" onclick="viewImageFullscreen('{{ image.image.url }}', '{{ image.title|escapejs }}')">
                             {% if image.image %}
-                            <img src="{{ image.image.url }}" alt="{{ image.title }}">
+                            <img src="{{ image.image.url }}" alt="{{ image.title }}" loading="lazy">
+                            <div class="image-overlay">
+                                <i class="fas fa-search-plus"></i>
+                            </div>
                             {% else %}
-                            <i class="fas fa-image fa-3x"></i>
+                            <div class="no-image">
+                                <i class="fas fa-image fa-3x"></i>
+                                <p>لا توجد صورة</p>
+                            </div>
                             {% endif %}
                         </div>
                         <div class="image-info">
                             <div class="image-title">{{ image.title|default:"بدون عنوان" }}</div>
+                            <div class="image-meta">
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar me-1"></i>
+                                    {{ image.created_at|date:"Y-m-d" }}
+                                </small>
+                            </div>
                             <div class="card-actions">
-                                <button class="btn-sm btn-edit" onclick="editImage({{ image.id }})">
-                                    <i class="fas fa-edit"></i> تعديل
+                                <button class="btn-sm btn-view" onclick="viewImageFullscreen('{{ image.image.url }}', '{{ image.title|escapejs }}')" title="عرض كامل">
+                                    <i class="fas fa-eye"></i>
                                 </button>
-                                <button class="btn-sm btn-delete" onclick="deleteImage({{ image.id }})">
-                                    <i class="fas fa-trash"></i> حذف
+                                <button class="btn-sm btn-delete" onclick="deleteImage({{ image.id }})" title="حذف">
+                                    <i class="fas fa-trash"></i>
                                 </button>
                             </div>
                         </div>
                     </div>
                     {% empty %}
                     <div class="col-12 text-center">
-                        <p class="text-muted">لا توجد صور مضافة بعد</p>
+                        <div class="empty-state">
+                            <i class="fas fa-images fa-4x text-muted mb-3"></i>
+                            <p class="text-muted">لا توجد صور مضافة بعد</p>
+                            <button class="btn btn-warning" onclick="addImage()">
+                                <i class="fas fa-plus me-2"></i>إضافة أول صورة
+                            </button>
+                        </div>
                     </div>
                     {% endfor %}
                     
@@ -658,62 +686,37 @@ function showTab(tabName) {
 
 // إدارة الخدمات
 function addService() {
-    const name = prompt('اسم الخدمة:');
-    const description = prompt('وصف الخدمة:');
-    const price = prompt('سعر الخدمة:');
+    // إعداد النموذج للإضافة
+    document.getElementById('serviceModalLabel').textContent = 'إضافة خدمة جديدة';
+    document.getElementById('serviceAction').value = 'add';
+    document.getElementById('serviceId').value = '';
+    document.getElementById('serviceName').value = '';
+    document.getElementById('serviceDescription').value = '';
+    document.getElementById('servicePrice').value = '';
     
-    if (name && price) {
-        const formData = new FormData();
-        formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
-        formData.append('action', 'add');
-        formData.append('name', name);
-        formData.append('description', description || '');
-        formData.append('price', price);
-        
-        fetch('{% url "hall_booking:manage_hall_service" hall.id %}', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert(data.message);
-                location.reload();
-            } else {
-                alert('خطأ: ' + data.error);
-            }
-        });
-    }
+    // إظهار النموذج
+    const modal = new bootstrap.Modal(document.getElementById('serviceModal'));
+    modal.show();
 }
 
-function editService(serviceId) {
-    const name = prompt('اسم الخدمة الجديد:');
-    const description = prompt('وصف الخدمة الجديد:');
-    const price = prompt('سعر الخدمة الجديد:');
+function editServiceFromCard(button) {
+    const card = button.closest('.service-card');
+    const serviceId = card.dataset.id;
+    const name = card.dataset.name;
+    const description = card.dataset.description;
+    const price = card.dataset.price;
     
-    if (name && price) {
-        const formData = new FormData();
-        formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
-        formData.append('action', 'edit');
-        formData.append('service_id', serviceId);
-        formData.append('name', name);
-        formData.append('description', description || '');
-        formData.append('price', price);
-        
-        fetch('{% url "hall_booking:manage_hall_service" hall.id %}', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert(data.message);
-                location.reload();
-            } else {
-                alert('خطأ: ' + data.error);
-            }
-        });
-    }
+    // إعداد النموذج للتعديل
+    document.getElementById('serviceModalLabel').textContent = 'تعديل الخدمة';
+    document.getElementById('serviceAction').value = 'edit';
+    document.getElementById('serviceId').value = serviceId;
+    document.getElementById('serviceName').value = name || '';
+    document.getElementById('serviceDescription').value = description || '';
+    document.getElementById('servicePrice').value = price || '';
+    
+    // إظهار النموذج
+    const modal = new bootstrap.Modal(document.getElementById('serviceModal'));
+    modal.show();
 }
 
 function deleteService(serviceId) {
@@ -741,64 +744,43 @@ function deleteService(serviceId) {
 
 // إدارة الوجبات
 function addMeal() {
-    const name = prompt('اسم الوجبة:');
-    const description = prompt('وصف الوجبة:');
-    const price = prompt('سعر الوجبة للفرد:');
-    const mealType = prompt('نوع الوجبة (appetizer/main/dessert/drink):') || 'main';
+    // إعداد النموذج للإضافة
+    document.getElementById('mealModalLabel').textContent = 'إضافة وجبة جديدة';
+    document.getElementById('mealAction').value = 'add';
+    document.getElementById('mealId').value = '';
+    document.getElementById('mealName').value = '';
+    document.getElementById('mealDescription').value = '';
+    document.getElementById('mealPrice').value = '';
+    document.getElementById('mealType').value = 'main';
+    document.getElementById('isVegetarian').checked = false;
     
-    if (name && price) {
-        const formData = new FormData();
-        formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
-        formData.append('action', 'add');
-        formData.append('name', name);
-        formData.append('description', description || '');
-        formData.append('price_per_person', price);
-        formData.append('meal_type', mealType);
-        
-        fetch('{% url "hall_booking:manage_hall_meal" hall.id %}', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert(data.message);
-                location.reload();
-            } else {
-                alert('خطأ: ' + data.error);
-            }
-        });
-    }
+    // إظهار النموذج
+    const modal = new bootstrap.Modal(document.getElementById('mealModal'));
+    modal.show();
 }
 
-function editMeal(mealId) {
-    const name = prompt('اسم الوجبة الجديد:');
-    const description = prompt('وصف الوجبة الجديد:');
-    const price = prompt('سعر الوجبة الجديد للفرد:');
+function editMealFromCard(button) {
+    const card = button.closest('.meal-card');
+    const mealId = card.dataset.id;
+    const name = card.dataset.name;
+    const description = card.dataset.description;
+    const price = card.dataset.price;
+    const mealType = card.dataset.type;
+    const isVegetarian = card.dataset.vegetarian === 'true';
     
-    if (name && price) {
-        const formData = new FormData();
-        formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
-        formData.append('action', 'edit');
-        formData.append('meal_id', mealId);
-        formData.append('name', name);
-        formData.append('description', description || '');
-        formData.append('price_per_person', price);
-        
-        fetch('{% url "hall_booking:manage_hall_meal" hall.id %}', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert(data.message);
-                location.reload();
-            } else {
-                alert('خطأ: ' + data.error);
-            }
-        });
-    }
+    // إعداد النموذج للتعديل
+    document.getElementById('mealModalLabel').textContent = 'تعديل الوجبة';
+    document.getElementById('mealAction').value = 'edit';
+    document.getElementById('mealId').value = mealId;
+    document.getElementById('mealName').value = name || '';
+    document.getElementById('mealDescription').value = description || '';
+    document.getElementById('mealPrice').value = price || '';
+    document.getElementById('mealType').value = mealType || 'main';
+    document.getElementById('isVegetarian').checked = isVegetarian;
+    
+    // إظهار النموذج
+    const modal = new bootstrap.Modal(document.getElementById('mealModal'));
+    modal.show();
 }
 
 function deleteMeal(mealId) {
@@ -826,11 +808,14 @@ function deleteMeal(mealId) {
 
 // إدارة الصور
 function addImage() {
-    alert('سيتم إضافة نافذة رفع صورة قريباً');
-}
-
-function editImage(imageId) {
-    alert('سيتم إضافة نافذة تعديل الصورة قريباً');
+    // إعداد النموذج لإضافة صورة
+    document.getElementById('imageTitle').value = '';
+    document.getElementById('imageFile').value = '';
+    document.getElementById('imagePreview').style.display = 'none';
+    
+    // إظهار النموذج
+    const modal = new bootstrap.Modal(document.getElementById('imageModal'));
+    modal.show();
 }
 
 function deleteImage(imageId) {
@@ -857,7 +842,471 @@ function deleteImage(imageId) {
 }
 
 function viewBooking(bookingId) {
-    alert('سيتم إضافة نافذة عرض تفاصيل الحجز قريباً');
+    showBookingModal(bookingId);
 }
+
+function showBookingModal(bookingId) {
+    // جلب تفاصيل الحجز وعرضها في النافذة المنبثقة
+    fetch(`/booking/${bookingId}/details/`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('bookingDetails').innerHTML = data.html;
+                const modal = new bootstrap.Modal(document.getElementById('bookingModal'));
+                modal.show();
+            } else {
+                alert('خطأ في جلب تفاصيل الحجز');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('حدث خطأ في الاتصال');
+        });
+}
+
+// معالجات الأحداث للنماذج
+document.addEventListener('DOMContentLoaded', function() {
+    // معالج نموذج الخدمات
+    document.getElementById('serviceForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        
+        fetch(`{% url "hall_booking:manage_hall_service" hall.id %}`, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                bootstrap.Modal.getInstance(document.getElementById('serviceModal')).hide();
+                location.reload();
+            } else {
+                alert('خطأ: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('حدث خطأ في الاتصال');
+        });
+    });
+
+    // معالج نموذج الوجبات
+    document.getElementById('mealForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        
+        fetch(`{% url "hall_booking:manage_hall_meal" hall.id %}`, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                bootstrap.Modal.getInstance(document.getElementById('mealModal')).hide();
+                location.reload();
+            } else {
+                alert('خطأ: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('حدث خطأ في الاتصال');
+        });
+    });
+
+    // معالج نموذج الصور
+    document.getElementById('imageForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        
+        fetch(`{% url "hall_booking:manage_hall_image" hall.id %}`, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                bootstrap.Modal.getInstance(document.getElementById('imageModal')).hide();
+                location.reload();
+            } else {
+                alert('خطأ: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('حدث خطأ في الاتصال');
+        });
+    });
+
+    // معاينة الصورة قبل الرفع
+    document.getElementById('imageFile').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('previewImg').src = e.target.result;
+                document.getElementById('imagePreview').style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+    
+    // دالة عرض الصورة بحجم كامل
+    window.viewImageFullscreen = function(imageUrl, title) {
+        const modal = document.createElement('div');
+        modal.className = 'image-fullscreen-modal';
+        modal.innerHTML = `
+            <div class="fullscreen-backdrop" onclick="closeImageModal()">
+                <div class="fullscreen-content" onclick="event.stopPropagation()">
+                    <div class="fullscreen-header">
+                        <h5>${title || 'صورة القاعة'}</h5>
+                        <button class="close-btn" onclick="closeImageModal()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="fullscreen-image">
+                        <img src="${imageUrl}" alt="${title}" />
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        setTimeout(() => modal.classList.add('show'), 10);
+    };
+    
+    window.closeImageModal = function() {
+        const modal = document.querySelector('.image-fullscreen-modal');
+        if (modal) {
+            modal.classList.remove('show');
+            setTimeout(() => modal.remove(), 300);
+        }
+    };
+});
 </script>
+
+<!-- نافذة عرض الصورة بحجم كامل -->
+<style>
+.image-fullscreen-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.image-fullscreen-modal.show {
+    opacity: 1;
+}
+
+.fullscreen-backdrop {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.fullscreen-content {
+    max-width: 90%;
+    max-height: 90%;
+    background: var(--black-secondary);
+    border-radius: 15px;
+    overflow: hidden;
+    cursor: default;
+    border: 2px solid var(--gold-primary);
+}
+
+.fullscreen-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: var(--black-tertiary);
+    border-bottom: 1px solid var(--gold-primary);
+}
+
+.fullscreen-header h5 {
+    color: var(--gold-primary);
+    margin: 0;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    color: var(--gold-primary);
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.close-btn:hover {
+    background: var(--gold-primary);
+    color: var(--black-primary);
+}
+
+.fullscreen-image {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.fullscreen-image img {
+    max-width: 100%;
+    max-height: 70vh;
+    object-fit: contain;
+    border-radius: 10px;
+}
+
+/* تحسينات لعرض الصور */
+.image-preview {
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    border-radius: 10px;
+}
+
+.image-preview img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.image-preview:hover img {
+    transform: scale(1.05);
+}
+
+.image-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    color: var(--gold-primary);
+    font-size: 2rem;
+}
+
+.image-preview:hover .image-overlay {
+    opacity: 1;
+}
+
+.no-image {
+    height: 200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(45, 45, 45, 0.5);
+    color: rgba(255, 255, 255, 0.5);
+    border-radius: 10px;
+}
+
+.image-meta {
+    margin: 0.5rem 0;
+}
+
+.btn-view {
+    background: var(--gold-primary);
+    color: var(--black-primary);
+}
+
+.btn-view:hover {
+    background: var(--gold-secondary);
+}
+
+.empty-state {
+    padding: 3rem;
+    text-align: center;
+}
+
+@media (max-width: 768px) {
+    .fullscreen-content {
+        max-width: 95%;
+        max-height: 95%;
+    }
+    
+    .fullscreen-image img {
+        max-height: 60vh;
+    }
+}
+</style>
+
+<!-- Modal للخدمات -->
+<div class="modal fade" id="serviceModal" tabindex="-1" aria-labelledby="serviceModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content bg-dark text-light">
+            <div class="modal-header border-warning">
+                <h5 class="modal-title text-warning" id="serviceModalLabel">إدارة الخدمة</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="serviceForm">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <input type="hidden" id="serviceAction" name="action" value="add">
+                    <input type="hidden" id="serviceId" name="service_id" value="">
+                    
+                    <div class="mb-3">
+                        <label for="serviceName" class="form-label text-warning">اسم الخدمة</label>
+                        <input type="text" class="form-control bg-secondary text-light border-warning" id="serviceName" name="name" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="serviceDescription" class="form-label text-warning">وصف الخدمة</label>
+                        <textarea class="form-control bg-secondary text-light border-warning" id="serviceDescription" name="description" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="servicePrice" class="form-label text-warning">السعر (جنيه)</label>
+                        <input type="number" class="form-control bg-secondary text-light border-warning" id="servicePrice" name="price" min="0" step="0.01" required>
+                    </div>
+                </div>
+                <div class="modal-footer border-warning">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="submit" class="btn btn-warning">حفظ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal للوجبات -->
+<div class="modal fade" id="mealModal" tabindex="-1" aria-labelledby="mealModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content bg-dark text-light">
+            <div class="modal-header border-warning">
+                <h5 class="modal-title text-warning" id="mealModalLabel">إدارة الوجبة</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="mealForm">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <input type="hidden" id="mealAction" name="action" value="add">
+                    <input type="hidden" id="mealId" name="meal_id" value="">
+                    
+                    <div class="mb-3">
+                        <label for="mealName" class="form-label text-warning">اسم الوجبة</label>
+                        <input type="text" class="form-control bg-secondary text-light border-warning" id="mealName" name="name" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="mealDescription" class="form-label text-warning">وصف الوجبة</label>
+                        <textarea class="form-control bg-secondary text-light border-warning" id="mealDescription" name="description" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="mealPrice" class="form-label text-warning">السعر للفرد (جنيه)</label>
+                                <input type="number" class="form-control bg-secondary text-light border-warning" id="mealPrice" name="price_per_person" min="0" step="0.01" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="mealType" class="form-label text-warning">نوع الوجبة</label>
+                                <select class="form-select bg-secondary text-light border-warning" id="mealType" name="meal_type" required>
+                                    <option value="appetizer">مقبلات</option>
+                                    <option value="main" selected>طبق رئيسي</option>
+                                    <option value="dessert">حلويات</option>
+                                    <option value="drink">مشروبات</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="isVegetarian" name="is_vegetarian">
+                            <label class="form-check-label text-warning" for="isVegetarian">
+                                وجبة نباتية
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-warning">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="submit" class="btn btn-warning">حفظ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal للصور -->
+<div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content bg-dark text-light">
+            <div class="modal-header border-warning">
+                <h5 class="modal-title text-warning" id="imageModalLabel">إضافة صورة جديدة</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="imageForm" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <input type="hidden" name="action" value="upload">
+                    
+                    <div class="mb-3">
+                        <label for="imageTitle" class="form-label text-warning">عنوان الصورة</label>
+                        <input type="text" class="form-control bg-secondary text-light border-warning" id="imageTitle" name="title" placeholder="اختياري">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="imageFile" class="form-label text-warning">اختر الصورة</label>
+                        <input type="file" class="form-control bg-secondary text-light border-warning" id="imageFile" name="image" accept="image/*" required>
+                    </div>
+                    
+                    <div id="imagePreview" class="text-center" style="display: none;">
+                        <img id="previewImg" src="" alt="معاينة" class="img-fluid rounded" style="max-height: 200px;">
+                    </div>
+                </div>
+                <div class="modal-footer border-warning">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                    <button type="submit" class="btn btn-warning">رفع الصورة</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal لعرض تفاصيل الحجز -->
+<div class="modal fade" id="bookingModal" tabindex="-1" aria-labelledby="bookingModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content bg-dark text-light">
+            <div class="modal-header border-warning">
+                <h5 class="modal-title text-warning" id="bookingModalLabel">تفاصيل الحجز</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="bookingDetails">
+                <!-- سيتم تحميل تفاصيل الحجز هنا -->
+            </div>
+            <div class="modal-footer border-warning">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
+                <div class="booking-actions">
+                    <!-- أزرار إدارة الحجز ستظهر هنا -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}

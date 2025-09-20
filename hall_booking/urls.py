@@ -66,6 +66,7 @@ urlpatterns = [
     path('manager/hall/<int:hall_id>/meal/', views.manage_hall_meal, name='manage_hall_meal'),
     path('manager/hall/<int:hall_id>/image/', views.manage_hall_image, name='manage_hall_image'),
     path('manager/hall/<int:hall_id>/booking/<int:booking_id>/status/', views.manage_booking_status, name='manage_booking_status'),
+    path('booking/<int:booking_id>/details/', views.booking_details_modal, name='booking_details_modal'),
 
     # مسارات نظام المصادقة متعدد الخطوات
     path('auth/', views.auth_welcome, name='auth_welcome'),

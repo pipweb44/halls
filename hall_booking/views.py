@@ -1914,38 +1914,27 @@ def booking_success(request, booking_id):
 @login_required
 @user_passes_test(lambda u: u.is_staff or hasattr(u, 'hall_manager'))
 def hall_manager_dashboard(request):
-    """لوحة تحكم مدير القاعة الجديدة مع الشريط الجانبي"""
-    # التحقق من الصلاحيات
-    if not request.user.is_staff:
-        if not hasattr(request.user, 'hall_manager'):
-            return redirect('hall_booking:home')
-    
-    # الحصول على القاعات المخصصة للمدير
-    if request.user.is_staff:
+    """لوحة تحكم مدير القاعة"""
+    try:
+        hall_manager = request.user.hall_manager
+        halls = Hall.objects.filter(manager=hall_manager)
+    except:
+        # إذا كان المستخدم admin
         halls = Hall.objects.all()
-    else:
-        halls = Hall.objects.filter(manager=request.user.hall_manager)
     
-    # حساب الإحصائيات العامة
-    total_bookings = 0
-    total_pending_bookings = 0
-    total_revenue = 0
-    
+    # إضافة الإحصائيات لكل قاعة
+    halls_with_stats = []
     for hall in halls:
-        hall_bookings = Booking.objects.filter(hall=hall)
-        total_bookings += hall_bookings.count()
-        total_pending_bookings += hall_bookings.filter(status='pending').count()
-        
-        # حساب الإيرادات من الحجوزات المؤكدة
-        approved_bookings = hall_bookings.filter(status='approved')
-        for booking in approved_bookings:
-            total_revenue += booking.total_price or 0
+        hall_stats = {
+            'hall': hall,
+            'total_bookings': hall.bookings.count(),
+            'pending_bookings': hall.bookings.filter(status='pending').count(),
+            'approved_bookings': hall.bookings.filter(status='approved').count(),
+        }
+        halls_with_stats.append(hall_stats)
     
     context = {
-        'halls': halls,
-        'total_bookings': total_bookings,
-        'total_pending_bookings': total_pending_bookings,
-        'total_revenue': total_revenue,
+        'halls_with_stats': halls_with_stats,
     }
     return render(request, 'hall_booking/manager/dashboard.html', context)
 
@@ -2342,6 +2331,11 @@ def manage_booking_status(request, hall_id, booking_id):
                 booking.save()
                 return JsonResponse({'success': True, 'message': 'تم إلغاء الحجز'})
             
+            elif action == 'note':
+                booking.admin_notes = admin_notes
+                booking.save()
+                return JsonResponse({'success': True, 'message': 'تم تحديث الملاحظة'})
+            
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)})
     
@@ -2436,3 +2430,41 @@ def hall_reports(request, hall_id):
     }
     
     return render(request, 'hall_booking/manager/hall_reports.html', context)
+
+@login_required
+@user_passes_test(lambda u: u.is_staff or hasattr(u, 'hall_manager'))
+def booking_details_modal(request, booking_id):
+    """عرض تفاصيل الحجز في نافذة منبثقة"""
+    booking = get_object_or_404(Booking, id=booking_id)
+    
+    # التحقق من الصلاحيات
+    if not request.user.is_staff:
+        if not hasattr(request.user, 'hall_manager') or booking.hall.manager != request.user.hall_manager:
+            return JsonResponse({'success': False, 'error': 'غير مصرح لك'})
+    
+    # جلب الخدمات والوجبات المرتبطة بالحجز
+    booking_services = BookingService.objects.filter(booking=booking)
+    booking_meals = BookingMeal.objects.filter(booking=booking)
+    
+    # حساب التكلفة التفصيلية
+    services_cost = sum(bs.service.price * bs.quantity for bs in booking_services)
+    meals_cost = sum(bm.meal.price_per_person * bm.quantity for bm in booking_meals)
+    hall_cost = booking.hall.base_price
+    
+    context = {
+        'booking': booking,
+        'booking_services': booking_services,
+        'booking_meals': booking_meals,
+        'services_cost': services_cost,
+        'meals_cost': meals_cost,
+        'hall_cost': hall_cost,
+    }
+    
+    # رندر القالب
+    from django.template.loader import render_to_string
+    html = render_to_string('hall_booking/manager/booking_details_modal.html', context, request=request)
+    
+    return JsonResponse({
+        'success': True,
+        'html': html
+    })
