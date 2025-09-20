@@ -1,0 +1,863 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}إدارة {{ hall.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+:root {
+    --gold-primary: #FFD700;
+    --gold-secondary: #FFA500;
+    --gold-dark: #B8860B;
+    --black-primary: #000000;
+    --black-secondary: #1a1a1a;
+    --black-tertiary: #2d2d2d;
+}
+
+.hall-management {
+    background: linear-gradient(135deg, var(--black-primary) 0%, var(--black-secondary) 100%);
+    min-height: 100vh;
+    padding: 2rem 0;
+}
+
+.management-header {
+    background: rgba(26, 26, 26, 0.95);
+    border-radius: 20px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    border: 2px solid rgba(255, 215, 0, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.management-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--gold-primary), var(--gold-secondary));
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.hall-title {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.hall-icon {
+    width: 80px;
+    height: 80px;
+    background: var(--gold-primary);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.hall-icon i {
+    font-size: 2.5rem;
+    color: var(--black-primary);
+}
+
+.hall-info h1 {
+    color: var(--gold-primary);
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+}
+
+.hall-info p {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.btn-action {
+    padding: 0.8rem 1.5rem;
+    border-radius: 10px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-primary-action {
+    background: var(--gold-primary);
+    color: var(--black-primary);
+    border: none;
+}
+
+.btn-secondary-action {
+    background: transparent;
+    color: var(--gold-primary);
+    border: 2px solid var(--gold-primary);
+}
+
+.btn-action:hover {
+    transform: translateY(-2px);
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.stat-card {
+    background: rgba(26, 26, 26, 0.95);
+    border-radius: 15px;
+    padding: 2rem;
+    border: 2px solid rgba(255, 215, 0, 0.2);
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--gold-primary);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    background: var(--gold-primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+}
+
+.stat-icon i {
+    font-size: 1.5rem;
+    color: var(--black-primary);
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--gold-primary);
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 1rem;
+}
+
+.management-tabs {
+    background: rgba(26, 26, 26, 0.95);
+    border-radius: 20px;
+    border: 2px solid rgba(255, 215, 0, 0.2);
+    overflow: hidden;
+}
+
+.tab-nav {
+    display: flex;
+    background: rgba(45, 45, 45, 0.8);
+    border-bottom: 2px solid rgba(255, 215, 0, 0.2);
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 1rem 2rem;
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.tab-btn.active {
+    background: var(--gold-primary);
+    color: var(--black-primary);
+}
+
+.tab-btn:hover:not(.active) {
+    background: rgba(255, 215, 0, 0.1);
+    color: var(--gold-primary);
+}
+
+.tab-content {
+    padding: 2rem;
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.services-grid, .meals-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.service-card, .meal-card {
+    background: rgba(45, 45, 45, 0.5);
+    border-radius: 15px;
+    padding: 1.5rem;
+    border: 2px solid rgba(255, 215, 0, 0.2);
+    transition: all 0.3s ease;
+}
+
+.service-card:hover, .meal-card:hover {
+    border-color: var(--gold-primary);
+    transform: translateY(-2px);
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    justify-content: between;
+    margin-bottom: 1rem;
+}
+
+.card-title {
+    color: var(--gold-primary);
+    font-size: 1.2rem;
+    font-weight: 700;
+    flex: 1;
+}
+
+.card-price {
+    color: var(--gold-secondary);
+    font-weight: 600;
+}
+
+.card-description {
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 1rem;
+}
+
+.card-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-sm {
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-edit {
+    background: var(--gold-primary);
+    color: var(--black-primary);
+}
+
+.btn-delete {
+    background: #dc3545;
+    color: white;
+}
+
+.btn-sm:hover {
+    transform: translateY(-1px);
+}
+
+.images-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.image-card {
+    background: rgba(45, 45, 45, 0.5);
+    border-radius: 15px;
+    overflow: hidden;
+    border: 2px solid rgba(255, 215, 0, 0.2);
+    transition: all 0.3s ease;
+}
+
+.image-card:hover {
+    border-color: var(--gold-primary);
+    transform: translateY(-2px);
+}
+
+.image-preview {
+    width: 100%;
+    height: 150px;
+    background: rgba(45, 45, 45, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.image-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.image-info {
+    padding: 1rem;
+}
+
+.image-title {
+    color: var(--gold-primary);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.add-btn {
+    background: rgba(45, 45, 45, 0.8);
+    border: 2px dashed rgba(255, 215, 0, 0.5);
+    border-radius: 15px;
+    padding: 2rem;
+    text-align: center;
+    color: var(--gold-primary);
+    text-decoration: none;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.add-btn:hover {
+    background: rgba(255, 215, 0, 0.1);
+    border-color: var(--gold-primary);
+    color: var(--gold-primary);
+}
+
+.add-btn i {
+    font-size: 2rem;
+}
+
+@media (max-width: 768px) {
+    .header-content {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .tab-nav {
+        flex-direction: column;
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .services-grid, .meals-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hall-management">
+    <div class="container">
+        <!-- Management Header -->
+        <div class="management-header">
+            <div class="header-content">
+                <div class="hall-title">
+                    <div class="hall-icon">
+                        <i class="fas fa-building"></i>
+                    </div>
+                    <div class="hall-info">
+                        <h1>{{ hall.name }}</h1>
+                        <p><i class="fas fa-map-marker-alt me-2"></i>{{ hall.city.name }}, {{ hall.governorate.name }}</p>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <a href="{% url 'hall_booking:hall_schedule_management' hall.id %}" class="btn-action btn-primary-action">
+                        <i class="fas fa-calendar-alt"></i>
+                        إدارة الجدولة
+                    </a>
+                    <a href="{% url 'hall_booking:hall_reports' hall.id %}" class="btn-action btn-secondary-action">
+                        <i class="fas fa-chart-bar"></i>
+                        التقارير
+                    </a>
+                    <a href="{% url 'hall_booking:hall_detail' hall.id %}" class="btn-action btn-secondary-action">
+                        <i class="fas fa-eye"></i>
+                        معاينة القاعة
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <div class="stat-number">{{ total_bookings }}</div>
+                <div class="stat-label">إجمالي الحجوزات</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-number">{{ pending_bookings }}</div>
+                <div class="stat-label">في الانتظار</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-number">{{ approved_bookings }}</div>
+                <div class="stat-label">موافق عليها</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-number">{{ hall.capacity }}</div>
+                <div class="stat-label">السعة القصوى</div>
+            </div>
+        </div>
+
+        <!-- Management Tabs -->
+        <div class="management-tabs">
+            <div class="tab-nav">
+                <button class="tab-btn active" onclick="showTab('services')">
+                    <i class="fas fa-concierge-bell"></i>
+                    الخدمات
+                </button>
+                <button class="tab-btn" onclick="showTab('meals')">
+                    <i class="fas fa-utensils"></i>
+                    الوجبات
+                </button>
+                <button class="tab-btn" onclick="showTab('images')">
+                    <i class="fas fa-images"></i>
+                    الصور
+                </button>
+                <button class="tab-btn" onclick="showTab('bookings')">
+                    <i class="fas fa-calendar-alt"></i>
+                    الحجوزات القادمة
+                </button>
+            </div>
+
+            <!-- Services Tab -->
+            <div id="services-tab" class="tab-content active">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3 class="text-gold">الخدمات المتاحة</h3>
+                    <button class="btn-action btn-primary-action" onclick="addService()">
+                        <i class="fas fa-plus"></i>
+                        إضافة خدمة
+                    </button>
+                </div>
+                
+                <div class="services-grid">
+                    {% for service in hall_services %}
+                    <div class="service-card">
+                        <div class="card-header">
+                            <div class="card-title">{{ service.name }}</div>
+                            <div class="card-price">{{ service.price }} جنيه</div>
+                        </div>
+                        <div class="card-description">{{ service.description|default:"لا يوجد وصف" }}</div>
+                        <div class="card-actions">
+                            <button class="btn-sm btn-edit" onclick="editService({{ service.id }})">
+                                <i class="fas fa-edit"></i> تعديل
+                            </button>
+                            <button class="btn-sm btn-delete" onclick="deleteService({{ service.id }})">
+                                <i class="fas fa-trash"></i> حذف
+                            </button>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-12 text-center">
+                        <p class="text-muted">لا توجد خدمات مضافة بعد</p>
+                    </div>
+                    {% endfor %}
+                    
+                    <div class="add-btn" onclick="addService()">
+                        <i class="fas fa-plus"></i>
+                        <span>إضافة خدمة جديدة</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Meals Tab -->
+            <div id="meals-tab" class="tab-content">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3 class="text-gold">الوجبات المتاحة</h3>
+                    <button class="btn-action btn-primary-action" onclick="addMeal()">
+                        <i class="fas fa-plus"></i>
+                        إضافة وجبة
+                    </button>
+                </div>
+                
+                <div class="meals-grid">
+                    {% for meal in hall_meals %}
+                    <div class="meal-card">
+                        <div class="card-header">
+                            <div class="card-title">{{ meal.name }}</div>
+                            <div class="card-price">{{ meal.price_per_person }} جنيه/فرد</div>
+                        </div>
+                        <div class="card-description">
+                            <span class="badge bg-primary me-2">{{ meal.get_meal_type_display }}</span>
+                            {% if meal.is_vegetarian %}<span class="badge bg-success">نباتي</span>{% endif %}
+                            <p class="mt-2">{{ meal.description|default:"لا يوجد وصف" }}</p>
+                        </div>
+                        <div class="card-actions">
+                            <button class="btn-sm btn-edit" onclick="editMeal({{ meal.id }})">
+                                <i class="fas fa-edit"></i> تعديل
+                            </button>
+                            <button class="btn-sm btn-delete" onclick="deleteMeal({{ meal.id }})">
+                                <i class="fas fa-trash"></i> حذف
+                            </button>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-12 text-center">
+                        <p class="text-muted">لا توجد وجبات مضافة بعد</p>
+                    </div>
+                    {% endfor %}
+                    
+                    <div class="add-btn" onclick="addMeal()">
+                        <i class="fas fa-plus"></i>
+                        <span>إضافة وجبة جديدة</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Images Tab -->
+            <div id="images-tab" class="tab-content">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3 class="text-gold">صور القاعة</h3>
+                    <button class="btn-action btn-primary-action" onclick="addImage()">
+                        <i class="fas fa-plus"></i>
+                        إضافة صورة
+                    </button>
+                </div>
+                
+                <div class="images-grid">
+                    {% for image in hall_images %}
+                    <div class="image-card">
+                        <div class="image-preview">
+                            {% if image.image %}
+                            <img src="{{ image.image.url }}" alt="{{ image.title }}">
+                            {% else %}
+                            <i class="fas fa-image fa-3x"></i>
+                            {% endif %}
+                        </div>
+                        <div class="image-info">
+                            <div class="image-title">{{ image.title|default:"بدون عنوان" }}</div>
+                            <div class="card-actions">
+                                <button class="btn-sm btn-edit" onclick="editImage({{ image.id }})">
+                                    <i class="fas fa-edit"></i> تعديل
+                                </button>
+                                <button class="btn-sm btn-delete" onclick="deleteImage({{ image.id }})">
+                                    <i class="fas fa-trash"></i> حذف
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-12 text-center">
+                        <p class="text-muted">لا توجد صور مضافة بعد</p>
+                    </div>
+                    {% endfor %}
+                    
+                    <div class="add-btn" onclick="addImage()">
+                        <i class="fas fa-plus"></i>
+                        <span>إضافة صورة جديدة</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bookings Tab -->
+            <div id="bookings-tab" class="tab-content">
+                <h3 class="text-gold mb-3">الحجوزات القادمة</h3>
+                
+                {% if upcoming_bookings %}
+                <div class="table-responsive">
+                    <table class="table table-dark table-striped">
+                        <thead>
+                            <tr>
+                                <th>العميل</th>
+                                <th>الحدث</th>
+                                <th>التاريخ والوقت</th>
+                                <th>الحالة</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for booking in upcoming_bookings %}
+                            <tr>
+                                <td>{{ booking.customer_name }}</td>
+                                <td>{{ booking.event_title }}</td>
+                                <td>{{ booking.start_datetime|date:"Y-m-d H:i" }}</td>
+                                <td>
+                                    <span class="badge bg-{% if booking.status == 'approved' %}success{% elif booking.status == 'pending' %}warning{% else %}danger{% endif %}">
+                                        {{ booking.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <button class="btn-sm btn-edit" onclick="viewBooking({{ booking.id }})">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center">
+                    <p class="text-muted">لا توجد حجوزات قادمة</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function showTab(tabName) {
+    // Hide all tabs
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    
+    // Remove active class from all buttons
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Show selected tab
+    document.getElementById(tabName + '-tab').classList.add('active');
+    
+    // Add active class to clicked button
+    event.target.classList.add('active');
+}
+
+// إدارة الخدمات
+function addService() {
+    const name = prompt('اسم الخدمة:');
+    const description = prompt('وصف الخدمة:');
+    const price = prompt('سعر الخدمة:');
+    
+    if (name && price) {
+        const formData = new FormData();
+        formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+        formData.append('action', 'add');
+        formData.append('name', name);
+        formData.append('description', description || '');
+        formData.append('price', price);
+        
+        fetch('{% url "hall_booking:manage_hall_service" hall.id %}', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert('خطأ: ' + data.error);
+            }
+        });
+    }
+}
+
+function editService(serviceId) {
+    const name = prompt('اسم الخدمة الجديد:');
+    const description = prompt('وصف الخدمة الجديد:');
+    const price = prompt('سعر الخدمة الجديد:');
+    
+    if (name && price) {
+        const formData = new FormData();
+        formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+        formData.append('action', 'edit');
+        formData.append('service_id', serviceId);
+        formData.append('name', name);
+        formData.append('description', description || '');
+        formData.append('price', price);
+        
+        fetch('{% url "hall_booking:manage_hall_service" hall.id %}', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert('خطأ: ' + data.error);
+            }
+        });
+    }
+}
+
+function deleteService(serviceId) {
+    if (confirm('هل أنت متأكد من حذف هذه الخدمة؟')) {
+        const formData = new FormData();
+        formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+        formData.append('action', 'delete');
+        formData.append('service_id', serviceId);
+        
+        fetch('{% url "hall_booking:manage_hall_service" hall.id %}', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert('خطأ: ' + data.error);
+            }
+        });
+    }
+}
+
+// إدارة الوجبات
+function addMeal() {
+    const name = prompt('اسم الوجبة:');
+    const description = prompt('وصف الوجبة:');
+    const price = prompt('سعر الوجبة للفرد:');
+    const mealType = prompt('نوع الوجبة (appetizer/main/dessert/drink):') || 'main';
+    
+    if (name && price) {
+        const formData = new FormData();
+        formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+        formData.append('action', 'add');
+        formData.append('name', name);
+        formData.append('description', description || '');
+        formData.append('price_per_person', price);
+        formData.append('meal_type', mealType);
+        
+        fetch('{% url "hall_booking:manage_hall_meal" hall.id %}', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert('خطأ: ' + data.error);
+            }
+        });
+    }
+}
+
+function editMeal(mealId) {
+    const name = prompt('اسم الوجبة الجديد:');
+    const description = prompt('وصف الوجبة الجديد:');
+    const price = prompt('سعر الوجبة الجديد للفرد:');
+    
+    if (name && price) {
+        const formData = new FormData();
+        formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+        formData.append('action', 'edit');
+        formData.append('meal_id', mealId);
+        formData.append('name', name);
+        formData.append('description', description || '');
+        formData.append('price_per_person', price);
+        
+        fetch('{% url "hall_booking:manage_hall_meal" hall.id %}', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert('خطأ: ' + data.error);
+            }
+        });
+    }
+}
+
+function deleteMeal(mealId) {
+    if (confirm('هل أنت متأكد من حذف هذه الوجبة؟')) {
+        const formData = new FormData();
+        formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+        formData.append('action', 'delete');
+        formData.append('meal_id', mealId);
+        
+        fetch('{% url "hall_booking:manage_hall_meal" hall.id %}', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert('خطأ: ' + data.error);
+            }
+        });
+    }
+}
+
+// إدارة الصور
+function addImage() {
+    alert('سيتم إضافة نافذة رفع صورة قريباً');
+}
+
+function editImage(imageId) {
+    alert('سيتم إضافة نافذة تعديل الصورة قريباً');
+}
+
+function deleteImage(imageId) {
+    if (confirm('هل أنت متأكد من حذف هذه الصورة؟')) {
+        const formData = new FormData();
+        formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+        formData.append('action', 'delete');
+        formData.append('image_id', imageId);
+        
+        fetch('{% url "hall_booking:manage_hall_image" hall.id %}', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert('خطأ: ' + data.error);
+            }
+        });
+    }
+}
+
+function viewBooking(bookingId) {
+    alert('سيتم إضافة نافذة عرض تفاصيل الحجز قريباً');
+}
+</script>
+{% endblock %}

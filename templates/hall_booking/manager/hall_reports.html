@@ -1,0 +1,503 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}تقارير {{ hall.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+:root {
+    --gold-primary: #FFD700;
+    --gold-secondary: #FFA500;
+    --gold-dark: #B8860B;
+    --black-primary: #000000;
+    --black-secondary: #1a1a1a;
+    --black-tertiary: #2d2d2d;
+}
+
+.reports-page {
+    background: linear-gradient(135deg, var(--black-primary) 0%, var(--black-secondary) 100%);
+    min-height: 100vh;
+    padding: 2rem 0;
+}
+
+.reports-header {
+    background: rgba(26, 26, 26, 0.95);
+    border-radius: 20px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    border: 2px solid rgba(255, 215, 0, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.reports-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--gold-primary), var(--gold-secondary));
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.reports-title h1 {
+    color: var(--gold-primary);
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+}
+
+.reports-title p {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+.period-info {
+    background: rgba(45, 45, 45, 0.8);
+    border-radius: 10px;
+    padding: 1rem;
+    border: 2px solid rgba(255, 215, 0, 0.3);
+}
+
+.period-info h4 {
+    color: var(--gold-primary);
+    margin-bottom: 0.5rem;
+}
+
+.period-info p {
+    color: rgba(255, 255, 255, 0.8);
+    margin: 0;
+}
+
+.stats-overview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.stat-card {
+    background: rgba(26, 26, 26, 0.95);
+    border-radius: 15px;
+    padding: 2rem;
+    border: 2px solid rgba(255, 215, 0, 0.2);
+    text-align: center;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--gold-primary);
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--gold-primary);
+    box-shadow: 0 15px 30px rgba(255, 215, 0, 0.3);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    background: var(--gold-primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+}
+
+.stat-icon i {
+    font-size: 1.5rem;
+    color: var(--black-primary);
+}
+
+.stat-number {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--gold-primary);
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.reports-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+.report-card {
+    background: rgba(26, 26, 26, 0.95);
+    border-radius: 20px;
+    padding: 2rem;
+    border: 2px solid rgba(255, 215, 0, 0.2);
+}
+
+.report-title {
+    color: var(--gold-primary);
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.chart-container {
+    height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(45, 45, 45, 0.5);
+    border-radius: 10px;
+    margin-bottom: 1rem;
+}
+
+.chart-placeholder {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 1.1rem;
+}
+
+.popular-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.popular-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    margin-bottom: 0.5rem;
+    background: rgba(45, 45, 45, 0.5);
+    border-radius: 10px;
+    border: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.item-name {
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 600;
+}
+
+.item-count {
+    background: var(--gold-primary);
+    color: var(--black-primary);
+    padding: 0.3rem 0.8rem;
+    border-radius: 15px;
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.monthly-chart {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    height: 200px;
+    padding: 1rem;
+    background: rgba(45, 45, 45, 0.5);
+    border-radius: 10px;
+    gap: 0.5rem;
+}
+
+.month-bar {
+    flex: 1;
+    background: var(--gold-primary);
+    border-radius: 5px 5px 0 0;
+    position: relative;
+    min-height: 10px;
+    transition: all 0.3s ease;
+}
+
+.month-bar:hover {
+    background: var(--gold-secondary);
+    transform: scale(1.05);
+}
+
+.month-label {
+    position: absolute;
+    bottom: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.8rem;
+    white-space: nowrap;
+}
+
+.month-value {
+    position: absolute;
+    top: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: var(--gold-primary);
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.revenue-summary {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.revenue-item {
+    background: rgba(45, 45, 45, 0.5);
+    padding: 1.5rem;
+    border-radius: 10px;
+    text-align: center;
+    border: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.revenue-amount {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--gold-primary);
+    margin-bottom: 0.5rem;
+}
+
+.revenue-label {
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 600;
+}
+
+@media (max-width: 768px) {
+    .header-content {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .reports-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .stats-overview {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .revenue-summary {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="reports-page">
+    <div class="container">
+        <!-- Reports Header -->
+        <div class="reports-header">
+            <div class="header-content">
+                <div class="reports-title">
+                    <h1><i class="fas fa-chart-bar me-3"></i>تقارير {{ hall.name }}</h1>
+                    <p>تحليل شامل لأداء القاعة والحجوزات</p>
+                </div>
+                <div class="period-info">
+                    <h4><i class="fas fa-calendar-alt me-2"></i>فترة التقرير</h4>
+                    <p>من {{ start_date }} إلى {{ end_date }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics Overview -->
+        <div class="stats-overview">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <div class="stat-number">{{ total_bookings }}</div>
+                <div class="stat-label">إجمالي الحجوزات</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="stat-number">{{ approved_bookings }}</div>
+                <div class="stat-label">حجوزات مؤكدة</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-number">{{ pending_bookings }}</div>
+                <div class="stat-label">في الانتظار</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-times-circle"></i>
+                </div>
+                <div class="stat-number">{{ rejected_bookings }}</div>
+                <div class="stat-label">مرفوضة</div>
+            </div>
+        </div>
+
+        <!-- Reports Grid -->
+        <div class="reports-grid">
+            <!-- Revenue Report -->
+            <div class="report-card">
+                <div class="report-title">
+                    <i class="fas fa-money-bill-wave"></i>
+                    تقرير الإيرادات
+                </div>
+                
+                <div class="revenue-summary">
+                    <div class="revenue-item">
+                        <div class="revenue-amount">{{ total_revenue|floatformat:0 }}</div>
+                        <div class="revenue-label">إجمالي الإيرادات (جنيه)</div>
+                    </div>
+                    <div class="revenue-item">
+                        <div class="revenue-amount">{{ recent_revenue|floatformat:0 }}</div>
+                        <div class="revenue-label">إيرادات آخر 30 يوم (جنيه)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Popular Services -->
+            <div class="report-card">
+                <div class="report-title">
+                    <i class="fas fa-concierge-bell"></i>
+                    أكثر الخدمات طلباً
+                </div>
+                
+                {% if popular_services %}
+                <ul class="popular-list">
+                    {% for service in popular_services %}
+                    <li class="popular-item">
+                        <span class="item-name">{{ service.service__name }}</span>
+                        <span class="item-count">{{ service.count }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <div class="chart-container">
+                    <div class="chart-placeholder">لا توجد بيانات متاحة</div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Popular Meals -->
+            <div class="report-card">
+                <div class="report-title">
+                    <i class="fas fa-utensils"></i>
+                    أكثر الوجبات طلباً
+                </div>
+                
+                {% if popular_meals %}
+                <ul class="popular-list">
+                    {% for meal in popular_meals %}
+                    <li class="popular-item">
+                        <span class="item-name">{{ meal.meal__name }}</span>
+                        <span class="item-count">{{ meal.count }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <div class="chart-container">
+                    <div class="chart-placeholder">لا توجد بيانات متاحة</div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Monthly Bookings Chart -->
+            <div class="report-card">
+                <div class="report-title">
+                    <i class="fas fa-chart-line"></i>
+                    الحجوزات الشهرية (آخر 6 شهور)
+                </div>
+                
+                <div class="monthly-chart">
+                    {% for month_data in monthly_bookings %}
+                    <div class="month-bar" data-count="{{ month_data.count }}">
+                        <div class="month-value">{{ month_data.count }}</div>
+                        <div class="month-label">{{ month_data.month }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="text-center">
+            <a href="{% url 'hall_booking:hall_management' hall.id %}" class="btn btn-outline-warning btn-lg me-3">
+                <i class="fas fa-arrow-left me-2"></i>العودة لإدارة القاعة
+            </a>
+            <a href="{% url 'hall_booking:hall_schedule_management' hall.id %}" class="btn btn-warning btn-lg">
+                <i class="fas fa-calendar-alt me-2"></i>إدارة الجدولة
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // تأثيرات بصرية للإحصائيات
+    const statNumbers = document.querySelectorAll('.stat-number');
+    
+    statNumbers.forEach(stat => {
+        const finalValue = parseInt(stat.textContent);
+        let currentValue = 0;
+        const increment = Math.ceil(finalValue / 50);
+        
+        const counter = setInterval(() => {
+            currentValue += increment;
+            if (currentValue >= finalValue) {
+                stat.textContent = finalValue;
+                clearInterval(counter);
+            } else {
+                stat.textContent = currentValue;
+            }
+        }, 30);
+    });
+    
+    // تحديد ارتفاع أعمدة المخطط الشهري
+    const monthBars = document.querySelectorAll('.month-bar');
+    let maxCount = 0;
+    
+    // العثور على أعلى قيمة
+    monthBars.forEach(bar => {
+        const count = parseInt(bar.dataset.count);
+        if (count > maxCount) maxCount = count;
+    });
+    
+    // تحديد الارتفاع نسبياً
+    monthBars.forEach(bar => {
+        const count = parseInt(bar.dataset.count);
+        let height = '10px';
+        
+        if (maxCount > 0 && count > 0) {
+            const percentage = (count / maxCount) * 80 + 20; // 20% كحد أدنى، 100% كحد أقصى
+            height = percentage + '%';
+        }
+        
+        bar.style.height = height;
+    });
+});
+</script>
+{% endblock %}

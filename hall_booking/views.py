@@ -1908,3 +1908,520 @@ def booking_success(request, booking_id):
         'booking': booking,
     }
     return render(request, 'hall_booking/booking/success.html', context)
+
+# ==================== Hall Manager Dashboard Views ====================
+
+@login_required
+@user_passes_test(lambda u: u.is_staff or hasattr(u, 'hall_manager'))
+def hall_manager_dashboard(request):
+    """لوحة تحكم مدير القاعة"""
+    try:
+        hall_manager = request.user.hall_manager
+        halls = Hall.objects.filter(manager=hall_manager)
+    except:
+        # إذا كان المستخدم admin
+        halls = Hall.objects.all()
+    
+    # إضافة الإحصائيات لكل قاعة
+    halls_with_stats = []
+    for hall in halls:
+        hall_stats = {
+            'hall': hall,
+            'total_bookings': hall.bookings.count(),
+            'pending_bookings': hall.bookings.filter(status='pending').count(),
+            'approved_bookings': hall.bookings.filter(status='approved').count(),
+        }
+        halls_with_stats.append(hall_stats)
+    
+    context = {
+        'halls_with_stats': halls_with_stats,
+    }
+    return render(request, 'hall_booking/manager/dashboard.html', context)
+
+@login_required
+@user_passes_test(lambda u: u.is_staff or hasattr(u, 'hall_manager'))
+def hall_management(request, hall_id):
+    """صفحة إدارة القاعة الشاملة"""
+    hall = get_object_or_404(Hall, id=hall_id)
+    
+    # التحقق من الصلاحيات
+    if not request.user.is_staff:
+        if not hasattr(request.user, 'hall_manager') or hall.manager != request.user.hall_manager:
+            return redirect('hall_booking:home')
+    
+    # إحصائيات القاعة
+    total_bookings = Booking.objects.filter(hall=hall).count()
+    pending_bookings = Booking.objects.filter(hall=hall, status='pending').count()
+    approved_bookings = Booking.objects.filter(hall=hall, status='approved').count()
+    
+    # الحجوزات القادمة
+    from datetime import datetime, timedelta
+    upcoming_bookings = Booking.objects.filter(
+        hall=hall,
+        start_datetime__gte=datetime.now(),
+        status__in=['approved', 'pending']
+    ).order_by('start_datetime')[:5]
+    
+    # الخدمات والوجبات
+    hall_services = hall.hall_services.all().order_by('name')
+    hall_meals = hall.hall_meals.all().order_by('meal_type', 'name')
+    
+    # صور القاعة
+    hall_images = hall.images.all()
+    
+    context = {
+        'hall': hall,
+        'total_bookings': total_bookings,
+        'pending_bookings': pending_bookings,
+        'approved_bookings': approved_bookings,
+        'upcoming_bookings': upcoming_bookings,
+        'hall_services': hall_services,
+        'hall_meals': hall_meals,
+        'hall_images': hall_images,
+    }
+    return render(request, 'hall_booking/manager/hall_management.html', context)
+
+@login_required
+@user_passes_test(lambda u: u.is_staff or hasattr(u, 'hall_manager'))
+def hall_schedule_management(request, hall_id):
+    """إدارة جدول مواعيد القاعة"""
+    hall = get_object_or_404(Hall, id=hall_id)
+    
+    # التحقق من الصلاحيات
+    if not request.user.is_staff:
+        if not hasattr(request.user, 'hall_manager') or hall.manager != request.user.hall_manager:
+            return redirect('hall_booking:home')
+    
+    from datetime import datetime, timedelta
+    
+    # الحصول على التاريخ المحدد أو التاريخ الحالي
+    selected_date = request.GET.get('date')
+    if selected_date:
+        try:
+            selected_date = datetime.strptime(selected_date, '%Y-%m-%d').date()
+        except:
+            selected_date = datetime.now().date()
+    else:
+        selected_date = datetime.now().date()
+    
+    # الحجوزات في التاريخ المحدد
+    bookings = Booking.objects.filter(
+        hall=hall,
+        start_datetime__date=selected_date
+    ).order_by('start_datetime')
+    
+    # إنشاء جدول زمني (من 8 صباحاً إلى 11 مساءً)
+    time_slots = []
+    for hour in range(8, 23):
+        for minute in [0, 30]:
+            time_str = f"{hour:02d}:{minute:02d}"
+            
+            # التحقق من وجود حجز في هذا الوقت
+            slot_datetime = datetime.combine(selected_date, datetime.strptime(time_str, '%H:%M').time())
+            is_booked = bookings.filter(
+                start_datetime__lte=slot_datetime,
+                end_datetime__gt=slot_datetime
+            ).exists()
+            
+            # الحصول على تفاصيل الحجز إن وجد
+            booking_details = None
+            if is_booked:
+                booking_details = bookings.filter(
+                    start_datetime__lte=slot_datetime,
+                    end_datetime__gt=slot_datetime
+                ).first()
+            
+            time_slots.append({
+                'time': time_str,
+                'datetime': slot_datetime,
+                'is_booked': is_booked,
+                'booking': booking_details
+            })
+    
+    context = {
+        'hall': hall,
+        'selected_date': selected_date,
+        'time_slots': time_slots,
+        'bookings': bookings,
+    }
+    return render(request, 'hall_booking/manager/schedule_management.html', context)
+
+@login_required
+@user_passes_test(lambda u: u.is_staff or hasattr(u, 'hall_manager'))
+def block_time_slot(request, hall_id):
+    """حجب فترة زمنية معينة"""
+    if request.method == 'POST':
+        hall = get_object_or_404(Hall, id=hall_id)
+        
+        # التحقق من الصلاحيات
+        if not request.user.is_staff:
+            if not hasattr(request.user, 'hall_manager') or hall.manager != request.user.hall_manager:
+                return JsonResponse({'success': False, 'error': 'غير مصرح لك'})
+        
+        date = request.POST.get('date')
+        start_time = request.POST.get('start_time')
+        end_time = request.POST.get('end_time')
+        reason = request.POST.get('reason', 'محجوب من قبل الإدارة')
+        
+        try:
+            from datetime import datetime
+            start_datetime = datetime.strptime(f"{date} {start_time}", '%Y-%m-%d %H:%M')
+            end_datetime = datetime.strptime(f"{date} {end_time}", '%Y-%m-%d %H:%M')
+            
+            # إنشاء حجز إداري
+            blocked_booking = Booking.objects.create(
+                hall=hall,
+                customer_name='الإدارة',
+                customer_email='admin@system.com',
+                customer_phone='000000000',
+                event_title=reason,
+                event_description='فترة محجوبة من قبل الإدارة',
+                start_datetime=start_datetime,
+                end_datetime=end_datetime,
+                attendees_count=0,
+                total_price=0,
+                status='approved',
+                is_admin_block=True
+            )
+            
+            return JsonResponse({'success': True, 'message': 'تم حجب الفترة الزمنية بنجاح'})
+            
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+    
+    return JsonResponse({'success': False, 'error': 'طريقة غير صحيحة'})
+
+# ==================== إدارة الخدمات والوجبات ====================
+
+@login_required
+@user_passes_test(lambda u: u.is_staff or hasattr(u, 'hall_manager'))
+def manage_hall_service(request, hall_id):
+    """إدارة خدمات القاعة (إضافة، تعديل، حذف)"""
+    hall = get_object_or_404(Hall, id=hall_id)
+    
+    # التحقق من الصلاحيات
+    if not request.user.is_staff:
+        if not hasattr(request.user, 'hall_manager') or hall.manager != request.user.hall_manager:
+            return JsonResponse({'success': False, 'error': 'غير مصرح لك'})
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'add':
+            name = request.POST.get('name')
+            description = request.POST.get('description', '')
+            price = request.POST.get('price', 0)
+            
+            try:
+                service = HallService.objects.create(
+                    hall=hall,
+                    name=name,
+                    description=description,
+                    price=float(price)
+                )
+                return JsonResponse({
+                    'success': True, 
+                    'message': 'تم إضافة الخدمة بنجاح',
+                    'service': {
+                        'id': service.id,
+                        'name': service.name,
+                        'description': service.description,
+                        'price': service.price
+                    }
+                })
+            except Exception as e:
+                return JsonResponse({'success': False, 'error': str(e)})
+        
+        elif action == 'edit':
+            service_id = request.POST.get('service_id')
+            try:
+                service = HallService.objects.get(id=service_id, hall=hall)
+                service.name = request.POST.get('name', service.name)
+                service.description = request.POST.get('description', service.description)
+                service.price = float(request.POST.get('price', service.price))
+                service.save()
+                
+                return JsonResponse({
+                    'success': True, 
+                    'message': 'تم تحديث الخدمة بنجاح'
+                })
+            except HallService.DoesNotExist:
+                return JsonResponse({'success': False, 'error': 'الخدمة غير موجودة'})
+            except Exception as e:
+                return JsonResponse({'success': False, 'error': str(e)})
+        
+        elif action == 'delete':
+            service_id = request.POST.get('service_id')
+            try:
+                service = HallService.objects.get(id=service_id, hall=hall)
+                service.delete()
+                return JsonResponse({'success': True, 'message': 'تم حذف الخدمة بنجاح'})
+            except HallService.DoesNotExist:
+                return JsonResponse({'success': False, 'error': 'الخدمة غير موجودة'})
+            except Exception as e:
+                return JsonResponse({'success': False, 'error': str(e)})
+    
+    return JsonResponse({'success': False, 'error': 'طريقة غير صحيحة'})
+
+@login_required
+@user_passes_test(lambda u: u.is_staff or hasattr(u, 'hall_manager'))
+def manage_hall_meal(request, hall_id):
+    """إدارة وجبات القاعة (إضافة، تعديل، حذف)"""
+    hall = get_object_or_404(Hall, id=hall_id)
+    
+    # التحقق من الصلاحيات
+    if not request.user.is_staff:
+        if not hasattr(request.user, 'hall_manager') or hall.manager != request.user.hall_manager:
+            return JsonResponse({'success': False, 'error': 'غير مصرح لك'})
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'add':
+            name = request.POST.get('name')
+            description = request.POST.get('description', '')
+            price_per_person = request.POST.get('price_per_person', 0)
+            meal_type = request.POST.get('meal_type', 'main')
+            is_vegetarian = request.POST.get('is_vegetarian') == 'on'
+            
+            try:
+                meal = HallMeal.objects.create(
+                    hall=hall,
+                    name=name,
+                    description=description,
+                    price_per_person=float(price_per_person),
+                    meal_type=meal_type,
+                    is_vegetarian=is_vegetarian
+                )
+                return JsonResponse({
+                    'success': True, 
+                    'message': 'تم إضافة الوجبة بنجاح',
+                    'meal': {
+                        'id': meal.id,
+                        'name': meal.name,
+                        'description': meal.description,
+                        'price_per_person': meal.price_per_person,
+                        'meal_type': meal.meal_type,
+                        'is_vegetarian': meal.is_vegetarian
+                    }
+                })
+            except Exception as e:
+                return JsonResponse({'success': False, 'error': str(e)})
+        
+        elif action == 'edit':
+            meal_id = request.POST.get('meal_id')
+            try:
+                meal = HallMeal.objects.get(id=meal_id, hall=hall)
+                meal.name = request.POST.get('name', meal.name)
+                meal.description = request.POST.get('description', meal.description)
+                meal.price_per_person = float(request.POST.get('price_per_person', meal.price_per_person))
+                meal.meal_type = request.POST.get('meal_type', meal.meal_type)
+                meal.is_vegetarian = request.POST.get('is_vegetarian') == 'on'
+                meal.save()
+                
+                return JsonResponse({
+                    'success': True, 
+                    'message': 'تم تحديث الوجبة بنجاح'
+                })
+            except HallMeal.DoesNotExist:
+                return JsonResponse({'success': False, 'error': 'الوجبة غير موجودة'})
+            except Exception as e:
+                return JsonResponse({'success': False, 'error': str(e)})
+        
+        elif action == 'delete':
+            meal_id = request.POST.get('meal_id')
+            try:
+                meal = HallMeal.objects.get(id=meal_id, hall=hall)
+                meal.delete()
+                return JsonResponse({'success': True, 'message': 'تم حذف الوجبة بنجاح'})
+            except HallMeal.DoesNotExist:
+                return JsonResponse({'success': False, 'error': 'الوجبة غير موجودة'})
+            except Exception as e:
+                return JsonResponse({'success': False, 'error': str(e)})
+    
+    return JsonResponse({'success': False, 'error': 'طريقة غير صحيحة'})
+
+@login_required
+@user_passes_test(lambda u: u.is_staff or hasattr(u, 'hall_manager'))
+def manage_hall_image(request, hall_id):
+    """إدارة صور القاعة (رفع، حذف)"""
+    hall = get_object_or_404(Hall, id=hall_id)
+    
+    # التحقق من الصلاحيات
+    if not request.user.is_staff:
+        if not hasattr(request.user, 'hall_manager') or hall.manager != request.user.hall_manager:
+            return JsonResponse({'success': False, 'error': 'غير مصرح لك'})
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'upload':
+            title = request.POST.get('title', '')
+            image_file = request.FILES.get('image')
+            
+            if not image_file:
+                return JsonResponse({'success': False, 'error': 'لم يتم اختيار صورة'})
+            
+            try:
+                image = HallImage.objects.create(
+                    hall=hall,
+                    title=title,
+                    image=image_file
+                )
+                return JsonResponse({
+                    'success': True, 
+                    'message': 'تم رفع الصورة بنجاح',
+                    'image': {
+                        'id': image.id,
+                        'title': image.title,
+                        'url': image.image.url if image.image else ''
+                    }
+                })
+            except Exception as e:
+                return JsonResponse({'success': False, 'error': str(e)})
+        
+        elif action == 'delete':
+            image_id = request.POST.get('image_id')
+            try:
+                image = HallImage.objects.get(id=image_id, hall=hall)
+                # حذف الملف من النظام
+                if image.image:
+                    image.image.delete()
+                image.delete()
+                return JsonResponse({'success': True, 'message': 'تم حذف الصورة بنجاح'})
+            except HallImage.DoesNotExist:
+                return JsonResponse({'success': False, 'error': 'الصورة غير موجودة'})
+            except Exception as e:
+                return JsonResponse({'success': False, 'error': str(e)})
+    
+    return JsonResponse({'success': False, 'error': 'طريقة غير صحيحة'})
+
+@login_required
+@user_passes_test(lambda u: u.is_staff or hasattr(u, 'hall_manager'))
+def manage_booking_status(request, hall_id, booking_id):
+    """إدارة حالة الحجز (موافقة، رفض)"""
+    hall = get_object_or_404(Hall, id=hall_id)
+    booking = get_object_or_404(Booking, id=booking_id, hall=hall)
+    
+    # التحقق من الصلاحيات
+    if not request.user.is_staff:
+        if not hasattr(request.user, 'hall_manager') or hall.manager != request.user.hall_manager:
+            return JsonResponse({'success': False, 'error': 'غير مصرح لك'})
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        admin_notes = request.POST.get('admin_notes', '')
+        
+        try:
+            if action == 'approve':
+                booking.status = 'approved'
+                booking.admin_notes = admin_notes
+                booking.save()
+                return JsonResponse({'success': True, 'message': 'تم الموافقة على الحجز'})
+            
+            elif action == 'reject':
+                booking.status = 'rejected'
+                booking.admin_notes = admin_notes
+                booking.save()
+                return JsonResponse({'success': True, 'message': 'تم رفض الحجز'})
+            
+            elif action == 'cancel':
+                booking.status = 'cancelled'
+                booking.admin_notes = admin_notes
+                booking.save()
+                return JsonResponse({'success': True, 'message': 'تم إلغاء الحجز'})
+            
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+    
+    return JsonResponse({'success': False, 'error': 'طريقة غير صحيحة'})
+
+@login_required
+@user_passes_test(lambda u: u.is_staff or hasattr(u, 'hall_manager'))
+def hall_reports(request, hall_id):
+    """تقارير القاعة المفصلة"""
+    hall = get_object_or_404(Hall, id=hall_id)
+    
+    # التحقق من الصلاحيات
+    if not request.user.is_staff:
+        if not hasattr(request.user, 'hall_manager') or hall.manager != request.user.hall_manager:
+            return redirect('hall_booking:home')
+    
+    from datetime import datetime, timedelta
+    from django.db.models import Count, Sum, Q
+    
+    # فترة التقرير (آخر 30 يوم)
+    end_date = datetime.now().date()
+    start_date = end_date - timedelta(days=30)
+    
+    # إحصائيات عامة
+    total_bookings = Booking.objects.filter(hall=hall).count()
+    approved_bookings = Booking.objects.filter(hall=hall, status='approved').count()
+    pending_bookings = Booking.objects.filter(hall=hall, status='pending').count()
+    rejected_bookings = Booking.objects.filter(hall=hall, status='rejected').count()
+    
+    # إحصائيات الفترة الأخيرة
+    recent_bookings = Booking.objects.filter(
+        hall=hall,
+        created_at__date__range=[start_date, end_date]
+    )
+    
+    # الإيرادات
+    total_revenue = Booking.objects.filter(
+        hall=hall, 
+        status='approved'
+    ).aggregate(Sum('total_price'))['total_price__sum'] or 0
+    
+    recent_revenue = recent_bookings.filter(
+        status='approved'
+    ).aggregate(Sum('total_price'))['total_price__sum'] or 0
+    
+    # أكثر الخدمات طلباً
+    popular_services = BookingService.objects.filter(
+        booking__hall=hall,
+        booking__status='approved'
+    ).values('service__name').annotate(
+        count=Count('service')
+    ).order_by('-count')[:5]
+    
+    # أكثر الوجبات طلباً
+    popular_meals = BookingMeal.objects.filter(
+        booking__hall=hall,
+        booking__status='approved'
+    ).values('meal__name').annotate(
+        count=Count('meal')
+    ).order_by('-count')[:5]
+    
+    # الحجوزات حسب الشهر (آخر 6 شهور)
+    monthly_bookings = []
+    for i in range(6):
+        month_start = (datetime.now().replace(day=1) - timedelta(days=30*i)).replace(day=1)
+        month_end = (month_start + timedelta(days=32)).replace(day=1) - timedelta(days=1)
+        
+        count = Booking.objects.filter(
+            hall=hall,
+            start_datetime__date__range=[month_start.date(), month_end.date()],
+            status='approved'
+        ).count()
+        
+        monthly_bookings.append({
+            'month': month_start.strftime('%Y-%m'),
+            'count': count
+        })
+    
+    context = {
+        'hall': hall,
+        'total_bookings': total_bookings,
+        'approved_bookings': approved_bookings,
+        'pending_bookings': pending_bookings,
+        'rejected_bookings': rejected_bookings,
+        'total_revenue': total_revenue,
+        'recent_revenue': recent_revenue,
+        'popular_services': popular_services,
+        'popular_meals': popular_meals,
+        'monthly_bookings': monthly_bookings,
+        'start_date': start_date,
+        'end_date': end_date,
+    }
+    
+    return render(request, 'hall_booking/manager/hall_reports.html', context)

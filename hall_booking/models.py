@@ -172,8 +172,8 @@ class Booking(models.Model):
     ]
     
     booking_id = models.UUIDField(default=uuid.uuid4, editable=False, verbose_name="رقم الحجز")
-    hall = models.ForeignKey(Hall, on_delete=models.CASCADE, verbose_name="القاعة")
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='bookings', verbose_name="المستخدم")
+    hall = models.ForeignKey(Hall, on_delete=models.CASCADE, related_name='bookings', verbose_name="القاعة")
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='user_bookings', verbose_name="المستخدم")
     customer_name = models.CharField(max_length=200, verbose_name="اسم العميل")
     customer_email = models.EmailField(verbose_name="البريد الإلكتروني")
     customer_phone = models.CharField(max_length=20, verbose_name="رقم الهاتف")
@@ -185,6 +185,7 @@ class Booking(models.Model):
     total_price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="السعر الإجمالي")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', verbose_name="الحالة")
     admin_notes = models.TextField(blank=True, null=True, verbose_name="ملاحظات الإدارة")
+    is_admin_block = models.BooleanField(default=False, verbose_name="حجب إداري")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاريخ الطلب")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="تاريخ التحديث")
     

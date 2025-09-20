@@ -53,6 +53,19 @@ urlpatterns = [
     path('booking/<int:hall_id>/step6/', views.booking_step6_review, name='booking_step6_review'),
     path('booking/<int:hall_id>/confirm/', views.confirm_booking, name='confirm_booking'),
     path('booking/success/<uuid:booking_id>/', views.booking_success, name='booking_success'),
+    
+    # مسارات إدارة القاعات
+    path('manager/dashboard/', views.hall_manager_dashboard, name='hall_manager_dashboard'),
+    path('manager/hall/<int:hall_id>/', views.hall_management, name='hall_management'),
+    path('manager/hall/<int:hall_id>/schedule/', views.hall_schedule_management, name='hall_schedule_management'),
+    path('manager/hall/<int:hall_id>/block-time/', views.block_time_slot, name='block_time_slot'),
+    path('manager/hall/<int:hall_id>/reports/', views.hall_reports, name='hall_reports'),
+    
+    # مسارات إدارة الخدمات والوجبات والصور
+    path('manager/hall/<int:hall_id>/service/', views.manage_hall_service, name='manage_hall_service'),
+    path('manager/hall/<int:hall_id>/meal/', views.manage_hall_meal, name='manage_hall_meal'),
+    path('manager/hall/<int:hall_id>/image/', views.manage_hall_image, name='manage_hall_image'),
+    path('manager/hall/<int:hall_id>/booking/<int:booking_id>/status/', views.manage_booking_status, name='manage_booking_status'),
 
     # مسارات نظام المصادقة متعدد الخطوات
     path('auth/', views.auth_welcome, name='auth_welcome'),

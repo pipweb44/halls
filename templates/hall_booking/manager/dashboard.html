@@ -1,0 +1,330 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}لوحة تحكم مدير القاعة{% endblock %}
+
+{% block extra_css %}
+<style>
+:root {
+    --gold-primary: #FFD700;
+    --gold-secondary: #FFA500;
+    --gold-dark: #B8860B;
+    --black-primary: #000000;
+    --black-secondary: #1a1a1a;
+    --black-tertiary: #2d2d2d;
+}
+
+.manager-dashboard {
+    background: linear-gradient(135deg, var(--black-primary) 0%, var(--black-secondary) 100%);
+    min-height: 100vh;
+    padding: 2rem 0;
+}
+
+.dashboard-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.dashboard-header h1 {
+    color: var(--gold-primary);
+    font-size: 3rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+}
+
+.dashboard-header p {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 1.2rem;
+}
+
+.halls-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+.hall-card {
+    background: rgba(26, 26, 26, 0.95);
+    border-radius: 20px;
+    padding: 2rem;
+    border: 2px solid rgba(255, 215, 0, 0.2);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.hall-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--gold-primary), var(--gold-secondary));
+}
+
+.hall-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--gold-primary);
+    box-shadow: 0 20px 40px rgba(255, 215, 0, 0.3);
+}
+
+.hall-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.hall-icon {
+    width: 60px;
+    height: 60px;
+    background: var(--gold-primary);
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 1rem;
+}
+
+.hall-icon i {
+    font-size: 1.8rem;
+    color: var(--black-primary);
+}
+
+.hall-info h3 {
+    color: var(--gold-primary);
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.hall-info p {
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0;
+}
+
+.hall-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 1rem;
+    background: rgba(45, 45, 45, 0.5);
+    border-radius: 10px;
+    border: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--gold-primary);
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.9rem;
+}
+
+.hall-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.btn-manage {
+    flex: 1;
+    background: var(--gold-primary);
+    color: var(--black-primary);
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 10px;
+    font-weight: 600;
+    text-decoration: none;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.btn-manage:hover {
+    background: var(--gold-secondary);
+    color: var(--black-primary);
+    transform: translateY(-2px);
+}
+
+.btn-schedule {
+    flex: 1;
+    background: transparent;
+    color: var(--gold-primary);
+    border: 2px solid var(--gold-primary);
+    padding: 0.8rem 1.5rem;
+    border-radius: 10px;
+    font-weight: 600;
+    text-decoration: none;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.btn-schedule:hover {
+    background: var(--gold-primary);
+    color: var(--black-primary);
+}
+
+.quick-actions {
+    background: rgba(26, 26, 26, 0.95);
+    border-radius: 20px;
+    padding: 2rem;
+    border: 2px solid rgba(255, 215, 0, 0.2);
+    text-align: center;
+}
+
+.quick-actions h3 {
+    color: var(--gold-primary);
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+}
+
+.actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.action-btn {
+    background: rgba(45, 45, 45, 0.8);
+    border: 2px solid rgba(255, 215, 0, 0.3);
+    border-radius: 15px;
+    padding: 1.5rem;
+    color: var(--gold-primary);
+    text-decoration: none;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.action-btn:hover {
+    background: var(--gold-primary);
+    color: var(--black-primary);
+    border-color: var(--gold-primary);
+    transform: translateY(-3px);
+}
+
+.action-btn i {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+@media (max-width: 768px) {
+    .halls-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .hall-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .hall-actions {
+        flex-direction: column;
+    }
+    
+    .actions-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="manager-dashboard">
+    <div class="container">
+        <!-- Dashboard Header -->
+        <div class="dashboard-header">
+            <h1><i class="fas fa-tachometer-alt me-3"></i>لوحة تحكم مدير القاعة</h1>
+            <p>إدارة شاملة لقاعاتك وحجوزاتك</p>
+        </div>
+
+        <!-- Halls Grid -->
+        {% if halls_with_stats %}
+        <div class="halls-grid">
+            {% for hall_data in halls_with_stats %}
+            <div class="hall-card">
+                <div class="hall-header">
+                    <div class="hall-icon">
+                        <i class="fas fa-building"></i>
+                    </div>
+                    <div class="hall-info">
+                        <h3>{{ hall_data.hall.name }}</h3>
+                        <p><i class="fas fa-map-marker-alt me-2"></i>{{ hall_data.hall.city.name }}, {{ hall_data.hall.governorate.name }}</p>
+                    </div>
+                </div>
+
+                <div class="hall-stats">
+                    <div class="stat-item">
+                        <div class="stat-number">{{ hall_data.total_bookings }}</div>
+                        <div class="stat-label">إجمالي الحجوزات</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">{{ hall_data.pending_bookings }}</div>
+                        <div class="stat-label">في الانتظار</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">{{ hall_data.hall.capacity }}</div>
+                        <div class="stat-label">السعة</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">{{ hall_data.hall.price_per_hour }}</div>
+                        <div class="stat-label">جنيه/ساعة</div>
+                    </div>
+                </div>
+
+                <div class="hall-actions">
+                    <a href="{% url 'hall_booking:hall_management' hall_data.hall.id %}" class="btn-manage">
+                        <i class="fas fa-cogs me-2"></i>إدارة القاعة
+                    </a>
+                    <a href="{% url 'hall_booking:hall_schedule_management' hall_data.hall.id %}" class="btn-schedule">
+                        <i class="fas fa-calendar-alt me-2"></i>الجدولة
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center">
+            <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                لا توجد قاعات مخصصة لك حالياً
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+            <h3><i class="fas fa-bolt me-2"></i>إجراءات سريعة</h3>
+            <div class="actions-grid">
+                <a href="{% url 'hall_booking:halls_list' %}" class="action-btn">
+                    <i class="fas fa-building"></i>
+                    <span>عرض جميع القاعات</span>
+                </a>
+                <a href="{% url 'hall_booking:contact' %}" class="action-btn">
+                    <i class="fas fa-envelope"></i>
+                    <span>اتصل بنا</span>
+                </a>
+                <a href="{% url 'hall_booking:about' %}" class="action-btn">
+                    <i class="fas fa-info-circle"></i>
+                    <span>من نحن</span>
+                </a>
+                <a href="{% url 'hall_booking:home' %}" class="action-btn">
+                    <i class="fas fa-home"></i>
+                    <span>الصفحة الرئيسية</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

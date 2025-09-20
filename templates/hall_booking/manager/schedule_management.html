@@ -1,0 +1,603 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}إدارة جدولة {{ hall.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+:root {
+    --gold-primary: #FFD700;
+    --gold-secondary: #FFA500;
+    --gold-dark: #B8860B;
+    --black-primary: #000000;
+    --black-secondary: #1a1a1a;
+    --black-tertiary: #2d2d2d;
+}
+
+.schedule-management {
+    background: linear-gradient(135deg, var(--black-primary) 0%, var(--black-secondary) 100%);
+    min-height: 100vh;
+    padding: 2rem 0;
+}
+
+.schedule-header {
+    background: rgba(26, 26, 26, 0.95);
+    border-radius: 20px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    border: 2px solid rgba(255, 215, 0, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.schedule-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--gold-primary), var(--gold-secondary));
+}
+
+.header-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.schedule-title h1 {
+    color: var(--gold-primary);
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+}
+
+.schedule-title p {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+.date-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.date-input {
+    background: rgba(45, 45, 45, 0.8);
+    border: 2px solid rgba(255, 215, 0, 0.3);
+    border-radius: 10px;
+    padding: 0.8rem 1rem;
+    color: var(--gold-primary);
+    font-weight: 600;
+}
+
+.date-input:focus {
+    border-color: var(--gold-primary);
+    outline: none;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+.btn-today {
+    background: var(--gold-primary);
+    color: var(--black-primary);
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-today:hover {
+    background: var(--gold-secondary);
+    transform: translateY(-2px);
+}
+
+.schedule-grid {
+    background: rgba(26, 26, 26, 0.95);
+    border-radius: 20px;
+    padding: 2rem;
+    border: 2px solid rgba(255, 215, 0, 0.2);
+    margin-bottom: 2rem;
+}
+
+.grid-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.grid-title {
+    color: var(--gold-primary);
+    font-size: 1.8rem;
+    font-weight: 700;
+}
+
+.grid-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.btn-block-time {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-block-time:hover {
+    background: #c82333;
+    transform: translateY(-2px);
+}
+
+.time-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 0.5rem;
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.time-slot {
+    padding: 1rem;
+    border-radius: 10px;
+    text-align: center;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+    position: relative;
+}
+
+.time-slot.available {
+    background: rgba(40, 167, 69, 0.2);
+    color: #28a745;
+    border-color: rgba(40, 167, 69, 0.3);
+}
+
+.time-slot.available:hover {
+    background: rgba(40, 167, 69, 0.3);
+    transform: translateY(-2px);
+}
+
+.time-slot.booked {
+    background: rgba(220, 53, 69, 0.2);
+    color: #dc3545;
+    border-color: rgba(220, 53, 69, 0.3);
+    cursor: not-allowed;
+}
+
+.time-slot.admin-block {
+    background: rgba(255, 193, 7, 0.2);
+    color: #ffc107;
+    border-color: rgba(255, 193, 7, 0.3);
+}
+
+.time-slot.selected {
+    border-color: var(--gold-primary);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+}
+
+.slot-time {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+.slot-status {
+    font-size: 0.8rem;
+    opacity: 0.8;
+}
+
+.booking-details {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 0.5rem;
+    border-radius: 5px;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    z-index: 10;
+    display: none;
+}
+
+.time-slot:hover .booking-details {
+    display: block;
+}
+
+.legend {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-top: 2rem;
+    flex-wrap: wrap;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.legend-color {
+    width: 20px;
+    height: 20px;
+    border-radius: 5px;
+}
+
+.legend-color.available {
+    background: rgba(40, 167, 69, 0.3);
+    border: 2px solid rgba(40, 167, 69, 0.5);
+}
+
+.legend-color.booked {
+    background: rgba(220, 53, 69, 0.3);
+    border: 2px solid rgba(220, 53, 69, 0.5);
+}
+
+.legend-color.admin-block {
+    background: rgba(255, 193, 7, 0.3);
+    border: 2px solid rgba(255, 193, 7, 0.5);
+}
+
+.legend-text {
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 600;
+}
+
+.bookings-summary {
+    background: rgba(26, 26, 26, 0.95);
+    border-radius: 20px;
+    padding: 2rem;
+    border: 2px solid rgba(255, 215, 0, 0.2);
+}
+
+.summary-title {
+    color: var(--gold-primary);
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+}
+
+.booking-item {
+    background: rgba(45, 45, 45, 0.5);
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    border: 2px solid rgba(255, 215, 0, 0.2);
+}
+
+.booking-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.booking-title {
+    color: var(--gold-primary);
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.booking-status {
+    padding: 0.3rem 0.8rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.status-approved {
+    background: rgba(40, 167, 69, 0.2);
+    color: #28a745;
+}
+
+.status-pending {
+    background: rgba(255, 193, 7, 0.2);
+    color: #ffc107;
+}
+
+.status-admin-block {
+    background: rgba(255, 193, 7, 0.2);
+    color: #ffc107;
+}
+
+.booking-info {
+    color: rgba(255, 255, 255, 0.8);
+    line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+    .header-content {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .date-controls {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .date-input {
+        width: 100%;
+    }
+    
+    .time-grid {
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    }
+    
+    .legend {
+        flex-direction: column;
+        align-items: center;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="schedule-management">
+    <div class="container">
+        <!-- Schedule Header -->
+        <div class="schedule-header">
+            <div class="header-content">
+                <div class="schedule-title">
+                    <h1><i class="fas fa-calendar-alt me-3"></i>إدارة جدولة {{ hall.name }}</h1>
+                    <p>إدارة المواعيد وحجب الأوقات غير المتاحة</p>
+                </div>
+                <div class="date-controls">
+                    <input type="date" class="date-input" id="selectedDate" value="{{ selected_date|date:'Y-m-d' }}" onchange="changeDate()">
+                    <button class="btn-today" onclick="goToToday()">
+                        <i class="fas fa-calendar-day me-2"></i>اليوم
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Schedule Grid -->
+        <div class="schedule-grid">
+            <div class="grid-header">
+                <div class="grid-title">
+                    جدول المواعيد - {{ selected_date|date:"l, d F Y" }}
+                </div>
+                <div class="grid-actions">
+                    <button class="btn-block-time" onclick="showBlockTimeModal()">
+                        <i class="fas fa-ban me-2"></i>حجب وقت
+                    </button>
+                </div>
+            </div>
+
+            <div class="time-grid">
+                {% for slot in time_slots %}
+                <div class="time-slot {% if slot.is_booked %}{% if slot.booking.is_admin_block %}admin-block{% else %}booked{% endif %}{% else %}available{% endif %}" 
+                     onclick="{% if not slot.is_booked %}selectTimeSlot('{{ slot.time }}'){% endif %}">
+                    <div class="slot-time">{{ slot.time }}</div>
+                    <div class="slot-status">
+                        {% if slot.is_booked %}
+                            {% if slot.booking.is_admin_block %}
+                                محجوب
+                            {% else %}
+                                محجوز
+                            {% endif %}
+                        {% else %}
+                            متاح
+                        {% endif %}
+                    </div>
+                    
+                    {% if slot.booking %}
+                    <div class="booking-details">
+                        <strong>{{ slot.booking.event_title }}</strong><br>
+                        العميل: {{ slot.booking.customer_name }}<br>
+                        من {{ slot.booking.start_datetime|time:"H:i" }} إلى {{ slot.booking.end_datetime|time:"H:i" }}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Legend -->
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color available"></div>
+                    <span class="legend-text">متاح</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color booked"></div>
+                    <span class="legend-text">محجوز</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color admin-block"></div>
+                    <span class="legend-text">محجوب إدارياً</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bookings Summary -->
+        {% if bookings %}
+        <div class="bookings-summary">
+            <div class="summary-title">
+                <i class="fas fa-list me-2"></i>حجوزات اليوم
+            </div>
+            
+            {% for booking in bookings %}
+            <div class="booking-item">
+                <div class="booking-header">
+                    <div class="booking-title">{{ booking.event_title }}</div>
+                    <div class="booking-status {% if booking.is_admin_block %}status-admin-block{% elif booking.status == 'approved' %}status-approved{% else %}status-pending{% endif %}">
+                        {% if booking.is_admin_block %}
+                            محجوب إدارياً
+                        {% else %}
+                            {{ booking.get_status_display }}
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="booking-info">
+                    <i class="fas fa-user me-2"></i><strong>العميل:</strong> {{ booking.customer_name }}<br>
+                    <i class="fas fa-clock me-2"></i><strong>الوقت:</strong> {{ booking.start_datetime|time:"H:i" }} - {{ booking.end_datetime|time:"H:i" }}<br>
+                    <i class="fas fa-users me-2"></i><strong>عدد الحضور:</strong> {{ booking.attendees_count }} شخص<br>
+                    {% if booking.admin_notes %}
+                    <i class="fas fa-sticky-note me-2"></i><strong>ملاحظات:</strong> {{ booking.admin_notes }}
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Block Time Modal -->
+<div class="modal fade" id="blockTimeModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark">
+            <div class="modal-header border-gold">
+                <h5 class="modal-title text-gold">
+                    <i class="fas fa-ban me-2"></i>حجب فترة زمنية
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="blockTimeForm">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label text-gold">التاريخ</label>
+                        <input type="date" class="form-control bg-dark text-gold border-gold" id="blockDate" value="{{ selected_date|date:'Y-m-d' }}" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="form-label text-gold">وقت البداية</label>
+                            <input type="time" class="form-control bg-dark text-gold border-gold" id="blockStartTime" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-gold">وقت النهاية</label>
+                            <input type="time" class="form-control bg-dark text-gold border-gold" id="blockEndTime" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-gold">سبب الحجب</label>
+                        <input type="text" class="form-control bg-dark text-gold border-gold" id="blockReason" placeholder="مثال: صيانة، حدث خاص، إلخ">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-gold">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إلغاء</button>
+                <button type="button" class="btn btn-danger" onclick="blockTimeSlot()">
+                    <i class="fas fa-ban me-2"></i>حجب الوقت
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let selectedSlots = [];
+
+function changeDate() {
+    const selectedDate = document.getElementById('selectedDate').value;
+    window.location.href = `?date=${selectedDate}`;
+}
+
+function goToToday() {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('selectedDate').value = today;
+    changeDate();
+}
+
+function selectTimeSlot(time) {
+    const slots = document.querySelectorAll('.time-slot');
+    slots.forEach(slot => {
+        if (slot.querySelector('.slot-time').textContent === time) {
+            slot.classList.toggle('selected');
+            
+            if (slot.classList.contains('selected')) {
+                if (!selectedSlots.includes(time)) {
+                    selectedSlots.push(time);
+                }
+            } else {
+                selectedSlots = selectedSlots.filter(t => t !== time);
+            }
+        }
+    });
+}
+
+function showBlockTimeModal() {
+    if (selectedSlots.length > 0) {
+        document.getElementById('blockStartTime').value = selectedSlots[0];
+        if (selectedSlots.length > 1) {
+            document.getElementById('blockEndTime').value = selectedSlots[selectedSlots.length - 1];
+        }
+    }
+    
+    const modal = new bootstrap.Modal(document.getElementById('blockTimeModal'));
+    modal.show();
+}
+
+function blockTimeSlot() {
+    const form = document.getElementById('blockTimeForm');
+    const formData = new FormData();
+    
+    formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+    formData.append('date', document.getElementById('blockDate').value);
+    formData.append('start_time', document.getElementById('blockStartTime').value);
+    formData.append('end_time', document.getElementById('blockEndTime').value);
+    formData.append('reason', document.getElementById('blockReason').value || 'محجوب من قبل الإدارة');
+    
+    fetch('{% url "hall_booking:block_time_slot" hall.id %}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('تم حجب الفترة الزمنية بنجاح');
+            location.reload();
+        } else {
+            alert('حدث خطأ: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('حدث خطأ في الاتصال');
+    });
+    
+    // Close modal
+    const modal = bootstrap.Modal.getInstance(document.getElementById('blockTimeModal'));
+    modal.hide();
+}
+
+// Add custom CSS for modal
+document.addEventListener('DOMContentLoaded', function() {
+    const style = document.createElement('style');
+    style.textContent = `
+        .border-gold {
+            border-color: var(--gold-primary) !important;
+        }
+        .text-gold {
+            color: var(--gold-primary) !important;
+        }
+        .bg-dark {
+            background-color: var(--black-secondary) !important;
+        }
+        .form-control:focus {
+            border-color: var(--gold-primary);
+            box-shadow: 0 0 0 0.2rem rgba(255, 215, 0, 0.25);
+        }
+    `;
+    document.head.appendChild(style);
+});
+</script>
+{% endblock %}
