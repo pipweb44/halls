@@ -646,6 +646,124 @@
         {% endif %}
     </script>
 
+    <style>
+        /* Unified Booking Progress Bar CSS */
+        .booking-progress {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(26, 26, 26, 0.95);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 3rem;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            position: relative;
+        }
+
+        .booking-progress::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 2rem;
+            right: 2rem;
+            height: 2px;
+            background: rgba(255, 215, 0, 0.2);
+            z-index: 1;
+        }
+
+        .booking-progress .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            z-index: 2;
+            flex: 1;
+            max-width: 120px;
+        }
+
+        .booking-progress .step-number {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(45, 45, 45, 0.8);
+            border: 2px solid rgba(255, 215, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: rgba(255, 215, 0, 0.6);
+            transition: all 0.3s ease;
+            margin-bottom: 0.5rem;
+        }
+
+        .booking-progress .step-title {
+            font-size: 0.9rem;
+            color: rgba(255, 215, 0, 0.6);
+            text-align: center;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .booking-progress .step.active .step-number {
+            background: var(--gold-primary);
+            border-color: var(--gold-primary);
+            color: var(--black-primary);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+            transform: scale(1.1);
+        }
+
+        .booking-progress .step.active .step-title {
+            color: var(--gold-primary);
+            font-weight: 600;
+        }
+
+        .booking-progress .step.completed .step-number {
+            background: var(--gold-primary);
+            border-color: var(--gold-primary);
+            color: var(--black-primary);
+        }
+
+        .booking-progress .step.completed .step-title {
+            color: var(--gold-primary);
+            font-weight: 500;
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .booking-progress {
+                padding: 1.5rem 1rem;
+                flex-wrap: wrap;
+                gap: 1rem;
+            }
+
+            .booking-progress::before {
+                display: none;
+            }
+
+            .booking-progress .step {
+                flex: 0 0 calc(33.333% - 0.67rem);
+                max-width: none;
+            }
+
+            .booking-progress .step-number {
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+            }
+
+            .booking-progress .step-title {
+                font-size: 0.8rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .booking-progress .step {
+                flex: 0 0 calc(50% - 0.5rem);
+            }
+        }
+    </style>
+
     {% block extra_js %}{% endblock %}
 </body>
 </html>

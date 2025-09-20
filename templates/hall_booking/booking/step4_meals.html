@@ -27,85 +27,6 @@
     padding: 0 1rem;
 }
 
-/* Progress Bar */
-.progress-bar {
-    background: rgba(26, 26, 26, 0.95);
-    border-radius: 20px;
-    padding: 2rem;
-    margin-bottom: 3rem;
-    border: 1px solid rgba(255, 215, 0, 0.3);
-}
-
-.progress-steps {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    position: relative;
-}
-
-.progress-steps::before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: rgba(255, 215, 0, 0.3);
-    z-index: 1;
-}
-
-.progress-steps::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 0;
-    width: 66.66%;
-    height: 2px;
-    background: var(--gold-primary);
-    z-index: 2;
-    transition: width 0.3s ease;
-}
-
-.step {
-    background: rgba(45, 45, 45, 0.8);
-    border: 2px solid rgba(255, 215, 0, 0.3);
-    border-radius: 50%;
-    width: 60px;
-    height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: rgba(255, 255, 255, 0.6);
-    font-weight: 700;
-    position: relative;
-    z-index: 3;
-    transition: all 0.3s ease;
-}
-
-.step.completed {
-    background: var(--gold-primary);
-    border-color: var(--gold-primary);
-    color: var(--black-primary);
-}
-
-.step.active {
-    background: var(--gold-primary);
-    border-color: var(--gold-primary);
-    color: var(--black-primary);
-    box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
-}
-
-.step-label {
-    position: absolute;
-    top: 80px;
-    left: 50%;
-    transform: translateX(-50%);
-    color: var(--gold-primary);
-    font-size: 0.9rem;
-    font-weight: 600;
-    white-space: nowrap;
-}
-
 /* Meals Section */
 .meals-section {
     background: rgba(26, 26, 26, 0.95);
@@ -442,32 +363,34 @@
 {% block content %}
 <section class="booking-wizard-section">
     <div class="wizard-container">
-        <!-- Progress Bar -->
-        <div class="progress-bar">
-            <div class="progress-steps">
-                <div class="step completed">
-                    <i class="fas fa-calendar"></i>
-                    <div class="step-label">التاريخ</div>
-                </div>
-                <div class="step completed">
-                    <i class="fas fa-clock"></i>
-                    <div class="step-label">الوقت</div>
-                </div>
-                <div class="step completed">
-                    <i class="fas fa-concierge-bell"></i>
-                    <div class="step-label">الخدمات</div>
-                </div>
-                <div class="step active">
-                    <i class="fas fa-utensils"></i>
-                    <div class="step-label">الوجبات</div>
-                </div>
-                <div class="step">
-                    <i class="fas fa-user"></i>
-                    <div class="step-label">المعلومات</div>
-                </div>
-                <div class="step">
-                    <i class="fas fa-check"></i>
-                    <div class="step-label">التأكيد</div>
+        <!-- Progress Steps -->
+        <div class="row justify-content-center mb-5">
+            <div class="col-lg-8">
+                <div class="booking-progress">
+                    <div class="step completed">
+                        <div class="step-number"><i class="fas fa-check"></i></div>
+                        <div class="step-title">اختيار التاريخ</div>
+                    </div>
+                    <div class="step completed">
+                        <div class="step-number"><i class="fas fa-check"></i></div>
+                        <div class="step-title">اختيار الوقت</div>
+                    </div>
+                    <div class="step completed">
+                        <div class="step-number"><i class="fas fa-check"></i></div>
+                        <div class="step-title">الخدمات</div>
+                    </div>
+                    <div class="step active">
+                        <div class="step-number">4</div>
+                        <div class="step-title">الوجبات</div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">5</div>
+                        <div class="step-title">المعلومات</div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">6</div>
+                        <div class="step-title">التأكيد</div>
+                    </div>
                 </div>
             </div>
         </div>
