@@ -199,7 +199,121 @@ class HallBookingAdminSite(AdminSite):
 # إنشاء نسخة مخصصة من لوحة الإدارة
 admin_site = HallBookingAdminSite(name='hall_booking_admin')
 
-# تم نقل views الإحصائيات إلى ملف views.py منفصل
+# إضافة views الإحصائيات مباشرة في admin
+def statistics_view(self, request):
+    """صفحة الإحصائيات مع الرسوم البيانية"""
+    # إحصائيات عامة
+    total_halls = Hall.objects.count()
+    total_bookings = Booking.objects.count()
+    total_revenue = Booking.objects.filter(status='completed').aggregate(total=Sum('total_price'))['total'] or 0
+    
+    # إحصائيات الحجوزات حسب الحالة
+    booking_stats = {
+        'pending': Booking.objects.filter(status='pending').count(),
+        'approved': Booking.objects.filter(status='approved').count(),
+        'completed': Booking.objects.filter(status='completed').count(),
+        'cancelled': Booking.objects.filter(status='cancelled').count(),
+        'rejected': Booking.objects.filter(status='rejected').count(),
+    }
+    
+    # إحصائيات القاعات حسب الفئة
+    category_stats = Category.objects.annotate(
+        hall_count=Count('hall'),
+        booking_count=Count('hall__bookings')
+    ).values('name', 'hall_count', 'booking_count')
+    
+    # إحصائيات المحافظات
+    governorate_stats = Governorate.objects.annotate(
+        hall_count=Count('hall'),
+        booking_count=Count('hall__bookings')
+    ).values('name', 'hall_count', 'booking_count')
+    
+    # أفضل القاعات (الأكثر حجزاً)
+    top_halls = Hall.objects.annotate(
+        booking_count=Count('bookings')
+    ).order_by('-booking_count')[:10]
+    
+    context = {
+        'title': 'الإحصائيات والتقارير',
+        'site_title': self.site_title,
+        'site_header': self.site_header,
+        'site_url': self.site_url,
+        'has_permission': True,
+        'available_apps': self.get_app_list(request),
+        'is_popup': False,
+        'total_halls': total_halls,
+        'total_bookings': total_bookings,
+        'total_revenue': total_revenue,
+        'booking_stats': booking_stats,
+        'category_stats': list(category_stats),
+        'governorate_stats': list(governorate_stats),
+        'top_halls': top_halls,
+    }
+    
+    return render(request, 'admin/statistics_new.html', context)
+
+def bookings_chart_api(self, request):
+    """API للحصول على بيانات مخطط الحجوزات"""
+    months = []
+    bookings_data = []
+    
+    for i in range(12):
+        date = timezone.now() - timedelta(days=30*i)
+        month_name = date.strftime('%Y-%m')
+        booking_count = Booking.objects.filter(
+            created_at__year=date.year,
+            created_at__month=date.month
+        ).count()
+        
+        months.append(month_name)
+        bookings_data.append(booking_count)
+    
+    return JsonResponse({
+        'labels': months[::-1],
+        'data': bookings_data[::-1]
+    })
+
+def revenue_chart_api(self, request):
+    """API للحصول على بيانات مخطط الإيرادات"""
+    months = []
+    revenue_data = []
+    
+    for i in range(12):
+        date = timezone.now() - timedelta(days=30*i)
+        month_name = date.strftime('%Y-%m')
+        revenue = Booking.objects.filter(
+            status='completed',
+            created_at__year=date.year,
+            created_at__month=date.month
+        ).aggregate(total=Sum('total_price'))['total'] or 0
+        
+        months.append(month_name)
+        revenue_data.append(float(revenue))
+    
+    return JsonResponse({
+        'labels': months[::-1],
+        'data': revenue_data[::-1]
+    })
+
+def halls_chart_api(self, request):
+    """API للحصول على بيانات مخطط القاعات حسب الفئة"""
+    categories = Category.objects.annotate(
+        hall_count=Count('hall')
+    ).values('name', 'hall_count')
+    
+    labels = [cat['name'] for cat in categories]
+    data = [cat['hall_count'] for cat in categories]
+    
+    return JsonResponse({
+        'labels': labels,
+        'data': data
+    })
+
+# ربط الدوال بالكلاس
+HallBookingAdminSite.statistics_view = statistics_view
+HallBookingAdminSite.bookings_chart_api = bookings_chart_api
+HallBookingAdminSite.revenue_chart_api = revenue_chart_api
+HallBookingAdminSite.halls_chart_api = halls_chart_api
 
 # تخصيص نموذج الفئات
 @admin.register(Category)

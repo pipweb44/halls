@@ -19,16 +19,39 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from hall_booking.admin import admin_site
-from hall_booking import views
+
+# حفظ المرجع الأصلي لتجنب الـ recursion
+from django.contrib.admin import site as default_admin_site
+original_get_urls = default_admin_site.get_urls
+
+def get_admin_urls():
+    def statistics_view_wrapper(request):
+        return admin_site.statistics_view(request)
+    
+    def bookings_chart_api_wrapper(request):
+        return admin_site.bookings_chart_api(request)
+    
+    def revenue_chart_api_wrapper(request):
+        return admin_site.revenue_chart_api(request)
+    
+    def halls_chart_api_wrapper(request):
+        return admin_site.halls_chart_api(request)
+    
+    # استخدام المرجع الأصلي لتجنب الـ recursion
+    urls = original_get_urls()
+    custom_urls = [
+        path('statistics/', default_admin_site.admin_view(statistics_view_wrapper), name='statistics'),
+        path('statistics/api/bookings-chart/', default_admin_site.admin_view(bookings_chart_api_wrapper), name='bookings_chart_api'),
+        path('statistics/api/revenue-chart/', default_admin_site.admin_view(revenue_chart_api_wrapper), name='revenue_chart_api'),
+        path('statistics/api/halls-chart/', default_admin_site.admin_view(halls_chart_api_wrapper), name='halls_chart_api'),
+    ]
+    return custom_urls + urls
+
+# تطبيق المسارات المخصصة
+default_admin_site.get_urls = get_admin_urls
 
 urlpatterns = [
-    # مسارات الإحصائيات في الإدارة - يجب أن تكون قبل admin/
-    path('admin/statistics/', views.admin_statistics_view, name='admin_statistics'),
-    path('admin/statistics/api/bookings-chart/', views.admin_bookings_chart_api, name='admin_bookings_chart_api'),
-    path('admin/statistics/api/revenue-chart/', views.admin_revenue_chart_api, name='admin_revenue_chart_api'),
-    path('admin/statistics/api/halls-chart/', views.admin_halls_chart_api, name='admin_halls_chart_api'),
-    
-    path('admin/', admin.site.urls),  # لوحة الإدارة الافتراضية
+    path('admin/', admin.site.urls),  # لوحة الإدارة الافتراضية مع المسارات المخصصة
     path('admin-site/', admin_site.urls),  # لوحة الإدارة المخصصة إذا أردت الاحتفاظ بها
     
     path('', include('hall_booking.urls')),
