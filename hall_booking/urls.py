@@ -44,11 +44,14 @@ urlpatterns = [
     path('hall-manager/bookings/<int:booking_id>/', views.hall_manager_booking_detail, name='hall_manager_booking_detail'),
     path('hall-manager/schedule/', views.hall_manager_schedule, name='hall_manager_schedule'),
 
-    # مسارات الحجز متعدد الخطوات
+    # مسارات الحجز الجديد بـ 6 خطوات
     path('booking/<int:hall_id>/step1/', views.booking_step1_date, name='booking_step1_date'),
     path('booking/<int:hall_id>/step2/', views.booking_step2_time, name='booking_step2_time'),
-    path('booking/<int:hall_id>/step3/', views.booking_step3_info, name='booking_step3_info'),
-    path('booking/<int:hall_id>/step4/', views.booking_step4_review, name='booking_step4_review'),
+    path('booking/<int:hall_id>/step3/', views.booking_step3_services, name='booking_step3_services'),
+    path('booking/<int:hall_id>/step4/', views.booking_step4_meals, name='booking_step4_meals'),
+    path('booking/<int:hall_id>/step5/', views.booking_step5_info, name='booking_step5_info'),
+    path('booking/<int:hall_id>/step6/', views.booking_step6_review, name='booking_step6_review'),
+    path('booking/<int:hall_id>/confirm/', views.confirm_booking, name='confirm_booking'),
     path('booking/success/<uuid:booking_id>/', views.booking_success, name='booking_success'),
 
     # مسارات نظام المصادقة متعدد الخطوات

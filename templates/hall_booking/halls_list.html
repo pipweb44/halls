@@ -419,34 +419,292 @@ body {
     margin-bottom: 0.5rem;
 }
 
-/* Responsive Design */
+/* Mobile App-like Design */
 @media (max-width: 768px) {
-    .halls-title {
-        font-size: 2.5rem;
+    body {
+        background: var(--black-primary);
     }
 
-    .search-form {
-        grid-template-columns: 1fr;
-        gap: 1rem;
+    .halls-header {
+        background: linear-gradient(135deg, var(--black-primary) 0%, var(--black-secondary) 100%);
+        padding: 2rem 0 1rem;
+        margin-bottom: 1rem;
+        border-bottom: 2px solid var(--gold-dark);
+    }
+
+    .halls-title {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .halls-subtitle {
+        font-size: 1rem;
+        margin-bottom: 1rem;
     }
 
     .mobile-filter-btn {
         display: block;
+        background: linear-gradient(135deg, var(--gold-primary) 0%, var(--gold-secondary) 100%);
+        border: none;
+        color: var(--black-primary);
+        padding: 1rem;
+        border-radius: 15px;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        width: 100%;
+        box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+        position: sticky;
+        top: 10px;
+        z-index: 100;
     }
 
     .search-section {
         display: none;
     }
 
-    .halls-grid {
-        grid-template-columns: 1fr;
-        gap: 1.5rem;
+    .results-header {
+        background: var(--black-tertiary);
+        padding: 1rem;
+        border-radius: 15px;
+        margin-bottom: 1rem;
+        border: 1px solid var(--gold-dark);
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
     }
 
-    .results-header {
-        flex-direction: column;
+    .results-count {
+        font-size: 0.9rem;
+    }
+
+    .halls-grid {
+        grid-template-columns: 1fr;
         gap: 1rem;
-        align-items: stretch;
+        padding: 0 0.5rem;
+    }
+
+    .hall-card {
+        background: var(--black-tertiary);
+        border-radius: 20px;
+        border: 1px solid var(--gold-dark);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        transition: all 0.3s ease;
+    }
+
+    .hall-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(255, 215, 0, 0.2);
+    }
+
+    .hall-image {
+        height: 200px;
+        border-radius: 20px 20px 0 0;
+    }
+
+    .hall-content {
+        padding: 1rem;
+    }
+
+    .hall-title {
+        font-size: 1.2rem;
+        margin-bottom: 0.25rem;
+    }
+
+    .hall-category {
+        font-size: 0.8rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .hall-description {
+        font-size: 0.85rem;
+        margin-bottom: 1rem;
+        line-height: 1.4;
+    }
+
+    .hall-features {
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+    }
+
+    .feature-item {
+        font-size: 0.8rem;
+    }
+
+    .hall-footer {
+        padding-top: 0.75rem;
+        border-top: 1px solid var(--gold-dark);
+    }
+
+    .price-amount {
+        font-size: 1.3rem;
+    }
+
+    .price-unit {
+        font-size: 0.75rem;
+    }
+
+    .hall-actions {
+        gap: 0.25rem;
+    }
+
+    .btn-view, .btn-book {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.8rem;
+        border-radius: 10px;
+    }
+
+    /* Mobile-specific animations */
+    .hall-card {
+        opacity: 0;
+        transform: translateY(20px);
+        animation: slideInUp 0.6s ease forwards;
+    }
+
+    .hall-card:nth-child(1) { animation-delay: 0.1s; }
+    .hall-card:nth-child(2) { animation-delay: 0.2s; }
+    .hall-card:nth-child(3) { animation-delay: 0.3s; }
+    .hall-card:nth-child(4) { animation-delay: 0.4s; }
+    .hall-card:nth-child(5) { animation-delay: 0.5s; }
+
+    @keyframes slideInUp {
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Mobile offcanvas improvements */
+    .offcanvas {
+        background: var(--black-primary);
+        border-right: 2px solid var(--gold-primary);
+        width: 85% !important;
+    }
+
+    .offcanvas-header {
+        background: var(--black-secondary);
+        border-bottom: 2px solid var(--gold-dark);
+        padding: 1.5rem;
+    }
+
+    .offcanvas-title {
+        color: var(--gold-primary);
+        font-weight: 700;
+        font-size: 1.2rem;
+    }
+
+    .offcanvas-body {
+        padding: 1.5rem;
+    }
+
+    .mobile-search-form .form-control {
+        background: var(--black-secondary);
+        border: 2px solid var(--gold-dark);
+        border-radius: 12px;
+        color: var(--gold-primary);
+        padding: 0.75rem;
+        margin-bottom: 1rem;
+        font-size: 1rem;
+    }
+
+    .mobile-search-form .form-control:focus {
+        border-color: var(--gold-primary);
+        box-shadow: 0 0 0 0.2rem rgba(255, 215, 0, 0.25);
+    }
+
+    .mobile-search-form .form-label {
+        color: var(--gold-primary);
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    .mobile-search-form .btn-search {
+        background: linear-gradient(135deg, var(--gold-primary) 0%, var(--gold-secondary) 100%);
+        border: none;
+        color: var(--black-primary);
+        padding: 1rem;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 1rem;
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+
+    .mobile-search-form .btn-reset {
+        background: transparent;
+        border: 2px solid var(--gold-dark);
+        color: var(--gold-primary);
+        padding: 1rem;
+        border-radius: 12px;
+        font-weight: 600;
+        text-decoration: none;
+        display: block;
+        width: 100%;
+    }
+
+    /* No results mobile styling */
+    .no-results {
+        background: var(--black-tertiary);
+        border-radius: 20px;
+        padding: 3rem 2rem;
+        margin: 2rem 0.5rem;
+        border: 1px solid var(--gold-dark);
+    }
+
+    .no-results i {
+        font-size: 3rem;
+        color: var(--gold-primary);
+        margin-bottom: 1rem;
+    }
+
+    .no-results h3 {
+        color: var(--gold-primary);
+        font-size: 1.3rem;
+        margin-bottom: 1rem;
+    }
+
+    .no-results p {
+        color: var(--gold-secondary);
+        font-size: 0.9rem;
+    }
+}
+
+/* Extra small devices */
+@media (max-width: 576px) {
+    .container {
+        padding: 0 0.75rem;
+    }
+
+    .halls-title {
+        font-size: 1.75rem;
+    }
+
+    .mobile-filter-btn {
+        font-size: 0.9rem;
+        padding: 0.75rem;
+    }
+
+    .hall-card {
+        margin: 0 0.25rem;
+    }
+
+    .hall-content {
+        padding: 0.75rem;
+    }
+
+    .hall-title {
+        font-size: 1.1rem;
+    }
+
+    .hall-actions {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .btn-view, .btn-book {
+        width: 100%;
+        text-align: center;
+        justify-content: center;
     }
 }
 </style>
@@ -605,7 +863,7 @@ body {
                 <div class="hall-footer">
                     <div class="hall-price">
                         <span class="price-amount">{{ hall.price_per_hour }}</span>
-                        <span class="price-unit">ريال/ساعة</span>
+                        <span class="price-unit">جنيه/ساعة</span>
                     </div>
                     <div class="hall-actions">
                         <a href="{% url 'hall_booking:hall_detail' hall.id %}" class="btn-view">

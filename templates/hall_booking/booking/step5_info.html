@@ -1,0 +1,640 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}المعلومات الشخصية - حجز {{ hall.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+:root {
+    --gold-primary: #FFD700;
+    --gold-secondary: #FFA500;
+    --gold-dark: #B8860B;
+    --black-primary: #000000;
+    --black-secondary: #1a1a1a;
+    --black-tertiary: #2d2d2d;
+    --black-light: #404040;
+}
+
+.booking-wizard-section {
+    background: linear-gradient(135deg, var(--black-primary) 0%, var(--black-secondary) 100%);
+    min-height: 100vh;
+    padding: 2rem 0;
+}
+
+.wizard-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+/* Progress Bar */
+.progress-bar {
+    background: rgba(26, 26, 26, 0.95);
+    border-radius: 20px;
+    padding: 2rem;
+    margin-bottom: 3rem;
+    border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+.progress-steps {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+}
+
+.progress-steps::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: rgba(255, 215, 0, 0.3);
+    z-index: 1;
+}
+
+.progress-steps::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 83.33%;
+    height: 2px;
+    background: var(--gold-primary);
+    z-index: 2;
+    transition: width 0.3s ease;
+}
+
+.step {
+    background: rgba(45, 45, 45, 0.8);
+    border: 2px solid rgba(255, 215, 0, 0.3);
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: 700;
+    position: relative;
+    z-index: 3;
+    transition: all 0.3s ease;
+}
+
+.step.completed {
+    background: var(--gold-primary);
+    border-color: var(--gold-primary);
+    color: var(--black-primary);
+}
+
+.step.active {
+    background: var(--gold-primary);
+    border-color: var(--gold-primary);
+    color: var(--black-primary);
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+}
+
+.step-label {
+    position: absolute;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: var(--gold-primary);
+    font-size: 0.9rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* Info Form Section */
+.info-section {
+    background: rgba(26, 26, 26, 0.95);
+    border-radius: 20px;
+    padding: 3rem;
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    margin-bottom: 2rem;
+}
+
+.section-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.section-header h2 {
+    color: var(--gold-primary);
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+}
+
+.section-header p {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 1.1rem;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group.full-width {
+    grid-column: 1 / -1;
+}
+
+.form-label {
+    display: block;
+    color: var(--gold-primary);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+}
+
+.form-label.required::after {
+    content: ' *';
+    color: #ff4757;
+}
+
+.form-input {
+    width: 100%;
+    background: rgba(45, 45, 45, 0.8);
+    border: 2px solid rgba(255, 215, 0, 0.3);
+    border-radius: 10px;
+    color: white;
+    padding: 1rem;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: var(--gold-primary);
+    background: rgba(45, 45, 45, 1);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
+}
+
+.form-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.form-textarea {
+    resize: vertical;
+    min-height: 120px;
+}
+
+.form-error {
+    color: #ff4757;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+    display: none;
+}
+
+.form-help {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+}
+
+/* Event Details Section */
+.event-details {
+    background: rgba(45, 45, 45, 0.3);
+    border-radius: 15px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    border: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.event-details h3 {
+    color: var(--gold-primary);
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+/* Navigation */
+.navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2rem 0;
+}
+
+.nav-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem 2rem;
+    border-radius: 15px;
+    text-decoration: none;
+    font-weight: 700;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.btn-secondary {
+    background: rgba(45, 45, 45, 0.8);
+    color: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+.btn-secondary:hover {
+    background: rgba(45, 45, 45, 1);
+    color: white;
+    border-color: var(--gold-primary);
+    text-decoration: none;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--gold-primary) 0%, var(--gold-secondary) 100%);
+    color: var(--black-primary);
+    box-shadow: 0 10px 25px rgba(255, 215, 0, 0.3);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 35px rgba(255, 215, 0, 0.4);
+    text-decoration: none;
+    color: var(--black-primary);
+}
+
+.btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Validation */
+.form-input.error {
+    border-color: #ff4757;
+    background: rgba(255, 71, 87, 0.1);
+}
+
+.form-input.valid {
+    border-color: #2ed573;
+    background: rgba(46, 213, 115, 0.1);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .wizard-container {
+        padding: 0 0.5rem;
+    }
+    
+    .info-section {
+        padding: 2rem;
+    }
+    
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .progress-steps {
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    
+    .step-label {
+        position: static;
+        transform: none;
+        margin-top: 0.5rem;
+    }
+    
+    .navigation {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .nav-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 576px) {
+    .section-header h2 {
+        font-size: 2rem;
+    }
+    
+    .form-input {
+        padding: 0.75rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="booking-wizard-section">
+    <div class="wizard-container">
+        <!-- Progress Bar -->
+        <div class="progress-bar">
+            <div class="progress-steps">
+                <div class="step completed">
+                    <i class="fas fa-calendar"></i>
+                    <div class="step-label">التاريخ</div>
+                </div>
+                <div class="step completed">
+                    <i class="fas fa-clock"></i>
+                    <div class="step-label">الوقت</div>
+                </div>
+                <div class="step completed">
+                    <i class="fas fa-concierge-bell"></i>
+                    <div class="step-label">الخدمات</div>
+                </div>
+                <div class="step completed">
+                    <i class="fas fa-utensils"></i>
+                    <div class="step-label">الوجبات</div>
+                </div>
+                <div class="step active">
+                    <i class="fas fa-user"></i>
+                    <div class="step-label">المعلومات</div>
+                </div>
+                <div class="step">
+                    <i class="fas fa-check"></i>
+                    <div class="step-label">التأكيد</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Info Form Section -->
+        <div class="info-section">
+            <div class="section-header">
+                <h2>المعلومات الشخصية</h2>
+                <p>يرجى ملء البيانات المطلوبة لإتمام الحجز</p>
+            </div>
+
+            <form method="post" id="infoForm">
+                {% csrf_token %}
+                
+                <!-- Personal Information -->
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="customer_name" class="form-label required">الاسم الكامل</label>
+                        <input type="text" 
+                               id="customer_name" 
+                               name="customer_name" 
+                               class="form-input" 
+                               placeholder="أدخل اسمك الكامل"
+                               required>
+                        <div class="form-error" id="customer_name_error"></div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="customer_phone" class="form-label required">رقم الهاتف</label>
+                        <input type="tel" 
+                               id="customer_phone" 
+                               name="customer_phone" 
+                               class="form-input" 
+                               placeholder="01xxxxxxxxx"
+                               required>
+                        <div class="form-error" id="customer_phone_error"></div>
+                        <div class="form-help">سيتم استخدامه للتواصل معك</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="customer_email" class="form-label required">البريد الإلكتروني</label>
+                        <input type="email" 
+                               id="customer_email" 
+                               name="customer_email" 
+                               class="form-input" 
+                               placeholder="example@email.com"
+                               required>
+                        <div class="form-error" id="customer_email_error"></div>
+                        <div class="form-help">سيتم إرسال تفاصيل الحجز إليه</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="attendees_count" class="form-label required">عدد الحضور</label>
+                        <input type="number" 
+                               id="attendees_count" 
+                               name="attendees_count" 
+                               class="form-input" 
+                               placeholder="عدد الأشخاص"
+                               min="1" 
+                               max="{{ hall.capacity }}"
+                               required>
+                        <div class="form-error" id="attendees_count_error"></div>
+                        <div class="form-help">الحد الأقصى: {{ hall.capacity }} شخص</div>
+                    </div>
+                </div>
+                
+                <!-- Event Details -->
+                <div class="event-details">
+                    <h3>تفاصيل الحدث</h3>
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="event_title" class="form-label required">عنوان الحدث</label>
+                            <input type="text" 
+                                   id="event_title" 
+                                   name="event_title" 
+                                   class="form-input" 
+                                   placeholder="مثال: حفل زفاف، مؤتمر، ورشة عمل"
+                                   required>
+                            <div class="form-error" id="event_title_error"></div>
+                        </div>
+                        
+                        <div class="form-group full-width">
+                            <label for="event_description" class="form-label">وصف الحدث</label>
+                            <textarea id="event_description" 
+                                      name="event_description" 
+                                      class="form-input form-textarea" 
+                                      placeholder="اكتب وصفاً مختصراً عن الحدث وأي متطلبات خاصة..."></textarea>
+                            <div class="form-help">يساعدنا هذا في تقديم خدمة أفضل لك</div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Navigation -->
+        <div class="navigation">
+            <a href="{% url 'hall_booking:booking_step4_meals' hall.id %}" class="nav-btn btn-secondary">
+                <i class="fas fa-arrow-right"></i>
+                السابق
+            </a>
+            
+            <button type="button" onclick="proceedToNext()" class="nav-btn btn-primary" id="nextBtn">
+                التالي
+                <i class="fas fa-arrow-left"></i>
+            </button>
+        </div>
+    </div>
+</section>
+
+<script>
+// Form validation
+function validateForm() {
+    let isValid = true;
+    
+    // Clear previous errors
+    document.querySelectorAll('.form-error').forEach(error => {
+        error.style.display = 'none';
+    });
+    document.querySelectorAll('.form-input').forEach(input => {
+        input.classList.remove('error', 'valid');
+    });
+    
+    // Validate customer name
+    const customerName = document.getElementById('customer_name');
+    if (!customerName.value.trim()) {
+        showError('customer_name', 'الاسم الكامل مطلوب');
+        isValid = false;
+    } else if (customerName.value.trim().length < 3) {
+        showError('customer_name', 'الاسم يجب أن يكون 3 أحرف على الأقل');
+        isValid = false;
+    } else {
+        customerName.classList.add('valid');
+    }
+    
+    // Validate phone
+    const customerPhone = document.getElementById('customer_phone');
+    const phoneRegex = /^01[0-9]{9}$/;
+    if (!customerPhone.value.trim()) {
+        showError('customer_phone', 'رقم الهاتف مطلوب');
+        isValid = false;
+    } else if (!phoneRegex.test(customerPhone.value.trim())) {
+        showError('customer_phone', 'رقم الهاتف غير صحيح (يجب أن يبدأ بـ 01 ويتكون من 11 رقم)');
+        isValid = false;
+    } else {
+        customerPhone.classList.add('valid');
+    }
+    
+    // Validate email
+    const customerEmail = document.getElementById('customer_email');
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!customerEmail.value.trim()) {
+        showError('customer_email', 'البريد الإلكتروني مطلوب');
+        isValid = false;
+    } else if (!emailRegex.test(customerEmail.value.trim())) {
+        showError('customer_email', 'البريد الإلكتروني غير صحيح');
+        isValid = false;
+    } else {
+        customerEmail.classList.add('valid');
+    }
+    
+    // Validate attendees count
+    const attendeesCount = document.getElementById('attendees_count');
+    const maxCapacity = {{ hall.capacity }};
+    if (!attendeesCount.value) {
+        showError('attendees_count', 'عدد الحضور مطلوب');
+        isValid = false;
+    } else if (parseInt(attendeesCount.value) < 1) {
+        showError('attendees_count', 'عدد الحضور يجب أن يكون 1 على الأقل');
+        isValid = false;
+    } else if (parseInt(attendeesCount.value) > maxCapacity) {
+        showError('attendees_count', `عدد الحضور لا يمكن أن يتجاوز ${maxCapacity} شخص`);
+        isValid = false;
+    } else {
+        attendeesCount.classList.add('valid');
+    }
+    
+    // Validate event title
+    const eventTitle = document.getElementById('event_title');
+    if (!eventTitle.value.trim()) {
+        showError('event_title', 'عنوان الحدث مطلوب');
+        isValid = false;
+    } else if (eventTitle.value.trim().length < 3) {
+        showError('event_title', 'عنوان الحدث يجب أن يكون 3 أحرف على الأقل');
+        isValid = false;
+    } else {
+        eventTitle.classList.add('valid');
+    }
+    
+    return isValid;
+}
+
+function showError(fieldId, message) {
+    const field = document.getElementById(fieldId);
+    const errorDiv = document.getElementById(fieldId + '_error');
+    
+    field.classList.add('error');
+    errorDiv.textContent = message;
+    errorDiv.style.display = 'block';
+}
+
+function proceedToNext() {
+    if (validateForm()) {
+        // Save form data to session storage
+        const formData = {
+            customer_name: document.getElementById('customer_name').value,
+            customer_phone: document.getElementById('customer_phone').value,
+            customer_email: document.getElementById('customer_email').value,
+            attendees_count: document.getElementById('attendees_count').value,
+            event_title: document.getElementById('event_title').value,
+            event_description: document.getElementById('event_description').value
+        };
+        
+        sessionStorage.setItem('bookingInfo', JSON.stringify(formData));
+        
+        // Proceed to next step
+        window.location.href = "{% url 'hall_booking:booking_step6_review' hall.id %}";
+    }
+}
+
+// Real-time validation
+document.querySelectorAll('.form-input').forEach(input => {
+    input.addEventListener('blur', function() {
+        validateForm();
+    });
+    
+    input.addEventListener('input', function() {
+        // Remove error styling when user starts typing
+        this.classList.remove('error');
+        const errorDiv = document.getElementById(this.id + '_error');
+        if (errorDiv) {
+            errorDiv.style.display = 'none';
+        }
+    });
+});
+
+// Load previously saved data from session storage
+document.addEventListener('DOMContentLoaded', function() {
+    const savedInfo = sessionStorage.getItem('bookingInfo');
+    if (savedInfo) {
+        const formData = JSON.parse(savedInfo);
+        
+        Object.keys(formData).forEach(key => {
+            const field = document.getElementById(key);
+            if (field && formData[key]) {
+                field.value = formData[key];
+            }
+        });
+    }
+    
+    // Pre-fill with user data if available
+    {% if user.is_authenticated %}
+    if (!document.getElementById('customer_email').value && '{{ user.email }}') {
+        document.getElementById('customer_email').value = '{{ user.email }}';
+    }
+    if (!document.getElementById('customer_name').value) {
+        const fullName = '{{ user.get_full_name|default:"" }}' || '{{ user.username }}';
+        if (fullName && fullName !== 'None') {
+            document.getElementById('customer_name').value = fullName;
+        }
+    }
+    {% endif %}
+});
+
+// Enter key navigation
+document.querySelectorAll('.form-input').forEach((input, index, inputs) => {
+    input.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            if (index < inputs.length - 1) {
+                inputs[index + 1].focus();
+            } else {
+                proceedToNext();
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

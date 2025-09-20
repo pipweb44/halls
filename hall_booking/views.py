@@ -10,7 +10,7 @@ from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, UserChangeForm
 from datetime import datetime, timedelta
 import json
-from .models import Hall, Category, Booking, Contact, HallManager, Notification, Governorate, City
+from .models import Hall, Category, Booking, Contact, HallManager, Notification, Governorate, City, HallService, HallMeal, BookingService, BookingMeal
 from .forms import BookingForm, ContactForm, HallForm
 from django.contrib.auth.models import User
 from django.db.models import Sum
@@ -125,6 +125,10 @@ def hall_detail(request, hall_id):
     """تفاصيل القاعة"""
     hall = get_object_or_404(Hall, id=hall_id, status='available')
 
+    # الحصول على الخدمات والوجبات المتاحة للقاعة
+    hall_services = hall.hall_services.filter(is_available=True).order_by('name')
+    hall_meals = hall.hall_meals.filter(is_available=True).order_by('meal_type', 'name')
+
     # القاعات المشابهة (نفس الفئة أو نفس المحافظة)
     similar_halls = Hall.objects.filter(
         status='available'
@@ -147,6 +151,8 @@ def hall_detail(request, hall_id):
             )
             context = {
                 'hall': hall,
+                'hall_services': hall_services,
+                'hall_meals': hall_meals,
                 'selected_date': selected_date,
                 'bookings': bookings,
                 'similar_halls': similar_halls,
@@ -154,11 +160,15 @@ def hall_detail(request, hall_id):
         else:
             context = {
                 'hall': hall,
+                'hall_services': hall_services,
+                'hall_meals': hall_meals,
                 'similar_halls': similar_halls,
             }
     else:
         context = {
             'hall': hall,
+            'hall_services': hall_services,
+            'hall_meals': hall_meals,
             'similar_halls': similar_halls,
         }
 
@@ -1674,3 +1684,227 @@ def get_unread_notifications_count(request):
     """الحصول على عدد الإشعارات غير المقروءة"""
     count = Notification.objects.filter(user=request.user, is_read=False).count()
     return JsonResponse({'count': count})
+
+# New Booking Wizard Views
+
+def booking_step1_date(request, hall_id):
+    """الخطوة الأولى: اختيار التاريخ"""
+    hall = get_object_or_404(Hall, id=hall_id, status='available')
+    
+    context = {
+        'hall': hall,
+    }
+    return render(request, 'hall_booking/booking/step1_date.html', context)
+
+def booking_step2_time(request, hall_id):
+    """الخطوة الثانية: اختيار الوقت"""
+    hall = get_object_or_404(Hall, id=hall_id, status='available')
+    
+    # الحصول على التاريخ المحدد من الجلسة أو من الطلب
+    selected_date = request.session.get('selected_date')
+    if not selected_date and request.GET.get('date'):
+        selected_date = request.GET.get('date')
+    
+    # الحصول على الحجوزات المتداخلة في هذا التاريخ
+    booked_slots = []
+    if selected_date:
+        try:
+            from datetime import datetime
+            date_obj = datetime.strptime(selected_date, '%Y-%m-%d').date()
+            bookings = Booking.objects.filter(
+                hall=hall,
+                start_datetime__date=date_obj,
+                status__in=['approved', 'pending']
+            ).order_by('start_datetime')
+            
+            for booking in bookings:
+                booked_slots.append({
+                    'start': booking.start_datetime.strftime('%H:%M'),
+                    'end': booking.end_datetime.strftime('%H:%M')
+                })
+        except ValueError:
+            pass
+    
+    # توليد الأوقات المتاحة
+    available_times = []
+    for hour in range(8, 23):  # من 8 صباحاً إلى 11 مساءً
+        for minute in [0, 30]:  # كل نصف ساعة
+            time_str = f"{hour:02d}:{minute:02d}"
+            available_times.append(time_str)
+    
+    context = {
+        'hall': hall,
+        'selected_date': selected_date,
+        'booked_slots': booked_slots,
+        'available_times': available_times,
+    }
+    return render(request, 'hall_booking/booking/step2_time.html', context)
+
+def booking_step3_services(request, hall_id):
+    """الخطوة الثالثة: اختيار الخدمات"""
+    hall = get_object_or_404(Hall, id=hall_id, status='available')
+    hall_services = hall.hall_services.filter(is_available=True).order_by('name')
+    
+    context = {
+        'hall': hall,
+        'hall_services': hall_services,
+    }
+    return render(request, 'hall_booking/booking/step3_services.html', context)
+
+def booking_step4_meals(request, hall_id):
+    """الخطوة الرابعة: اختيار الوجبات"""
+    hall = get_object_or_404(Hall, id=hall_id, status='available')
+    hall_meals = hall.hall_meals.filter(is_available=True).order_by('meal_type', 'name')
+    
+    context = {
+        'hall': hall,
+        'hall_meals': hall_meals,
+    }
+    return render(request, 'hall_booking/booking/step4_meals.html', context)
+
+def booking_step5_info(request, hall_id):
+    """الخطوة الخامسة: المعلومات الشخصية"""
+    hall = get_object_or_404(Hall, id=hall_id, status='available')
+    
+    context = {
+        'hall': hall,
+    }
+    return render(request, 'hall_booking/booking/step5_info.html', context)
+
+def booking_step6_review(request, hall_id):
+    """الخطوة السادسة: مراجعة وتأكيد الحجز"""
+    hall = get_object_or_404(Hall, id=hall_id, status='available')
+    hall_services = hall.hall_services.filter(is_available=True).order_by('name')
+    hall_meals = hall.hall_meals.filter(is_available=True).order_by('meal_type', 'name')
+    
+    context = {
+        'hall': hall,
+        'hall_services': hall_services,
+        'hall_meals': hall_meals,
+    }
+    return render(request, 'hall_booking/booking/step6_review.html', context)
+
+@csrf_exempt
+def confirm_booking(request, hall_id):
+    """تأكيد الحجز وحفظه في قاعدة البيانات"""
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'طريقة طلب غير صحيحة'})
+    
+    try:
+        hall = get_object_or_404(Hall, id=hall_id, status='available')
+        data = json.loads(request.body)
+        
+        # استخراج البيانات
+        booking_datetime = data.get('booking_datetime', {})
+        customer_info = data.get('customer_info', {})
+        selected_services = data.get('selected_services', [])
+        selected_meals = data.get('selected_meals', [])
+        
+        # التحقق من صحة البيانات
+        if not all([booking_datetime.get('date'), booking_datetime.get('start_time'), 
+                   booking_datetime.get('end_time'), customer_info.get('customer_name'),
+                   customer_info.get('customer_email'), customer_info.get('customer_phone')]):
+            return JsonResponse({'success': False, 'message': 'بيانات غير مكتملة'})
+        
+        # تحويل التاريخ والوقت
+        date_str = booking_datetime['date']
+        start_time_str = booking_datetime['start_time']
+        end_time_str = booking_datetime['end_time']
+        
+        start_datetime = datetime.strptime(f"{date_str} {start_time_str}", "%Y-%m-%d %H:%M")
+        end_datetime = datetime.strptime(f"{date_str} {end_time_str}", "%Y-%m-%d %H:%M")
+        
+        # التحقق من عدم تداخل الحجوزات
+        conflicting_bookings = Booking.objects.filter(
+            hall=hall,
+            status__in=['approved', 'pending'],
+            start_datetime__lt=end_datetime,
+            end_datetime__gt=start_datetime
+        )
+        
+        if conflicting_bookings.exists():
+            return JsonResponse({'success': False, 'message': 'القاعة محجوزة في هذا الوقت'})
+        
+        # حساب السعر الإجمالي
+        duration_hours = (end_datetime - start_datetime).total_seconds() / 3600
+        hall_cost = float(hall.price_per_hour) * duration_hours
+        
+        services_cost = 0
+        for service_data in selected_services:
+            try:
+                service = HallService.objects.get(id=service_data['id'], hall=hall, is_available=True)
+                services_cost += float(service.price) * service_data['quantity']
+            except HallService.DoesNotExist:
+                continue
+        
+        meals_cost = 0
+        for meal_data in selected_meals:
+            try:
+                meal = HallMeal.objects.get(id=meal_data['id'], hall=hall, is_available=True)
+                meals_cost += float(meal.price_per_person) * meal_data['quantity']
+            except HallMeal.DoesNotExist:
+                continue
+        
+        total_price = hall_cost + services_cost + meals_cost
+        
+        # إنشاء الحجز
+        booking = Booking.objects.create(
+            hall=hall,
+            user=request.user if request.user.is_authenticated else None,
+            customer_name=customer_info['customer_name'],
+            customer_email=customer_info['customer_email'],
+            customer_phone=customer_info['customer_phone'],
+            event_title=customer_info['event_title'],
+            event_description=customer_info.get('event_description', ''),
+            start_datetime=start_datetime,
+            end_datetime=end_datetime,
+            attendees_count=int(customer_info['attendees_count']),
+            total_price=total_price,
+            status='pending'
+        )
+        
+        # إضافة الخدمات المختارة
+        for service_data in selected_services:
+            try:
+                service = HallService.objects.get(id=service_data['id'], hall=hall, is_available=True)
+                BookingService.objects.create(
+                    booking=booking,
+                    service=service,
+                    quantity=service_data['quantity'],
+                    price=service.price
+                )
+            except HallService.DoesNotExist:
+                continue
+        
+        # إضافة الوجبات المختارة
+        for meal_data in selected_meals:
+            try:
+                meal = HallMeal.objects.get(id=meal_data['id'], hall=hall, is_available=True)
+                serving_time = datetime.strptime(meal_data['serving_time'], '%H:%M').time()
+                BookingMeal.objects.create(
+                    booking=booking,
+                    meal=meal,
+                    quantity=meal_data['quantity'],
+                    price_per_person=meal.price_per_person,
+                    serving_time=serving_time
+                )
+            except (HallMeal.DoesNotExist, ValueError):
+                continue
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'تم إرسال طلب الحجز بنجاح',
+            'redirect_url': f'/booking/success/{booking.booking_id}/'
+        })
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'message': f'حدث خطأ: {str(e)}'})
+
+def booking_success(request, booking_id):
+    """صفحة نجاح الحجز"""
+    booking = get_object_or_404(Booking, booking_id=booking_id)
+    
+    context = {
+        'booking': booking,
+    }
+    return render(request, 'hall_booking/booking/success.html', context)

@@ -1,0 +1,728 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}اختيار الوجبات - حجز {{ hall.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+:root {
+    --gold-primary: #FFD700;
+    --gold-secondary: #FFA500;
+    --gold-dark: #B8860B;
+    --black-primary: #000000;
+    --black-secondary: #1a1a1a;
+    --black-tertiary: #2d2d2d;
+    --black-light: #404040;
+}
+
+.booking-wizard-section {
+    background: linear-gradient(135deg, var(--black-primary) 0%, var(--black-secondary) 100%);
+    min-height: 100vh;
+    padding: 2rem 0;
+}
+
+.wizard-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+/* Progress Bar */
+.progress-bar {
+    background: rgba(26, 26, 26, 0.95);
+    border-radius: 20px;
+    padding: 2rem;
+    margin-bottom: 3rem;
+    border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+.progress-steps {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+}
+
+.progress-steps::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: rgba(255, 215, 0, 0.3);
+    z-index: 1;
+}
+
+.progress-steps::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 66.66%;
+    height: 2px;
+    background: var(--gold-primary);
+    z-index: 2;
+    transition: width 0.3s ease;
+}
+
+.step {
+    background: rgba(45, 45, 45, 0.8);
+    border: 2px solid rgba(255, 215, 0, 0.3);
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.6);
+    font-weight: 700;
+    position: relative;
+    z-index: 3;
+    transition: all 0.3s ease;
+}
+
+.step.completed {
+    background: var(--gold-primary);
+    border-color: var(--gold-primary);
+    color: var(--black-primary);
+}
+
+.step.active {
+    background: var(--gold-primary);
+    border-color: var(--gold-primary);
+    color: var(--black-primary);
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+}
+
+.step-label {
+    position: absolute;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: var(--gold-primary);
+    font-size: 0.9rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* Meals Section */
+.meals-section {
+    background: rgba(26, 26, 26, 0.95);
+    border-radius: 20px;
+    padding: 3rem;
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    margin-bottom: 2rem;
+}
+
+.section-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.section-header h2 {
+    color: var(--gold-primary);
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+}
+
+.section-header p {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 1.1rem;
+}
+
+.meal-types {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.meal-type-filter {
+    background: rgba(45, 45, 45, 0.5);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    color: rgba(255, 255, 255, 0.8);
+    padding: 0.75rem 1.5rem;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.meal-type-filter:hover,
+.meal-type-filter.active {
+    background: var(--gold-primary);
+    color: var(--black-primary);
+    border-color: var(--gold-primary);
+}
+
+.meals-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 2rem;
+}
+
+.meal-card {
+    background: rgba(45, 45, 45, 0.5);
+    border-radius: 15px;
+    padding: 2rem;
+    border: 2px solid rgba(255, 215, 0, 0.2);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+}
+
+.meal-card:hover {
+    border-color: var(--gold-primary);
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(255, 215, 0, 0.2);
+}
+
+.meal-card.selected {
+    border-color: var(--gold-primary);
+    background: rgba(255, 215, 0, 0.1);
+    box-shadow: 0 15px 30px rgba(255, 215, 0, 0.3);
+}
+
+.meal-checkbox {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 24px;
+    height: 24px;
+    accent-color: var(--gold-primary);
+}
+
+.meal-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.meal-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, var(--gold-primary) 0%, var(--gold-secondary) 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--black-primary);
+    font-size: 1.5rem;
+}
+
+.meal-info h3 {
+    color: var(--gold-primary);
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.meal-type {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.meal-price {
+    color: var(--gold-secondary);
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-top: 0.25rem;
+}
+
+.meal-description {
+    color: rgba(255, 255, 255, 0.8);
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+.meal-badges {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.meal-badge {
+    background: #28a745;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
+}
+
+.meal-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.min-order {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.9rem;
+}
+
+.quantity-selector {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.quantity-label {
+    color: var(--gold-primary);
+    font-weight: 600;
+}
+
+.quantity-input {
+    background: rgba(45, 45, 45, 0.8);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    border-radius: 8px;
+    color: white;
+    padding: 0.5rem;
+    width: 80px;
+    text-align: center;
+}
+
+.serving-time {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.time-label {
+    color: var(--gold-primary);
+    font-weight: 600;
+}
+
+.time-input {
+    background: rgba(45, 45, 45, 0.8);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    border-radius: 8px;
+    color: white;
+    padding: 0.5rem;
+}
+
+/* Navigation */
+.navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2rem 0;
+}
+
+.nav-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem 2rem;
+    border-radius: 15px;
+    text-decoration: none;
+    font-weight: 700;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.btn-secondary {
+    background: rgba(45, 45, 45, 0.8);
+    color: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+.btn-secondary:hover {
+    background: rgba(45, 45, 45, 1);
+    color: white;
+    border-color: var(--gold-primary);
+    text-decoration: none;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--gold-primary) 0%, var(--gold-secondary) 100%);
+    color: var(--black-primary);
+    box-shadow: 0 10px 25px rgba(255, 215, 0, 0.3);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 35px rgba(255, 215, 0, 0.4);
+    text-decoration: none;
+    color: var(--black-primary);
+}
+
+/* Summary */
+.selection-summary {
+    background: rgba(45, 45, 45, 0.5);
+    border-radius: 15px;
+    padding: 1.5rem;
+    margin-top: 2rem;
+    border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+.summary-header {
+    color: var(--gold-primary);
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.summary-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(255, 215, 0, 0.1);
+}
+
+.summary-item:last-child {
+    border-bottom: none;
+    font-weight: 700;
+    color: var(--gold-primary);
+}
+
+.summary-name {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.summary-price {
+    color: var(--gold-primary);
+    font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .wizard-container {
+        padding: 0 0.5rem;
+    }
+    
+    .meals-section {
+        padding: 2rem;
+    }
+    
+    .meals-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .progress-steps {
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    
+    .step-label {
+        position: static;
+        transform: none;
+        margin-top: 0.5rem;
+    }
+    
+    .navigation {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .nav-btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .meal-types {
+        justify-content: flex-start;
+        overflow-x: auto;
+        padding-bottom: 0.5rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="booking-wizard-section">
+    <div class="wizard-container">
+        <!-- Progress Bar -->
+        <div class="progress-bar">
+            <div class="progress-steps">
+                <div class="step completed">
+                    <i class="fas fa-calendar"></i>
+                    <div class="step-label">التاريخ</div>
+                </div>
+                <div class="step completed">
+                    <i class="fas fa-clock"></i>
+                    <div class="step-label">الوقت</div>
+                </div>
+                <div class="step completed">
+                    <i class="fas fa-concierge-bell"></i>
+                    <div class="step-label">الخدمات</div>
+                </div>
+                <div class="step active">
+                    <i class="fas fa-utensils"></i>
+                    <div class="step-label">الوجبات</div>
+                </div>
+                <div class="step">
+                    <i class="fas fa-user"></i>
+                    <div class="step-label">المعلومات</div>
+                </div>
+                <div class="step">
+                    <i class="fas fa-check"></i>
+                    <div class="step-label">التأكيد</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Meals Section -->
+        <div class="meals-section">
+            <div class="section-header">
+                <h2>اختر الوجبات</h2>
+                <p>يمكنك اختيار الوجبات المناسبة لحدثك (اختياري)</p>
+            </div>
+
+            {% if hall_meals %}
+            <!-- Meal Type Filters -->
+            <div class="meal-types">
+                <button class="meal-type-filter active" onclick="filterMeals('all')">جميع الوجبات</button>
+                <button class="meal-type-filter" onclick="filterMeals('breakfast')">إفطار</button>
+                <button class="meal-type-filter" onclick="filterMeals('lunch')">غداء</button>
+                <button class="meal-type-filter" onclick="filterMeals('dinner')">عشاء</button>
+                <button class="meal-type-filter" onclick="filterMeals('snack')">سناك</button>
+                <button class="meal-type-filter" onclick="filterMeals('buffet')">بوفيه</button>
+            </div>
+
+            <form method="post" id="mealsForm">
+                {% csrf_token %}
+                
+                <div class="meals-grid">
+                    {% for meal in hall_meals %}
+                    <div class="meal-card" data-meal-type="{{ meal.meal_type }}" onclick="toggleMeal({{ meal.id }})">
+                        <input type="checkbox" 
+                               name="selected_meals" 
+                               value="{{ meal.id }}" 
+                               id="meal_{{ meal.id }}"
+                               class="meal-checkbox"
+                               onchange="updateSelection()">
+                        
+                        <div class="meal-header">
+                            <div class="meal-icon">
+                                <i class="fas fa-utensils"></i>
+                            </div>
+                            <div class="meal-info">
+                                <h3>{{ meal.name }}</h3>
+                                <div class="meal-type">{{ meal.get_meal_type_display }}</div>
+                                <div class="meal-price">{{ meal.price_per_person }} جنيه / فرد</div>
+                            </div>
+                        </div>
+                        
+                        {% if meal.description %}
+                        <div class="meal-description">
+                            {{ meal.description }}
+                        </div>
+                        {% endif %}
+                        
+                        <div class="meal-details">
+                            <div class="min-order">الحد الأدنى: {{ meal.min_order }} فرد</div>
+                            {% if meal.is_vegetarian %}
+                            <div class="meal-badges">
+                                <span class="meal-badge">نباتي</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="quantity-selector" style="display: none;" id="quantity_{{ meal.id }}">
+                            <span class="quantity-label">عدد الأفراد:</span>
+                            <input type="number" 
+                                   name="meal_quantity_{{ meal.id }}" 
+                                   value="{{ meal.min_order }}" 
+                                   min="{{ meal.min_order }}" 
+                                   max="1000"
+                                   class="quantity-input"
+                                   onchange="updateSelection()">
+                        </div>
+                        
+                        <div class="serving-time" style="display: none;" id="time_{{ meal.id }}">
+                            <span class="time-label">وقت التقديم:</span>
+                            <input type="time" 
+                                   name="meal_time_{{ meal.id }}" 
+                                   value="12:00"
+                                   class="time-input">
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- Selection Summary -->
+                <div class="selection-summary" id="selectionSummary" style="display: none;">
+                    <div class="summary-header">ملخص الوجبات المختارة</div>
+                    <div id="summaryContent"></div>
+                </div>
+            </form>
+            
+            {% else %}
+            <div style="text-align: center; padding: 3rem; color: rgba(255, 255, 255, 0.6);">
+                <i class="fas fa-info-circle" style="font-size: 3rem; margin-bottom: 1rem; color: var(--gold-primary);"></i>
+                <h3>لا توجد وجبات متاحة</h3>
+                <p>يمكنك المتابعة إلى الخطوة التالية</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Navigation -->
+        <div class="navigation">
+            <a href="{% url 'hall_booking:booking_step3_services' hall.id %}" class="nav-btn btn-secondary">
+                <i class="fas fa-arrow-right"></i>
+                السابق
+            </a>
+            
+            <button type="button" onclick="proceedToNext()" class="nav-btn btn-primary">
+                التالي
+                <i class="fas fa-arrow-left"></i>
+            </button>
+        </div>
+    </div>
+</section>
+
+<script>
+function filterMeals(type) {
+    // Update filter buttons
+    document.querySelectorAll('.meal-type-filter').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    event.target.classList.add('active');
+    
+    // Show/hide meals
+    document.querySelectorAll('.meal-card').forEach(card => {
+        if (type === 'all' || card.dataset.mealType === type) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+function toggleMeal(mealId) {
+    const checkbox = document.getElementById(`meal_${mealId}`);
+    const card = checkbox.closest('.meal-card');
+    const quantityDiv = document.getElementById(`quantity_${mealId}`);
+    const timeDiv = document.getElementById(`time_${mealId}`);
+    
+    checkbox.checked = !checkbox.checked;
+    
+    if (checkbox.checked) {
+        card.classList.add('selected');
+        quantityDiv.style.display = 'flex';
+        timeDiv.style.display = 'flex';
+    } else {
+        card.classList.remove('selected');
+        quantityDiv.style.display = 'none';
+        timeDiv.style.display = 'none';
+    }
+    
+    updateSelection();
+}
+
+function updateSelection() {
+    const selectedMeals = document.querySelectorAll('input[name="selected_meals"]:checked');
+    const summaryDiv = document.getElementById('selectionSummary');
+    const summaryContent = document.getElementById('summaryContent');
+    
+    if (selectedMeals.length > 0) {
+        summaryDiv.style.display = 'block';
+        let totalPrice = 0;
+        let summaryHTML = '';
+        
+        selectedMeals.forEach(checkbox => {
+            const mealId = checkbox.value;
+            const mealName = checkbox.closest('.meal-card').querySelector('h3').textContent;
+            const mealPrice = parseFloat(checkbox.closest('.meal-card').querySelector('.meal-price').textContent.replace(' جنيه / فرد', ''));
+            const quantityInput = document.querySelector(`input[name="meal_quantity_${mealId}"]`);
+            const quantity = quantityInput ? parseInt(quantityInput.value) : 1;
+            const itemTotal = mealPrice * quantity;
+            
+            totalPrice += itemTotal;
+            
+            summaryHTML += `
+                <div class="summary-item">
+                    <span class="summary-name">${mealName} (${quantity} فرد)</span>
+                    <span class="summary-price">${itemTotal} جنيه</span>
+                </div>
+            `;
+        });
+        
+        summaryHTML += `
+            <div class="summary-item">
+                <span class="summary-name">إجمالي الوجبات</span>
+                <span class="summary-price">${totalPrice} جنيه</span>
+            </div>
+        `;
+        
+        summaryContent.innerHTML = summaryHTML;
+    } else {
+        summaryDiv.style.display = 'none';
+    }
+}
+
+function proceedToNext() {
+    // Save selected meals to session storage
+    const selectedMeals = [];
+    const checkboxes = document.querySelectorAll('input[name="selected_meals"]:checked');
+    
+    checkboxes.forEach(checkbox => {
+        const mealId = checkbox.value;
+        const quantityInput = document.querySelector(`input[name="meal_quantity_${mealId}"]`);
+        const timeInput = document.querySelector(`input[name="meal_time_${mealId}"]`);
+        const quantity = quantityInput ? parseInt(quantityInput.value) : 1;
+        const servingTime = timeInput ? timeInput.value : '12:00';
+        
+        selectedMeals.push({
+            id: mealId,
+            quantity: quantity,
+            serving_time: servingTime
+        });
+    });
+    
+    sessionStorage.setItem('selectedMeals', JSON.stringify(selectedMeals));
+    
+    // Proceed to next step
+    window.location.href = "{% url 'hall_booking:booking_step5_info' hall.id %}";
+}
+
+// Prevent checkbox click from triggering card click
+document.querySelectorAll('.meal-checkbox').forEach(checkbox => {
+    checkbox.addEventListener('click', function(e) {
+        e.stopPropagation();
+    });
+});
+
+// Load previously selected meals from session storage
+document.addEventListener('DOMContentLoaded', function() {
+    const savedMeals = sessionStorage.getItem('selectedMeals');
+    if (savedMeals) {
+        const selectedMeals = JSON.parse(savedMeals);
+        selectedMeals.forEach(meal => {
+            const checkbox = document.getElementById(`meal_${meal.id}`);
+            if (checkbox) {
+                checkbox.checked = true;
+                const card = checkbox.closest('.meal-card');
+                const quantityDiv = document.getElementById(`quantity_${meal.id}`);
+                const timeDiv = document.getElementById(`time_${meal.id}`);
+                const quantityInput = document.querySelector(`input[name="meal_quantity_${meal.id}"]`);
+                const timeInput = document.querySelector(`input[name="meal_time_${meal.id}"]`);
+                
+                card.classList.add('selected');
+                quantityDiv.style.display = 'flex';
+                timeDiv.style.display = 'flex';
+                
+                if (quantityInput) {
+                    quantityInput.value = meal.quantity;
+                }
+                if (timeInput) {
+                    timeInput.value = meal.serving_time;
+                }
+            }
+        });
+        updateSelection();
+    }
+});
+</script>
+{% endblock %}

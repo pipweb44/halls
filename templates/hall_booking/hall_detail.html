@@ -325,6 +325,101 @@
     color: var(--gold-secondary);
     text-decoration: underline;
 }
+
+/* Services Section */
+.hall-services, .hall-meals {
+    margin-bottom: 2rem;
+}
+
+.hall-services h3, .hall-meals h3 {
+    color: var(--gold-primary);
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.services-grid, .meals-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.service-item, .meal-item {
+    background: rgba(45, 45, 45, 0.5);
+    border-radius: 15px;
+    padding: 1.5rem;
+    border: 1px solid rgba(255, 215, 0, 0.2);
+    transition: all 0.3s ease;
+    display: flex;
+    gap: 1rem;
+}
+
+.service-item:hover, .meal-item:hover {
+    background: rgba(45, 45, 45, 0.8);
+    border-color: var(--gold-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(255, 215, 0, 0.2);
+}
+
+.service-icon, .meal-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, var(--gold-primary) 0%, var(--gold-secondary) 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--black-primary);
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.service-content, .meal-content {
+    flex: 1;
+}
+
+.service-content h4, .meal-content h4 {
+    color: var(--gold-primary);
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin: 0 0 0.5rem 0;
+}
+
+.service-content p, .meal-content p {
+    color: rgba(255, 255, 255, 0.8);
+    margin: 0 0 1rem 0;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.service-price, .meal-price {
+    color: var(--gold-primary);
+    font-size: 1.1rem;
+    font-weight: 700;
+    background: rgba(255, 215, 0, 0.1);
+    padding: 0.5rem 1rem;
+    border-radius: 10px;
+    display: inline-block;
+}
+
+.meal-type {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.meal-badge {
+    background: #28a745;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    display: inline-block;
+    margin-top: 0.5rem;
+}
 </style>
 {% endblock %}
 
@@ -433,6 +528,52 @@
             </div>
             {% endif %}
 
+            <!-- Services Section -->
+            {% if hall_services %}
+            <div class="hall-services">
+                <h3>الخدمات المتاحة</h3>
+                <div class="services-grid">
+                    {% for service in hall_services %}
+                    <div class="service-item">
+                        <div class="service-icon">
+                            <i class="fas fa-concierge-bell"></i>
+                        </div>
+                        <div class="service-content">
+                            <h4>{{ service.name }}</h4>
+                            <p>{{ service.description|default:"" }}</p>
+                            <div class="service-price">{{ service.price }} جنيه</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Meals Section -->
+            {% if hall_meals %}
+            <div class="hall-meals">
+                <h3>الوجبات المتاحة</h3>
+                <div class="meals-grid">
+                    {% for meal in hall_meals %}
+                    <div class="meal-item">
+                        <div class="meal-icon">
+                            <i class="fas fa-utensils"></i>
+                        </div>
+                        <div class="meal-content">
+                            <h4>{{ meal.name }}</h4>
+                            <div class="meal-type">{{ meal.get_meal_type_display }}</div>
+                            <p>{{ meal.description|default:"" }}</p>
+                            <div class="meal-price">{{ meal.price_per_person }} جنيه / فرد</div>
+                            {% if meal.is_vegetarian %}
+                            <div class="meal-badge">نباتي</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
             <!-- Booking Section -->
             <div class="booking-section">
                 <a href="{% url 'hall_booking:booking_step1_date' hall.id %}" class="booking-btn">
@@ -505,6 +646,20 @@
 
     .similar-halls-grid {
         grid-template-columns: 1fr;
+    }
+
+    .services-grid, .meals-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .service-item, .meal-item {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .service-icon, .meal-icon {
+        align-self: center;
+        margin-bottom: 1rem;
     }
 }
 

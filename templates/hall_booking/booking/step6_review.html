@@ -1,0 +1,483 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}مراجعة الحجز - {{ hall.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+:root {
+    --gold-primary: #FFD700;
+    --gold-secondary: #FFA500;
+    --black-primary: #000000;
+    --black-secondary: #1a1a1a;
+}
+
+.booking-wizard-section {
+    background: linear-gradient(135deg, var(--black-primary) 0%, var(--black-secondary) 100%);
+    min-height: 100vh;
+    padding: 2rem 0;
+}
+
+.wizard-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+.progress-bar {
+    background: rgba(26, 26, 26, 0.95);
+    border-radius: 20px;
+    padding: 2rem;
+    margin-bottom: 3rem;
+    border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+.progress-steps {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+}
+
+.progress-steps::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--gold-primary);
+    z-index: 1;
+}
+
+.step {
+    background: var(--gold-primary);
+    border: 2px solid var(--gold-primary);
+    border-radius: 50%;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--black-primary);
+    font-weight: 700;
+    position: relative;
+    z-index: 3;
+}
+
+.step.active {
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+}
+
+.step-label {
+    position: absolute;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: var(--gold-primary);
+    font-size: 0.9rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.review-section {
+    background: rgba(26, 26, 26, 0.95);
+    border-radius: 20px;
+    padding: 3rem;
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    margin-bottom: 2rem;
+}
+
+.section-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.section-header h2 {
+    color: var(--gold-primary);
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+}
+
+.review-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.review-card {
+    background: rgba(45, 45, 45, 0.5);
+    border-radius: 15px;
+    padding: 2rem;
+    border: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.card-icon {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, var(--gold-primary) 0%, var(--gold-secondary) 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--black-primary);
+    font-size: 1.2rem;
+}
+
+.card-title {
+    color: var(--gold-primary);
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(255, 215, 0, 0.1);
+}
+
+.info-label {
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 600;
+}
+
+.info-value {
+    color: var(--gold-primary);
+    font-weight: 600;
+}
+
+.total-summary {
+    background: rgba(255, 215, 0, 0.1);
+    border-radius: 15px;
+    padding: 2rem;
+    border: 2px solid var(--gold-primary);
+    margin-top: 2rem;
+}
+
+.terms-section {
+    background: rgba(45, 45, 45, 0.3);
+    border-radius: 15px;
+    padding: 1.5rem;
+    margin: 2rem 0;
+}
+
+.terms-checkbox {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.terms-checkbox input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: var(--gold-primary);
+}
+
+.navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2rem 0;
+}
+
+.nav-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem 2rem;
+    border-radius: 15px;
+    text-decoration: none;
+    font-weight: 700;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-secondary {
+    background: rgba(45, 45, 45, 0.8);
+    color: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+.btn-confirm {
+    background: linear-gradient(135deg, #2ed573 0%, #1dd1a1 100%);
+    color: white;
+    box-shadow: 0 10px 25px rgba(46, 213, 115, 0.3);
+    font-size: 1.1rem;
+    padding: 1.25rem 2.5rem;
+}
+
+@media (max-width: 768px) {
+    .review-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .navigation {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .nav-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="booking-wizard-section">
+    <div class="wizard-container">
+        <!-- Progress Bar -->
+        <div class="progress-bar">
+            <div class="progress-steps">
+                <div class="step completed">
+                    <i class="fas fa-calendar"></i>
+                    <div class="step-label">التاريخ</div>
+                </div>
+                <div class="step completed">
+                    <i class="fas fa-clock"></i>
+                    <div class="step-label">الوقت</div>
+                </div>
+                <div class="step completed">
+                    <i class="fas fa-concierge-bell"></i>
+                    <div class="step-label">الخدمات</div>
+                </div>
+                <div class="step completed">
+                    <i class="fas fa-utensils"></i>
+                    <div class="step-label">الوجبات</div>
+                </div>
+                <div class="step completed">
+                    <i class="fas fa-user"></i>
+                    <div class="step-label">المعلومات</div>
+                </div>
+                <div class="step active">
+                    <i class="fas fa-check"></i>
+                    <div class="step-label">التأكيد</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Review Section -->
+        <div class="review-section">
+            <div class="section-header">
+                <h2>مراجعة وتأكيد الحجز</h2>
+                <p>يرجى مراجعة تفاصيل حجزك قبل التأكيد</p>
+            </div>
+
+            <div class="review-grid">
+                <!-- Hall Information -->
+                <div class="review-card">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-building"></i>
+                        </div>
+                        <h3 class="card-title">القاعة</h3>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">الاسم:</span>
+                        <span class="info-value">{{ hall.name }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">الموقع:</span>
+                        <span class="info-value">{{ hall.city.name }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">السعة:</span>
+                        <span class="info-value">{{ hall.capacity }} شخص</span>
+                    </div>
+                </div>
+
+                <!-- Booking Details -->
+                <div class="review-card">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-calendar-alt"></i>
+                        </div>
+                        <h3 class="card-title">تفاصيل الحجز</h3>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">التاريخ:</span>
+                        <span class="info-value" id="booking-date">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">الوقت:</span>
+                        <span class="info-value" id="booking-time">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">المدة:</span>
+                        <span class="info-value" id="duration">-</span>
+                    </div>
+                </div>
+
+                <!-- Customer Information -->
+                <div class="review-card">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <h3 class="card-title">معلومات العميل</h3>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">الاسم:</span>
+                        <span class="info-value" id="customer-name">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">الهاتف:</span>
+                        <span class="info-value" id="customer-phone">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">البريد:</span>
+                        <span class="info-value" id="customer-email">-</span>
+                    </div>
+                </div>
+
+                <!-- Event Information -->
+                <div class="review-card">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <h3 class="card-title">تفاصيل الحدث</h3>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">العنوان:</span>
+                        <span class="info-value" id="event-title">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">عدد الحضور:</span>
+                        <span class="info-value" id="attendees-count">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Summary -->
+            <div class="total-summary">
+                <h3 style="color: var(--gold-primary); text-align: center; margin-bottom: 1.5rem;">ملخص التكلفة</h3>
+                <div class="info-row">
+                    <span class="info-label">تكلفة القاعة:</span>
+                    <span class="info-value" id="hall-cost">0 جنيه</span>
+                </div>
+                <div class="info-row" style="font-size: 1.2rem; font-weight: 700; color: var(--gold-primary);">
+                    <span>الإجمالي:</span>
+                    <span id="total-cost">0 جنيه</span>
+                </div>
+            </div>
+
+            <!-- Terms -->
+            <div class="terms-section">
+                <div class="terms-checkbox">
+                    <input type="checkbox" id="terms-agreement" required>
+                    <label for="terms-agreement" style="color: rgba(255, 255, 255, 0.8);">
+                        أوافق على الشروط والأحكام وسياسة الإلغاء والاسترداد
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="navigation">
+            <a href="{% url 'hall_booking:booking_step5_info' hall.id %}" class="nav-btn btn-secondary">
+                <i class="fas fa-arrow-right"></i>
+                السابق
+            </a>
+            
+            <button type="button" onclick="confirmBooking()" class="nav-btn btn-confirm" id="confirmBtn" disabled>
+                <i class="fas fa-check-circle"></i>
+                تأكيد الحجز
+            </button>
+        </div>
+    </div>
+</section>
+
+<script>
+const hallPrice = {{ hall.price_per_hour }};
+
+function loadBookingData() {
+    // Load saved data
+    const dateTime = JSON.parse(sessionStorage.getItem('bookingDateTime') || '{}');
+    const info = JSON.parse(sessionStorage.getItem('bookingInfo') || '{}');
+    
+    // Display data
+    if (dateTime.date) document.getElementById('booking-date').textContent = dateTime.date;
+    if (dateTime.start_time && dateTime.end_time) {
+        document.getElementById('booking-time').textContent = `${dateTime.start_time} - ${dateTime.end_time}`;
+        
+        // Calculate duration and cost
+        const start = new Date(`2000-01-01 ${dateTime.start_time}`);
+        const end = new Date(`2000-01-01 ${dateTime.end_time}`);
+        const hours = (end - start) / (1000 * 60 * 60);
+        
+        document.getElementById('duration').textContent = `${hours} ساعة`;
+        
+        const cost = hours * hallPrice;
+        document.getElementById('hall-cost').textContent = `${cost} جنيه`;
+        document.getElementById('total-cost').textContent = `${cost} جنيه`;
+    }
+    
+    if (info.customer_name) document.getElementById('customer-name').textContent = info.customer_name;
+    if (info.customer_phone) document.getElementById('customer-phone').textContent = info.customer_phone;
+    if (info.customer_email) document.getElementById('customer-email').textContent = info.customer_email;
+    if (info.event_title) document.getElementById('event-title').textContent = info.event_title;
+    if (info.attendees_count) document.getElementById('attendees-count').textContent = info.attendees_count + ' شخص';
+}
+
+function confirmBooking() {
+    if (!document.getElementById('terms-agreement').checked) {
+        alert('يرجى الموافقة على الشروط والأحكام');
+        return;
+    }
+    
+    // Collect booking data
+    const bookingData = {
+        hall_id: {{ hall.id }},
+        booking_datetime: JSON.parse(sessionStorage.getItem('bookingDateTime')),
+        customer_info: JSON.parse(sessionStorage.getItem('bookingInfo')),
+        selected_services: JSON.parse(sessionStorage.getItem('selectedServices') || '[]'),
+        selected_meals: JSON.parse(sessionStorage.getItem('selectedMeals') || '[]')
+    };
+    
+    // Submit booking
+    fetch("{% url 'hall_booking:confirm_booking' hall.id %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify(bookingData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            sessionStorage.clear();
+            window.location.href = data.redirect_url;
+        } else {
+            alert('حدث خطأ: ' + data.message);
+        }
+    })
+    .catch(error => {
+        alert('حدث خطأ في الاتصال');
+        console.error(error);
+    });
+}
+
+// Enable confirm button when terms are accepted
+document.getElementById('terms-agreement').addEventListener('change', function() {
+    document.getElementById('confirmBtn').disabled = !this.checked;
+});
+
+// Load data on page load
+document.addEventListener('DOMContentLoaded', loadBookingData);
+</script>
+{% endblock %}

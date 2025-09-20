@@ -19,11 +19,19 @@
                 </div>
                 <div class="step">
                     <div class="step-number">3</div>
-                    <div class="step-title">معلومات التواصل</div>
+                    <div class="step-title">الخدمات</div>
                 </div>
                 <div class="step">
                     <div class="step-number">4</div>
-                    <div class="step-title">مراجعة وإرسال</div>
+                    <div class="step-title">الوجبات</div>
+                </div>
+                <div class="step">
+                    <div class="step-number">5</div>
+                    <div class="step-title">المعلومات</div>
+                </div>
+                <div class="step">
+                    <div class="step-number">6</div>
+                    <div class="step-title">التأكيد</div>
                 </div>
             </div>
         </div>
@@ -104,7 +112,7 @@
                             <a href="{% url 'hall_booking:hall_detail' hall.id %}" class="btn btn-outline-secondary">
                                 <i class="fas fa-arrow-right me-2"></i>العودة للقاعة
                             </a>
-                            <button type="submit" class="btn btn-primary btn-lg">
+                            <button type="button" onclick="proceedToNext()" class="btn btn-primary btn-lg">
                                 التالي - اختيار الوقت
                                 <i class="fas fa-arrow-left ms-2"></i>
                             </button>
@@ -603,25 +611,45 @@ body {
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const dateInput = document.getElementById('date');
-    const bookedDates = {{ booked_dates|safe }};
     
-    // تعطيل التواريخ المحجوزة
-    dateInput.addEventListener('input', function() {
-        const selectedDate = this.value;
-        if (bookedDates.includes(selectedDate)) {
-            alert('هذا التاريخ محجوز بالفعل، يرجى اختيار تاريخ آخر');
-            this.value = '';
-        }
-    });
+    // Set minimum date to today
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+    dateInput.min = todayStr;
     
-    // منع اختيار التواريخ المحجوزة
+    // Set maximum date to 2 months from now
+    const maxDate = new Date();
+    maxDate.setMonth(maxDate.getMonth() + 2);
+    const maxDateStr = maxDate.toISOString().split('T')[0];
+    dateInput.max = maxDateStr;
+    
+    // Load previously selected date
+    const savedDate = sessionStorage.getItem('selectedDate');
+    if (savedDate) {
+        dateInput.value = savedDate;
+    }
+    
+    // Save date when changed
     dateInput.addEventListener('change', function() {
-        const selectedDate = this.value;
-        if (bookedDates.includes(selectedDate)) {
-            alert('هذا التاريخ محجوز بالفعل، يرجى اختيار تاريخ آخر');
-            this.value = '';
-        }
+        sessionStorage.setItem('selectedDate', this.value);
     });
 });
+
+function proceedToNext() {
+    const dateInput = document.getElementById('date');
+    const selectedDate = dateInput.value;
+    
+    if (!selectedDate) {
+        alert('يرجى اختيار التاريخ أولاً');
+        dateInput.focus();
+        return;
+    }
+    
+    // Save date to session storage
+    sessionStorage.setItem('selectedDate', selectedDate);
+    
+    // Proceed to next step
+    window.location.href = "{% url 'hall_booking:booking_step2_time' hall.id %}";
+}
 </script>
 {% endblock %}
