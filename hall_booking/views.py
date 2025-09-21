@@ -1996,6 +1996,7 @@ def hall_schedule_management(request, hall_id):
             return redirect('hall_booking:home')
     
     from datetime import datetime, timedelta
+    import calendar
     
     # الحصول على التاريخ المحدد أو التاريخ الحالي
     selected_date = request.GET.get('date')
@@ -2007,46 +2008,131 @@ def hall_schedule_management(request, hall_id):
     else:
         selected_date = datetime.now().date()
     
-    # الحجوزات في التاريخ المحدد
-    bookings = Booking.objects.filter(
-        hall=hall,
-        start_datetime__date=selected_date
-    ).order_by('start_datetime')
-    
-    # إنشاء جدول زمني (من 8 صباحاً إلى 11 مساءً)
-    time_slots = []
-    for hour in range(8, 23):
-        for minute in [0, 30]:
-            time_str = f"{hour:02d}:{minute:02d}"
-            
-            # التحقق من وجود حجز في هذا الوقت
-            slot_datetime = datetime.combine(selected_date, datetime.strptime(time_str, '%H:%M').time())
-            is_booked = bookings.filter(
-                start_datetime__lte=slot_datetime,
-                end_datetime__gt=slot_datetime
-            ).exists()
-            
-            # الحصول على تفاصيل الحجز إن وجد
-            booking_details = None
-            if is_booked:
-                booking_details = bookings.filter(
-                    start_datetime__lte=slot_datetime,
-                    end_datetime__gt=slot_datetime
-                ).first()
-            
-            time_slots.append({
-                'time': time_str,
-                'datetime': slot_datetime,
-                'is_booked': is_booked,
-                'booking': booking_details
-            })
+    # الحصول على نوع العرض
+    view_type = request.GET.get('view', 'day')
     
     context = {
         'hall': hall,
         'selected_date': selected_date,
-        'time_slots': time_slots,
-        'bookings': bookings,
+        'view_type': view_type,
     }
+    
+    if view_type == 'day':
+        # عرض اليوم الواحد
+        bookings = Booking.objects.filter(
+            hall=hall,
+            start_datetime__date=selected_date
+        ).order_by('start_datetime')
+        
+        # إنشاء جدول زمني (من 8 صباحاً إلى 11 مساءً)
+        time_slots = []
+        for hour in range(8, 23):
+            for minute in [0, 30]:
+                time_str = f"{hour:02d}:{minute:02d}"
+                
+                # التحقق من وجود حجز في هذا الوقت
+                slot_datetime = datetime.combine(selected_date, datetime.strptime(time_str, '%H:%M').time())
+                is_booked = bookings.filter(
+                    start_datetime__lte=slot_datetime,
+                    end_datetime__gt=slot_datetime
+                ).exists()
+                
+                # الحصول على تفاصيل الحجز إن وجد
+                booking_details = None
+                if is_booked:
+                    booking_details = bookings.filter(
+                        start_datetime__lte=slot_datetime,
+                        end_datetime__gt=slot_datetime
+                    ).first()
+                
+                time_slots.append({
+                    'time': time_str,
+                    'datetime': slot_datetime,
+                    'is_booked': is_booked,
+                    'booking': booking_details
+                })
+        
+        context.update({
+            'time_slots': time_slots,
+            'bookings': bookings,
+        })
+    
+    elif view_type == 'week':
+        # عرض الأسبوع
+        # الحصول على بداية ونهاية الأسبوع
+        week_start = selected_date - timedelta(days=selected_date.weekday())
+        week_end = week_start + timedelta(days=6)
+        
+        # الحصول على حجوزات الأسبوع
+        week_bookings = Booking.objects.filter(
+            hall=hall,
+            start_datetime__date__range=[week_start, week_end]
+        ).order_by('start_datetime')
+        
+        # تنظيم البيانات حسب الأيام
+        week_days = []
+        for i in range(7):
+            day_date = week_start + timedelta(days=i)
+            day_bookings = week_bookings.filter(start_datetime__date=day_date)
+            week_days.append({
+                'date': day_date,
+                'bookings': day_bookings
+            })
+        
+        context.update({
+            'week_start': week_start,
+            'week_end': week_end,
+            'week_days': week_days,
+            'hours_range': range(8, 23),
+        })
+    
+    elif view_type == 'month':
+        # عرض الشهر
+        # الحصول على بداية ونهاية الشهر
+        month_start = selected_date.replace(day=1)
+        next_month = month_start.replace(month=month_start.month % 12 + 1) if month_start.month < 12 else month_start.replace(year=month_start.year + 1, month=1)
+        month_end = next_month - timedelta(days=1)
+        
+        # الحصول على حجوزات الشهر
+        month_bookings = Booking.objects.filter(
+            hall=hall,
+            start_datetime__date__range=[month_start, month_end]
+        ).order_by('start_datetime')
+        
+        # إنشاء التقويم
+        cal = calendar.monthcalendar(selected_date.year, selected_date.month)
+        month_weeks = []
+        
+        for week in cal:
+            week_data = []
+            for day in week:
+                if day == 0:
+                    # يوم من الشهر السابق أو التالي
+                    week_data.append({
+                        'day': '',
+                        'date': None,
+                        'bookings': [],
+                        'is_other_month': True,
+                        'is_today': False
+                    })
+                else:
+                    day_date = selected_date.replace(day=day)
+                    day_bookings = month_bookings.filter(start_datetime__date=day_date)
+                    is_today = day_date == datetime.now().date()
+                    
+                    week_data.append({
+                        'day': day,
+                        'date': day_date,
+                        'bookings': day_bookings,
+                        'is_other_month': False,
+                        'is_today': is_today
+                    })
+            month_weeks.append(week_data)
+        
+        context.update({
+            'month_weeks': month_weeks,
+        })
+    
     return render(request, 'hall_booking/manager/schedule_management.html', context)
 
 @login_required

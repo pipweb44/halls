@@ -65,6 +65,37 @@
     display: flex;
     align-items: center;
     gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.view-selector {
+    display: flex;
+    background: rgba(45, 45, 45, 0.8);
+    border-radius: 10px;
+    padding: 0.3rem;
+    gap: 0.2rem;
+}
+
+.btn-view {
+    background: transparent;
+    color: rgba(255, 215, 0, 0.7);
+    border: none;
+    padding: 0.6rem 1rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+}
+
+.btn-view:hover {
+    background: rgba(255, 215, 0, 0.1);
+    color: var(--gold-primary);
+}
+
+.btn-view.active {
+    background: var(--gold-primary);
+    color: var(--black-primary);
 }
 
 .date-input {
@@ -319,6 +350,169 @@
     line-height: 1.6;
 }
 
+/* Week View Styles */
+.week-grid {
+    background: rgba(45, 45, 45, 0.3);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.week-header {
+    display: grid;
+    grid-template-columns: 80px repeat(7, 1fr);
+    background: rgba(255, 215, 0, 0.1);
+    border-bottom: 2px solid rgba(255, 215, 0, 0.3);
+}
+
+.day-header {
+    padding: 1rem;
+    text-align: center;
+    border-right: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.day-name {
+    color: var(--gold-primary);
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.day-date {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.8rem;
+    margin-top: 0.2rem;
+}
+
+.week-content {
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.hour-row {
+    display: grid;
+    grid-template-columns: 80px repeat(7, 1fr);
+    min-height: 60px;
+    border-bottom: 1px solid rgba(255, 215, 0, 0.1);
+}
+
+.hour-label {
+    padding: 1rem;
+    background: rgba(45, 45, 45, 0.5);
+    color: var(--gold-primary);
+    font-weight: 600;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-right: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.day-cell {
+    padding: 0.5rem;
+    border-right: 1px solid rgba(255, 215, 0, 0.1);
+    position: relative;
+}
+
+.booking-block {
+    background: rgba(220, 53, 69, 0.3);
+    border: 1px solid rgba(220, 53, 69, 0.5);
+    border-radius: 5px;
+    padding: 0.3rem;
+    margin-bottom: 0.2rem;
+    font-size: 0.8rem;
+}
+
+.booking-block.admin-block {
+    background: rgba(255, 193, 7, 0.3);
+    border-color: rgba(255, 193, 7, 0.5);
+}
+
+.booking-title {
+    color: white;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.booking-time {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.7rem;
+}
+
+/* Month View Styles */
+.month-grid {
+    background: rgba(45, 45, 45, 0.3);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.month-header {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    background: rgba(255, 215, 0, 0.1);
+    border-bottom: 2px solid rgba(255, 215, 0, 0.3);
+}
+
+.weekday {
+    padding: 1rem;
+    text-align: center;
+    color: var(--gold-primary);
+    font-weight: 700;
+    border-right: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.month-body {
+    display: grid;
+    grid-template-rows: repeat(6, 1fr);
+}
+
+.month-week {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+}
+
+.month-day {
+    min-height: 100px;
+    padding: 0.5rem;
+    border-right: 1px solid rgba(255, 215, 0, 0.1);
+    border-bottom: 1px solid rgba(255, 215, 0, 0.1);
+    position: relative;
+}
+
+.month-day.other-month {
+    opacity: 0.3;
+}
+
+.month-day.today {
+    background: rgba(255, 215, 0, 0.1);
+}
+
+.day-number {
+    color: var(--gold-primary);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.day-bookings {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.mini-booking {
+    background: rgba(220, 53, 69, 0.3);
+    border: 1px solid rgba(220, 53, 69, 0.5);
+    border-radius: 3px;
+    padding: 0.2rem;
+    font-size: 0.7rem;
+    color: white;
+    text-align: center;
+    cursor: pointer;
+}
+
+.mini-booking.admin-block {
+    background: rgba(255, 193, 7, 0.3);
+    border-color: rgba(255, 193, 7, 0.5);
+}
+
 @media (max-width: 768px) {
     .header-content {
         flex-direction: column;
@@ -342,6 +536,52 @@
         flex-direction: column;
         align-items: center;
     }
+    
+    .view-selector {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .btn-view {
+        flex: 1;
+        padding: 0.5rem;
+        font-size: 0.8rem;
+    }
+    
+    .week-header {
+        grid-template-columns: 60px repeat(7, 1fr);
+    }
+    
+    .hour-row {
+        grid-template-columns: 60px repeat(7, 1fr);
+    }
+    
+    .hour-label {
+        font-size: 0.7rem;
+        padding: 0.5rem;
+    }
+    
+    .day-header {
+        padding: 0.5rem;
+    }
+    
+    .day-name {
+        font-size: 0.7rem;
+    }
+    
+    .day-date {
+        font-size: 0.6rem;
+    }
+    
+    .month-day {
+        min-height: 80px;
+        padding: 0.3rem;
+    }
+    
+    .mini-booking {
+        font-size: 0.6rem;
+        padding: 0.1rem;
+    }
 }
 </style>
 {% endblock %}
@@ -357,6 +597,17 @@
                     <p>إدارة المواعيد وحجب الأوقات غير المتاحة</p>
                 </div>
                 <div class="date-controls">
+                    <div class="view-selector">
+                        <button class="btn-view {% if view_type == 'day' %}active{% endif %}" onclick="changeView('day')">
+                            <i class="fas fa-calendar-day me-2"></i>يوم
+                        </button>
+                        <button class="btn-view {% if view_type == 'week' %}active{% endif %}" onclick="changeView('week')">
+                            <i class="fas fa-calendar-week me-2"></i>أسبوع
+                        </button>
+                        <button class="btn-view {% if view_type == 'month' %}active{% endif %}" onclick="changeView('month')">
+                            <i class="fas fa-calendar me-2"></i>شهر
+                        </button>
+                    </div>
                     <input type="date" class="date-input" id="selectedDate" value="{{ selected_date|date:'Y-m-d' }}" onchange="changeDate()">
                     <button class="btn-today" onclick="goToToday()">
                         <i class="fas fa-calendar-day me-2"></i>اليوم
@@ -369,7 +620,13 @@
         <div class="schedule-grid">
             <div class="grid-header">
                 <div class="grid-title">
-                    جدول المواعيد - {{ selected_date|date:"l, d F Y" }}
+                    {% if view_type == 'day' %}
+                        جدول المواعيد - {{ selected_date|date:"l, d F Y" }}
+                    {% elif view_type == 'week' %}
+                        جدول المواعيد الأسبوعي - أسبوع {{ week_start|date:"d F" }} إلى {{ week_end|date:"d F Y" }}
+                    {% elif view_type == 'month' %}
+                        جدول المواعيد الشهري - {{ selected_date|date:"F Y" }}
+                    {% endif %}
                 </div>
                 <div class="grid-actions">
                     <button class="btn-block-time" onclick="showBlockTimeModal()">
@@ -378,10 +635,12 @@
                 </div>
             </div>
 
+            {% if view_type == 'day' %}
+            <!-- Day View -->
             <div class="time-grid">
                 {% for slot in time_slots %}
                 <div class="time-slot {% if slot.is_booked %}{% if slot.booking.is_admin_block %}admin-block{% else %}booked{% endif %}{% else %}available{% endif %}" 
-                     onclick="{% if not slot.is_booked %}selectTimeSlot('{{ slot.time }}'){% endif %}">
+                     {% if not slot.is_booked %}onclick="selectTimeSlot('{{ slot.time }}')"{% endif %}>
                     <div class="slot-time">{{ slot.time }}</div>
                     <div class="slot-status">
                         {% if slot.is_booked %}
@@ -405,6 +664,74 @@
                 </div>
                 {% endfor %}
             </div>
+            
+            {% elif view_type == 'week' %}
+            <!-- Week View -->
+            <div class="week-grid">
+                <div class="week-header">
+                    {% for day in week_days %}
+                    <div class="day-header">
+                        <div class="day-name">{{ day.date|date:"l" }}</div>
+                        <div class="day-date">{{ day.date|date:"d/m" }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="week-content">
+                    {% for hour in hours_range %}
+                    <div class="hour-row">
+                        <div class="hour-label">{{ hour }}:00</div>
+                        {% for day in week_days %}
+                        <div class="day-cell">
+                            {% for booking in day.bookings %}
+                                {% if booking.start_datetime.hour <= hour and booking.end_datetime.hour > hour %}
+                                <div class="booking-block {% if booking.is_admin_block %}admin-block{% else %}booked{% endif %}">
+                                    <div class="booking-title">{{ booking.event_title|truncatechars:15 }}</div>
+                                    <div class="booking-time">{{ booking.start_datetime|time:"H:i" }}-{{ booking.end_datetime|time:"H:i" }}</div>
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            {% elif view_type == 'month' %}
+            <!-- Month View -->
+            <div class="month-grid">
+                <div class="month-header">
+                    <div class="weekday">الأحد</div>
+                    <div class="weekday">الاثنين</div>
+                    <div class="weekday">الثلاثاء</div>
+                    <div class="weekday">الأربعاء</div>
+                    <div class="weekday">الخميس</div>
+                    <div class="weekday">الجمعة</div>
+                    <div class="weekday">السبت</div>
+                </div>
+                
+                <div class="month-body">
+                    {% for week in month_weeks %}
+                    <div class="month-week">
+                        {% for day in week %}
+                        <div class="month-day {% if day.is_other_month %}other-month{% endif %} {% if day.is_today %}today{% endif %}">
+                            <div class="day-number">{{ day.day }}</div>
+                            <div class="day-bookings">
+                                {% for booking in day.bookings %}
+                                <div class="mini-booking {% if booking.is_admin_block %}admin-block{% else %}booked{% endif %}" 
+                                     title="{{ booking.event_title }} - {{ booking.start_datetime|time:'H:i' }}">
+                                    {{ booking.event_title|truncatechars:10 }}
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
 
             <!-- Legend -->
             <div class="legend">
@@ -503,9 +830,16 @@
 <script>
 let selectedSlots = [];
 
+function changeView(viewType) {
+    const selectedDate = document.getElementById('selectedDate').value;
+    window.location.href = `?date=${selectedDate}&view=${viewType}`;
+}
+
 function changeDate() {
     const selectedDate = document.getElementById('selectedDate').value;
-    window.location.href = `?date=${selectedDate}`;
+    const urlParams = new URLSearchParams(window.location.search);
+    const currentView = urlParams.get('view') || 'day';
+    window.location.href = `?date=${selectedDate}&view=${currentView}`;
 }
 
 function goToToday() {
