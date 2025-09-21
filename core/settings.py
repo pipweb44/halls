@@ -144,14 +144,6 @@ UNFOLD = {
     "SITE_TITLE": "نظام إدارة القاعات",
     "SITE_HEADER": "لوحة تحكم القاعات",
     "SITE_URL": "/",
-    # "SITE_ICON": {
-    #     "light": lambda request: static("images/logo-light.svg"),  # light mode
-    #     "dark": lambda request: static("images/logo-dark.svg"),  # dark mode
-    # },
-    # "SITE_LOGO": {
-    #     "light": lambda request: static("images/logo-light.svg"),  # light mode
-    #     "dark": lambda request: static("images/logo-dark.svg"),  # dark mode
-    # },
     "SITE_SYMBOL": "🏛️",  # symbol for when icon is not available
     "SHOW_HISTORY": True,  # show/hide "History" button, default: True
     "SHOW_VIEW_ON_SITE": True,  # show/hide "View on site" button, default: True
@@ -173,14 +165,6 @@ UNFOLD = {
             "800": "107 33 168",
             "900": "88 28 135",
             "950": "59 7 100",
-        },
-    },
-    "EXTENSIONS": {
-        "modeltranslation": {
-            "flags": {
-                "en": "🇬🇧",
-                "ar": "🇪🇬",
-            },
         },
     },
     "SIDEBAR": {

@@ -50,11 +50,19 @@ def get_admin_urls():
 # تطبيق المسارات المخصصة
 default_admin_site.get_urls = get_admin_urls
 
+from hall_booking import views
+from django.contrib.auth import views as auth_views
+
 urlpatterns = [
     path('admin/', admin.site.urls),  # لوحة الإدارة الافتراضية مع المسارات المخصصة
     path('admin-site/', admin_site.urls),  # لوحة الإدارة المخصصة إذا أردت الاحتفاظ بها
     
+    # Add authentication URLs for admin theme compatibility
+    path('accounts/login/', auth_views.LoginView.as_view(), name='login'),
+    path('accounts/logout/', auth_views.LogoutView.as_view(), name='logout'),
+    
     path('', include('hall_booking.urls')),
+    path('', views.home, name='index'),  # Add index URL for admin theme compatibility
 ]
 
 if settings.DEBUG:

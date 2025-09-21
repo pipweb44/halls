@@ -5,6 +5,7 @@ app_name = 'hall_booking'
 
 urlpatterns = [
     path('', views.home, name='home'),
+    path('', views.home, name='index'),  # Alias for admin theme compatibility
     path('halls/', views.halls_list, name='halls_list'),
     path('hall/<int:hall_id>/', views.hall_detail, name='hall_detail'),
     path('hall/<int:hall_id>/book/', views.booking_form, name='booking_form'),

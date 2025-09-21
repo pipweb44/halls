@@ -1,8 +1,12 @@
 from django.contrib import admin
 from django.contrib.auth.models import User
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
-from django.contrib import admin
 from django.contrib.admin import AdminSite
+
+# Configure Django Admin site headers
+admin.site.site_header = "نظام إدارة القاعات"
+admin.site.site_title = "لوحة تحكم القاعات"
+admin.site.index_title = "مرحباً بك في نظام إدارة حجز القاعات"
 from django.utils.html import format_html
 from django.urls import path
 from django.shortcuts import render
