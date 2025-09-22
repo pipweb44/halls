@@ -263,34 +263,146 @@ body {
     width: 100%;
     cursor: pointer;
     margin-top: 1rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-auth-secondary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.1), transparent);
+    transition: left 0.5s;
+}
+
+.btn-auth-secondary:hover::before {
+    left: 100%;
 }
 
 .btn-auth-secondary:hover {
     background: var(--gold-dark);
     color: var(--black-primary);
+    transform: translateY(-1px);
+    box-shadow: 0 5px 15px rgba(255, 215, 0, 0.2);
+}
+
+
+.auth-alternatives {
+    margin-top: 2rem;
+}
+
+.divider {
+    position: relative;
+    text-align: center;
+    margin: 1.5rem 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.divider::before {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--gold-dark);
+    margin-right: 1rem;
+}
+
+.divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--gold-dark);
+    margin-left: 1rem;
+}
+
+.divider span {
+    color: var(--gold-secondary);
+    font-size: 0.9rem;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.alternative-buttons {
+    margin-bottom: 1.5rem;
+}
+
+.btn-hero-secondary {
+    background: transparent;
+    border: 2px solid var(--gold-dark);
+    color: var(--gold-primary);
+    padding: 1rem 2rem;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    width: 100%;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 0.75rem;
+}
+
+.btn-hero-secondary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.1), transparent);
+    transition: left 0.5s;
+}
+
+.btn-hero-secondary:hover::before {
+    left: 100%;
+}
+
+.btn-hero-secondary:hover {
+    background: var(--gold-dark);
+    color: var(--black-primary);
+    text-decoration: none;
+    transform: translateY(-1px);
+    box-shadow: 0 5px 15px rgba(255, 215, 0, 0.2);
 }
 
 .auth-links {
-    text-align: center;
-    padding-top: 1.5rem;
-    border-top: 1px solid var(--gold-dark);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: center;
+    padding-top: 0.5rem;
 }
 
-.auth-links a {
+.forgot-link,
+.register-link {
     color: var(--gold-primary);
     text-decoration: none;
     font-weight: 500;
+    font-size: 0.9rem;
     transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    min-width: 200px;
+    justify-content: center;
 }
 
-.auth-links a:hover {
+.forgot-link:hover,
+.register-link:hover {
     color: var(--gold-secondary);
-    text-decoration: underline;
-}
-
-.auth-links p {
-    color: var(--gold-secondary);
-    margin-bottom: 0.5rem;
+    background: rgba(255, 215, 0, 0.1);
+    text-decoration: none;
 }
 
 @media (max-width: 768px) {
@@ -314,6 +426,36 @@ body {
 
     .step-line {
         width: 40px;
+    }
+
+    .btn-auth,
+    .btn-hero-secondary,
+    .btn-auth-secondary {
+        padding: 0.875rem 1.5rem;
+        font-size: 0.95rem;
+    }
+
+    .btn-hero-secondary {
+        margin-bottom: 0.5rem;
+    }
+
+    .auth-alternatives {
+        margin-top: 1.5rem;
+    }
+
+    .divider {
+        margin: 1.5rem 0;
+    }
+
+    .auth-links {
+        gap: 0.75rem;
+    }
+
+    .forgot-link,
+    .register-link {
+        min-width: auto;
+        width: 100%;
+        padding: 0.75rem;
     }
 }
 </style>
@@ -388,7 +530,7 @@ body {
                             تسجيل الدخول
                         </button>
 
-                        <a href="{% url 'hall_booking:auth_login_step1' %}" class="btn-auth-secondary">
+                        <a href="{% url 'hall_booking:auth_login_step1' %}" class="btn-hero-secondary">
                             <i class="fas fa-arrow-right me-2"></i>
                             العودة للخطوة السابقة
                         </a>
@@ -401,19 +543,19 @@ body {
                         </div>
                         
                         <div class="alternative-buttons">
-                            <a href="{% url 'hall_booking:auth_login_step1' %}" class="btn btn-hero-secondary">
-                                <i class="fas fa-arrow-right me-2"></i>
+                            <a href="{% url 'hall_booking:auth_login_step1' %}" class="btn-hero-secondary">
+                                <i class="fas fa-arrow-right"></i>
                                 تغيير البريد الإلكتروني
                             </a>
                         </div>
                         
                         <div class="auth-links">
                             <a href="{% url 'hall_booking:auth_forgot_password' %}" class="forgot-link">
-                                <i class="fas fa-key me-1"></i>
+                                <i class="fas fa-key"></i>
                                 نسيت كلمة المرور؟
                             </a>
                             <a href="{% url 'hall_booking:auth_register_step1' %}" class="register-link">
-                                <i class="fas fa-user-plus me-1"></i>
+                                <i class="fas fa-user-plus"></i>
                                 إنشاء حساب جديد
                             </a>
                         </div>
