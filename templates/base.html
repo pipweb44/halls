@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}نظام حجز القاعات الذهبي{% endblock %}</title>
+    <title>{% block title %}{{ site_settings.site_name_ar|default:"احجزلي" }}{% endblock %}</title>
     
     <!-- Bootstrap RTL CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
@@ -125,16 +125,37 @@
         }
 
         .navbar-brand {
-            font-size: 1.5rem;
-            font-weight: 800;
-            color: var(--gold-primary);
-            transition: var(--transition);
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            transition: all 0.3s ease;
+            text-decoration: none !important;
         }
 
         .navbar-brand:hover {
             transform: scale(1.05);
             filter: brightness(1.2);
+        }
+
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-image {
+            height: 40px;
+            width: auto;
+            filter: none;
+            transition: all 0.3s ease;
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--gold-primary);
+            transition: var(--transition);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            margin-left: 8px;
         }
 
         .navbar-nav .nav-link {
@@ -389,8 +410,14 @@
     <nav class="navbar navbar-expand-lg navbar-custom fixed-top">
         <div class="container">
             <a class="navbar-brand" href="{% url 'hall_booking:home' %}">
-                <i class="fas fa-crown me-2"></i>
-                نظام حجز القاعات الذهبي
+                <div class="logo-container">
+                    {% if site_settings.logo %}
+                        <img src="{{ site_settings.logo.url }}" alt="{{ site_settings.site_name_ar }}" class="logo-image">
+                    {% else %}
+                        <img src="{% static 'images/logo.svg' %}" alt="{{ site_settings.site_name_ar }}" class="logo-image">
+                    {% endif %}
+                    <span class="logo-text">{{ site_settings.site_name_ar|default:"احجزلي" }}</span>
+                </div>
             </a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -537,20 +564,50 @@
             <div class="row">
                 <div class="col-md-6">
                     <h5>
-                        <i class="fas fa-crown me-2"></i>
-                        نظام حجز القاعات الذهبي
+                        {% if site_settings.logo %}
+                            <img src="{{ site_settings.logo.url }}" alt="{{ site_settings.site_name_ar }}" style="height: 30px; width: auto; margin-left: 10px;">
+                        {% else %}
+                            <i class="fas fa-crown me-2"></i>
+                        {% endif %}
+                        {{ site_settings.site_name_ar|default:"احجزلي" }}
                     </h5>
-                    <p>نظام متطور وأنيق لحجز وإدارة القاعات والمرافق بتصميم ذهبي فاخر</p>
+                    <p>{{ site_settings.meta_description|default:"نظام متطور وأنيق لحجز وإدارة القاعات والمرافق بتصميم ذهبي فاخر" }}</p>
                     <div class="social-links mt-3">
-                        <a href="#" class="text-decoration-none me-3">
+                        {% if site_settings.facebook_url %}
+                        <a href="{{ site_settings.facebook_url }}" target="_blank" class="text-decoration-none me-3">
                             <i class="fab fa-facebook fa-2x" style="color: var(--gold-primary);"></i>
                         </a>
-                        <a href="#" class="text-decoration-none me-3">
+                        {% endif %}
+                        {% if site_settings.twitter_url %}
+                        <a href="{{ site_settings.twitter_url }}" target="_blank" class="text-decoration-none me-3">
                             <i class="fab fa-twitter fa-2x" style="color: var(--gold-primary);"></i>
                         </a>
-                        <a href="#" class="text-decoration-none me-3">
+                        {% endif %}
+                        {% if site_settings.instagram_url %}
+                        <a href="{{ site_settings.instagram_url }}" target="_blank" class="text-decoration-none me-3">
                             <i class="fab fa-instagram fa-2x" style="color: var(--gold-primary);"></i>
                         </a>
+                        {% endif %}
+                        {% if site_settings.linkedin_url %}
+                        <a href="{{ site_settings.linkedin_url }}" target="_blank" class="text-decoration-none me-3">
+                            <i class="fab fa-linkedin fa-2x" style="color: var(--gold-primary);"></i>
+                        </a>
+                        {% endif %}
+                        {% if site_settings.youtube_url %}
+                        <a href="{{ site_settings.youtube_url }}" target="_blank" class="text-decoration-none me-3">
+                            <i class="fab fa-youtube fa-2x" style="color: var(--gold-primary);"></i>
+                        </a>
+                        {% endif %}
+                        {% if site_settings.whatsapp_number %}
+                        <a href="https://wa.me/{{ site_settings.whatsapp_number }}" target="_blank" class="text-decoration-none me-3">
+                            <i class="fab fa-whatsapp fa-2x" style="color: var(--gold-primary);"></i>
+                        </a>
+                        {% endif %}
+                        {% if site_settings.telegram_url %}
+                        <a href="{{ site_settings.telegram_url }}" target="_blank" class="text-decoration-none me-3">
+                            <i class="fab fa-telegram fa-2x" style="color: var(--gold-primary);"></i>
+                        </a>
+                        {% endif %}
                     </div>
                 </div>
                 <div class="col-md-6 text-end">
@@ -570,7 +627,7 @@
             <div class="footer-bottom">
                 <p>
                     <i class="fas fa-copyright me-1"></i>
-                    2024 نظام حجز القاعات الذهبي. جميع الحقوق محفوظة.
+                    {{ site_settings.copyright_year|default:2024 }} {{ site_settings.site_name_ar|default:"احجزلي" }}. {{ site_settings.footer_text|default:"جميع الحقوق محفوظة" }}.
                     <i class="fas fa-heart mx-2" style="color: var(--gold-primary);"></i>
                     صُنع بحب وإتقان
                 </p>

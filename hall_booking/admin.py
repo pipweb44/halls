@@ -19,7 +19,7 @@ from unfold.decorators import display
 from unfold.contrib.filters.admin import RangeDateFilter
 from .models import (Category, Hall, Booking, Contact, HallImage, HallManager, 
                     Notification, Governorate, City, HallService, HallMeal, 
-                    BookingService, BookingMeal)
+                    BookingService, BookingMeal, SiteSettings)
 
 # تخصيص لوحة الإدارة
 class HallBookingAdminSite(AdminSite):
@@ -721,6 +721,59 @@ class HallImageAdmin(ModelAdmin):
             'classes': ('collapse',)
         }),
     )
+
+
+@admin.register(SiteSettings)
+class SiteSettingsAdmin(ModelAdmin):
+    """إدارة إعدادات الموقع"""
+    
+    def has_add_permission(self, request):
+        # السماح بإضافة إعداد واحد فقط
+        return not SiteSettings.objects.exists()
+    
+    def has_delete_permission(self, request, obj=None):
+        # منع حذف الإعدادات
+        return False
+    
+    fieldsets = (
+        ('معلومات الموقع الأساسية', {
+            'fields': ('site_name', 'site_name_ar', 'logo', 'favicon')
+        }),
+        ('معلومات التواصل', {
+            'fields': ('phone_primary', 'phone_secondary', 'email_primary', 'email_secondary'),
+            'classes': ('wide',)
+        }),
+        ('العنوان', {
+            'fields': ('address', 'city', 'country'),
+            'classes': ('wide',)
+        }),
+        ('وسائل التواصل الاجتماعي', {
+            'fields': ('facebook_url', 'twitter_url', 'instagram_url', 'linkedin_url', 
+                      'youtube_url', 'whatsapp_number', 'telegram_url'),
+            'classes': ('wide',)
+        }),
+        ('إعدادات إضافية', {
+            'fields': ('footer_text', 'copyright_year', 'working_hours', 'support_email'),
+            'classes': ('wide',)
+        }),
+        ('تحسين محركات البحث (SEO)', {
+            'fields': ('meta_description', 'meta_keywords'),
+            'classes': ('collapse',)
+        }),
+        ('معلومات النظام', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',),
+        }),
+    )
+    
+    readonly_fields = ('created_at', 'updated_at')
+    
+    def changelist_view(self, request, extra_context=None):
+        # إذا لم توجد إعدادات، قم بإنشائها وتوجيه إلى صفحة التحرير
+        if not SiteSettings.objects.exists():
+            settings = SiteSettings.get_settings()
+            return self.response_change(request, settings)
+        return super().changelist_view(request, extra_context)
 
 
 # Register models with the custom admin site

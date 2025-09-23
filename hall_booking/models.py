@@ -434,3 +434,71 @@ def get_notification_data(status, booking):
         }
     }
     return status_messages.get(status)
+
+class SiteSettings(models.Model):
+    """إعدادات الموقع الديناميكية"""
+    site_name = models.CharField(max_length=200, default="a7jazili", verbose_name="اسم الموقع")
+    site_name_ar = models.CharField(max_length=200, default="احجزلي", verbose_name="اسم الموقع بالعربية")
+    logo = models.ImageField(upload_to='site_logo/', blank=True, null=True, verbose_name="شعار الموقع")
+    favicon = models.ImageField(upload_to='site_icons/', blank=True, null=True, verbose_name="أيقونة الموقع")
+    
+    # معلومات التواصل
+    phone_primary = models.CharField(max_length=20, blank=True, verbose_name="رقم الهاتف الأساسي")
+    phone_secondary = models.CharField(max_length=20, blank=True, verbose_name="رقم الهاتف الثانوي")
+    email_primary = models.EmailField(blank=True, verbose_name="البريد الإلكتروني الأساسي")
+    email_secondary = models.EmailField(blank=True, verbose_name="البريد الإلكتروني الثانوي")
+    
+    # العنوان
+    address = models.TextField(blank=True, verbose_name="العنوان الكامل")
+    city = models.CharField(max_length=100, blank=True, verbose_name="المدينة")
+    country = models.CharField(max_length=100, default="مصر", verbose_name="البلد")
+    
+    # وسائل التواصل الاجتماعي
+    facebook_url = models.URLField(blank=True, verbose_name="رابط فيسبوك")
+    twitter_url = models.URLField(blank=True, verbose_name="رابط تويتر")
+    instagram_url = models.URLField(blank=True, verbose_name="رابط انستجرام")
+    linkedin_url = models.URLField(blank=True, verbose_name="رابط لينكد إن")
+    youtube_url = models.URLField(blank=True, verbose_name="رابط يوتيوب")
+    whatsapp_number = models.CharField(max_length=20, blank=True, verbose_name="رقم واتساب")
+    telegram_url = models.URLField(blank=True, verbose_name="رابط تليجرام")
+    
+    # إعدادات إضافية
+    footer_text = models.TextField(blank=True, default="جميع الحقوق محفوظة", verbose_name="نص الفوتر")
+    copyright_year = models.IntegerField(default=2024, verbose_name="سنة حقوق النشر")
+    meta_description = models.TextField(blank=True, verbose_name="وصف الموقع (SEO)")
+    meta_keywords = models.TextField(blank=True, verbose_name="كلمات مفتاحية (SEO)")
+    
+    # معلومات إضافية
+    working_hours = models.CharField(max_length=200, blank=True, verbose_name="ساعات العمل")
+    support_email = models.EmailField(blank=True, verbose_name="بريد الدعم الفني")
+    
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="تاريخ الإنشاء")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="تاريخ التحديث")
+    
+    class Meta:
+        verbose_name = "إعدادات الموقع"
+        verbose_name_plural = "إعدادات الموقع"
+    
+    def __str__(self):
+        return f"إعدادات {self.site_name_ar or self.site_name}"
+    
+    def save(self, *args, **kwargs):
+        # التأكد من وجود إعداد واحد فقط
+        if not self.pk and SiteSettings.objects.exists():
+            raise ValueError("يمكن وجود إعداد واحد فقط للموقع")
+        super().save(*args, **kwargs)
+    
+    @classmethod
+    def get_settings(cls):
+        """الحصول على إعدادات الموقع"""
+        settings, created = cls.objects.get_or_create(
+            pk=1,
+            defaults={
+                'site_name': 'a7jazili',
+                'site_name_ar': 'احجزلي',
+                'phone_primary': '+20123456789',
+                'email_primary': 'info@a7jazili.com',
+                'address': 'القاهرة، مصر',
+            }
+        )
+        return settings
