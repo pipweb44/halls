@@ -6,6 +6,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}{{ site_settings.site_name_ar|default:"احجزلي" }}{% endblock %}</title>
     
+    <!-- Favicon -->
+    {% if site_settings.favicon %}
+        <link rel="icon" type="image/png" href="{{ site_settings.favicon.url }}">
+        <link rel="shortcut icon" type="image/png" href="{{ site_settings.favicon.url }}">
+        <link rel="icon" href="{{ site_settings.favicon.url }}" sizes="any">
+    {% elif site_settings.logo %}
+        <link rel="icon" type="image/png" href="{{ site_settings.logo.url }}">
+        <link rel="shortcut icon" type="image/png" href="{{ site_settings.logo.url }}">
+        <link rel="icon" href="{{ site_settings.logo.url }}" sizes="any">
+    {% else %}
+        <link rel="icon" type="image/svg+xml" href="{% static 'images/logo.svg' %}">
+        <link rel="shortcut icon" type="image/svg+xml" href="{% static 'images/logo.svg' %}">
+        <link rel="icon" href="{% static 'images/favicon.ico' %}" sizes="any">
+    {% endif %}
+    
+    <!-- Open Graph Meta Tags -->
+    <meta property="og:title" content="{{ site_settings.site_name_ar|default:'احجزلي' }}">
+    <meta property="og:description" content="{{ site_settings.meta_description|default:'نظام متطور وأنيق لحجز وإدارة القاعات والمرافق' }}">
+    {% if site_settings.logo %}
+        <meta property="og:image" content="{{ request.build_absolute_uri }}{{ site_settings.logo.url }}">
+    {% endif %}
+    <meta property="og:type" content="website">
+    
+    <!-- Meta Description for SEO -->
+    {% if site_settings.meta_description %}
+        <meta name="description" content="{{ site_settings.meta_description }}">
+    {% endif %}
+    {% if site_settings.meta_keywords %}
+        <meta name="keywords" content="{{ site_settings.meta_keywords }}">
+    {% endif %}
+    
     <!-- Bootstrap RTL CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
     <!-- Font Awesome -->
