@@ -143,7 +143,7 @@
         }
 
         .logo-image {
-            height: 40px;
+            height: 50px;
             width: auto;
             filter: none;
             transition: all 0.3s ease;
@@ -410,14 +410,11 @@
     <nav class="navbar navbar-expand-lg navbar-custom fixed-top">
         <div class="container">
             <a class="navbar-brand" href="{% url 'hall_booking:home' %}">
-                <div class="logo-container">
-                    {% if site_settings.logo %}
-                        <img src="{{ site_settings.logo.url }}" alt="{{ site_settings.site_name_ar }}" class="logo-image">
-                    {% else %}
-                        <img src="{% static 'images/logo.svg' %}" alt="{{ site_settings.site_name_ar }}" class="logo-image">
-                    {% endif %}
-                    <span class="logo-text">{{ site_settings.site_name_ar|default:"احجزلي" }}</span>
-                </div>
+                {% if site_settings.logo %}
+                    <img src="{{ site_settings.logo.url }}" alt="{{ site_settings.site_name_ar }}" class="logo-image">
+                {% else %}
+                    <img src="{% static 'images/logo.svg' %}" alt="{{ site_settings.site_name_ar }}" class="logo-image">
+                {% endif %}
             </a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
