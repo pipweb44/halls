@@ -15,7 +15,7 @@ from django.contrib.auth.models import User
 import calendar
 import json
 from django.core.paginator import Paginator
-from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth import update_session_auth_hash, authenticate, login, logout
 from collections import defaultdict
 
 def is_admin(user):
@@ -324,125 +324,6 @@ def admin_bookings_calendar(request):
         return JsonResponse({'error': str(e)}, status=400)
 
 
-def dashboard(request):
-    """لوحة الإدارة المتقدمة"""
-    if not request.user.is_staff:
-        return redirect('hall_booking:home')
-    
-    # إحصائيات سريعة
-    total_bookings = Booking.objects.count()
-    pending_bookings = Booking.objects.filter(status='pending').count()
-    total_halls = Hall.objects.count()
-    available_halls = Hall.objects.filter(status='available').count()
-    total_users = User.objects.count()
-    
-    # الحصول على أحدث الحجوزات (5 حجوزات)
-    recent_bookings = Booking.objects.select_related('hall', 'user').order_by('-created_at')[:5]
-    
-    # الحصول على الحجوزات القادمة (التي لم تنتهي بعد)
-    now = timezone.now()
-    upcoming_bookings = Booking.objects.filter(
-        start_datetime__gte=now
-    ).select_related('hall', 'user').order_by('start_datetime')[:5]
-    
-    # الحصول على أحدث الرسائل (5 رسائل)
-    recent_messages = Contact.objects.order_by('-created_at')[:5]
-    
-    # عدد الرسائل غير المقروءة
-    unread_messages = Contact.objects.filter(is_read=False).count()
-    
-    # إحصائيات الإيرادات
-    total_revenue = Booking.objects.filter(status='completed').aggregate(total=Sum('total_price'))['total'] or 0
-    
-    # إحصائيات الحجوزات الشهرية
-    monthly_bookings = []
-    month_labels = []
-    
-    # Get the last 12 months including current month
-    for i in range(11, -1, -1):
-        month = (now.month - i - 1) % 12 + 1
-        year = now.year if now.month - i > 0 else now.year - 1
-        count = Booking.objects.filter(created_at__year=year, created_at__month=month).count()
-        monthly_bookings.append(int(count))
-        # Use abbreviated month names in Arabic
-        month_name = {
-            1: 'يناير', 2: 'فبراير', 3: 'مارس', 4: 'أبريل',
-            5: 'مايو', 6: 'يونيو', 7: 'يوليو', 8: 'أغسطس',
-            9: 'سبتمبر', 10: 'أكتوبر', 11: 'نوفمبر', 12: 'ديسمبر'
-        }.get(month, '')
-        month_labels.append(month_name)
-    
-    # إحصائيات حالة الحجوزات
-    status_data = []
-    status_labels = []
-    status_choices = dict(Booking.STATUS_CHOICES)
-    
-    for status_code, status_name in Booking.STATUS_CHOICES:
-        count = Booking.objects.filter(status=status_code).count()
-        if count > 0:  # Only include statuses with data
-            status_data.append(count)
-            status_labels.append(status_name)
-    
-    # حساب معدل إشغال القاعات
-    hall_occupancy = []
-    for hall in Hall.objects.all():
-        # Calculate occupancy rate based on bookings in the last 30 days
-        thirty_days_ago = now - timedelta(days=30)
-        bookings = Booking.objects.filter(
-            hall=hall,
-            start_datetime__gte=thirty_days_ago,
-            status__in=['confirmed', 'completed']
-        )
-        
-        # Calculate total booked hours by summing the duration between start and end times
-        total_hours = 0
-        for booking in bookings:
-            duration = booking.end_datetime - booking.start_datetime
-            total_hours += duration.total_seconds() / 3600  # Convert seconds to hours
-            
-        # Convert hours to days (assuming 24 hours in a day for occupancy calculation)
-        booking_days = total_hours / 24.0
-        
-        # Calculate occupancy rate (capped at 100%)
-        occupancy_rate = min(round((booking_days / 30.0) * 100, 1), 100.0)
-        
-        hall_occupancy.append({
-            'id': hall.id,
-            'name': hall.name,
-            'occupancy_rate': occupancy_rate
-        })
-    
-    # Convert data to JSON for the template
-    from django.utils.safestring import mark_safe
-    from django.core.serializers.json import DjangoJSONEncoder
-    import json
-    
-    context = {
-        'page_title': 'لوحة التحكم',
-        'halls_count': total_halls,
-        'available_halls': available_halls,
-        'bookings_count': total_bookings,
-        'pending_bookings_count': pending_bookings,
-        'messages_count': Contact.objects.count(),
-        'unread_messages': unread_messages,
-        'recent_bookings': recent_bookings,
-        'recent_messages': recent_messages,
-        'upcoming_bookings': upcoming_bookings,
-        'users_count': total_users,
-        'total_revenue': total_revenue,
-        'monthly_data': mark_safe(json.dumps(monthly_bookings, cls=DjangoJSONEncoder)),
-        'monthly_labels': mark_safe(json.dumps(month_labels, ensure_ascii=False, cls=DjangoJSONEncoder)),
-        'status_data': mark_safe(json.dumps(status_data, cls=DjangoJSONEncoder)),
-        'status_labels': mark_safe(json.dumps(status_labels, ensure_ascii=False, cls=DjangoJSONEncoder)),
-        'hall_occupancy': hall_occupancy,
-        'today': now.date(),
-        'now': now,
-        'total_bookings': total_bookings,
-        'total_halls': total_halls,
-        'pending_bookings': pending_bookings,
-    }
-    
-    return render(request, 'admin_dashbourd/dashboard_new.html', context)
 
 # إدارة القاعات
 @login_required
@@ -839,7 +720,11 @@ def auth_login_step2(request):
                 if 'auth_login_identifier' in request.session:
                     del request.session['auth_login_identifier']
                 messages.success(request, f'مرحباً {user.get_full_name() or user.username}!')
-                return redirect('hall_booking:dashboard')
+                # توجيه المسؤولين إلى لوحة الإدارة
+                if user.is_staff:
+                    return redirect('/admin/')
+                else:
+                    return redirect('hall_booking:home')
             else:
                 messages.error(request, 'اسم المستخدم أو البريد الإلكتروني أو كلمة المرور غير صحيحة')
         else:
@@ -901,7 +786,11 @@ def auth_register_step2(request):
                         if 'auth_data' in request.session:
                             del request.session['auth_data']
                         messages.success(request, 'تم إنشاء الحساب بنجاح!')
-                        return redirect('hall_booking:dashboard')
+                        # توجيه المسؤولين إلى لوحة الإدارة
+                        if user.is_staff:
+                            return redirect('/admin/')
+                        else:
+                            return redirect('hall_booking:home')
                     except Exception as e:
                         messages.error(request, 'حدث خطأ أثناء إنشاء الحساب')
                 else:
@@ -920,7 +809,7 @@ def auth_register_step3(request):
     
     if request.method == 'POST':
         # Here you can add email verification logic
-        # For now, we'll just redirect to dashboard
+        # For now, we'll just redirect to next step
         return redirect('hall_booking:auth_register_step2')
     
     return render(request, 'hall_booking/auth/register_step3.html')

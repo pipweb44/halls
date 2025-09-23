@@ -11,33 +11,9 @@ urlpatterns = [
     path('hall/<int:hall_id>/book/', views.booking_form, name='booking_form'),
     path('contact/', views.contact, name='contact'),
     path('about/', views.about, name='about'),
-    path('dashboard/', views.dashboard, name='dashboard'),
     path('api/check-availability/', views.check_availability, name='check_availability'),
     path('api/get-cities/', views.get_cities_by_governorate, name='get_cities_by_governorate'),
     
-    # مسارات الإدارة - بعد dashboard
-    path('dashboard/halls/', views.admin_halls_list, name='admin_halls_list'),
-    path('dashboard/halls/create/', views.admin_hall_create, name='admin_hall_create'),
-    path('dashboard/halls/<int:hall_id>/edit/', views.admin_hall_edit, name='admin_hall_edit'),
-    path('dashboard/halls/<int:hall_id>/delete/', views.admin_hall_delete, name='admin_hall_delete'),
-    
-    path('dashboard/bookings/', views.admin_bookings_list, name='admin_bookings_list'),
-    path('dashboard/bookings/<int:booking_id>/', views.admin_booking_detail, name='admin_booking_detail'),
-    path('dashboard/bookings/calendar/', views.admin_bookings_calendar, name='admin_bookings_calendar'),
-    path('dashboard/bookings/add/', views.admin_add_booking, name='admin_add_booking'),
-    path('dashboard/bookings/<int:booking_id>/delete/', views.admin_booking_delete, name='admin_booking_delete'),
-    
-    path('dashboard/contacts/', views.admin_contacts_list, name='admin_contacts_list'),
-    path('dashboard/contacts/<int:contact_id>/', views.admin_contact_detail, name='admin_contact_detail'),
-    path('dashboard/contacts/<int:contact_id>/delete/', views.admin_contact_delete, name='admin_contact_delete'),
-    
-    path('dashboard/reports/', views.admin_reports, name='admin_reports'),
-    
-    path('dashboard/users/', views.admin_users_list, name='admin_users_list'),
-    path('dashboard/users/create/', views.admin_user_create, name='admin_user_create'),
-    path('dashboard/users/<int:user_id>/edit/', views.admin_user_edit, name='admin_user_edit'),
-    path('dashboard/users/<int:user_id>/delete/', views.admin_user_delete, name='admin_user_delete'),
-    path('dashboard/users/<int:user_id>/', views.admin_user_detail, name='admin_user_detail'),
 
     # مسارات مديري القاعات
     path('hall-manager/', views.hall_manager_dashboard, name='hall_manager_dashboard'),

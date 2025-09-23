@@ -22,7 +22,7 @@
     padding: 2rem 0;
 }
 
-/* Hall Hero */
+/* Hall Hero Gallery */
 .hall-hero {
     position: relative;
     height: 60vh;
@@ -30,6 +30,12 @@
     overflow: hidden;
     margin-bottom: 3rem;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.hall-hero-main {
+    position: relative;
+    width: 100%;
+    height: 100%;
 }
 
 .hall-hero-image {
@@ -40,6 +46,138 @@
 }
 
 .hall-hero:hover .hall-hero-image {
+    transform: scale(1.05);
+}
+
+/* Gallery Navigation */
+.hero-gallery-nav {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    gap: 15px;
+    z-index: 10;
+}
+
+.nav-btn {
+    background: rgba(0, 0, 0, 0.7);
+    border: 2px solid var(--gold-primary);
+    color: var(--gold-primary);
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.nav-btn:hover {
+    background: var(--gold-primary);
+    color: var(--black-primary);
+    transform: translateY(-2px);
+}
+
+.nav-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Gallery Thumbnails */
+.hero-gallery-thumbs {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    display: flex;
+    gap: 10px;
+    z-index: 10;
+    max-width: calc(100% - 200px);
+    overflow-x: auto;
+    padding: 5px;
+}
+
+.thumb-item {
+    min-width: 80px;
+    height: 60px;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.thumb-item.active {
+    border-color: var(--gold-primary);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+}
+
+.thumb-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.thumb-item:hover img {
+    transform: scale(1.1);
+}
+
+.thumb-item::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.3);
+    transition: opacity 0.3s ease;
+}
+
+.thumb-item.active::after,
+.thumb-item:hover::after {
+    opacity: 0;
+}
+
+/* Gallery Counter */
+.gallery-counter {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.7);
+    color: var(--gold-primary);
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--gold-dark);
+}
+
+/* Fullscreen Button */
+.fullscreen-btn {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background: rgba(0, 0, 0, 0.7);
+    border: 2px solid var(--gold-primary);
+    color: var(--gold-primary);
+    width: 45px;
+    height: 45px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.fullscreen-btn:hover {
+    background: var(--gold-primary);
+    color: var(--black-primary);
     transform: scale(1.05);
 }
 
@@ -421,81 +559,6 @@
     margin-top: 0.5rem;
 }
 
-/* Images Gallery */
-.hall-images-gallery {
-    margin-bottom: 2rem;
-}
-
-.hall-images-gallery h3 {
-    color: var(--gold-primary);
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin-bottom: 1.5rem;
-    text-align: center;
-}
-
-.images-gallery-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1.5rem;
-}
-
-.gallery-image-item {
-    position: relative;
-    border-radius: 15px;
-    overflow: hidden;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-}
-
-.gallery-image-item:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 20px 40px rgba(255, 215, 0, 0.2);
-}
-
-.gallery-image-item img {
-    width: 100%;
-    height: 200px;
-    object-fit: cover;
-    transition: transform 0.3s ease;
-}
-
-.gallery-image-item:hover img {
-    transform: scale(1.05);
-}
-
-.gallery-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.7);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    color: var(--gold-primary);
-    font-size: 2rem;
-}
-
-.gallery-image-item:hover .gallery-overlay {
-    opacity: 1;
-}
-
-.gallery-image-title {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
-    color: white;
-    padding: 1rem;
-    font-size: 0.9rem;
-    font-weight: 600;
-}
 
 /* Image Fullscreen Modal */
 .image-fullscreen-modal {
@@ -579,25 +642,93 @@
     object-fit: contain;
     border-radius: 10px;
 }
+
+/* Fullscreen Navigation */
+.fullscreen-nav {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 20px;
+    z-index: 10;
+}
+
+.fullscreen-nav-btn {
+    background: rgba(0, 0, 0, 0.7);
+    border: 2px solid var(--gold-primary);
+    color: var(--gold-primary);
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.fullscreen-nav-btn:hover {
+    background: var(--gold-primary);
+    color: var(--black-primary);
+    transform: translateY(-2px);
+}
 </style>
 {% endblock %}
 
 {% block content %}
 <section class="hall-detail-section">
     <div class="container">
-        <!-- Hall Hero -->
+        <!-- Hall Hero Gallery -->
         <div class="hall-hero">
-            {% if hall.images.first %}
-                <img src="{{ hall.images.first.image.url }}" alt="{{ hall.name }}" class="hall-hero-image">
-            {% else %}
-                <img src="{% static 'images/default-hall.jpg' %}" alt="{{ hall.name }}" class="hall-hero-image">
-            {% endif %}
-            <div class="hall-hero-overlay">
-                <div class="hall-hero-content">
-                    <h1>{{ hall.name }}</h1>
-                    <div class="location">
-                        <i class="fas fa-map-marker-alt"></i>
-                        {{ hall.city.name }}، {{ hall.governorate.name }}
+            <div class="hall-hero-main">
+                {% if hall_images %}
+                    <img src="{{ hall_images.0.image.url }}" alt="{{ hall.name }}" class="hall-hero-image" id="hero-main-image">
+                    
+                    <!-- Gallery Counter -->
+                    <div class="gallery-counter">
+                        <span id="current-image">1</span> / <span id="total-images">{{ hall_images|length }}</span>
+                    </div>
+                    
+                    <!-- Fullscreen Button -->
+                    <button class="fullscreen-btn" onclick="viewImageFullscreen('{{ hall_images.0.image.url }}', '{{ hall_images.0.title|default:hall.name|escapejs }}')">
+                        <i class="fas fa-expand"></i>
+                    </button>
+                    
+                    <!-- Navigation Buttons -->
+                    {% if hall_images|length > 1 %}
+                    <div class="hero-gallery-nav">
+                        <button class="nav-btn" id="prev-btn" onclick="changeHeroImage(-1)">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button class="nav-btn" id="next-btn" onclick="changeHeroImage(1)">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- Thumbnails -->
+                    <div class="hero-gallery-thumbs">
+                        {% for image in hall_images %}
+                        <div class="thumb-item {% if forloop.first %}active{% endif %}" 
+                             data-index="{{ forloop.counter0 }}"
+                             onclick="selectHeroImage({{ forloop.counter0 }})">
+                            <img src="{{ image.image.url }}" alt="{{ image.title|default:hall.name }}">
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                {% else %}
+                    <img src="{% static 'images/default-hall.jpg' %}" alt="{{ hall.name }}" class="hall-hero-image">
+                {% endif %}
+                
+                <div class="hall-hero-overlay">
+                    <div class="hall-hero-content">
+                        <h1>{{ hall.name }}</h1>
+                        <div class="location">
+                            <i class="fas fa-map-marker-alt"></i>
+                            {{ hall.city.name }}، {{ hall.governorate.name }}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -733,25 +864,6 @@
             </div>
             {% endif %}
 
-            <!-- Images Gallery Section -->
-            {% if hall.images.all %}
-            <div class="hall-images-gallery">
-                <h3>معرض صور القاعة</h3>
-                <div class="images-gallery-grid">
-                    {% for image in hall.images.all %}
-                    <div class="gallery-image-item" onclick="viewImageFullscreen('{{ image.image.url }}', '{{ image.title|escapejs }}')">
-                        <img src="{{ image.image.url }}" alt="{{ image.title }}" loading="lazy">
-                        <div class="gallery-overlay">
-                            <i class="fas fa-search-plus"></i>
-                        </div>
-                        {% if image.title %}
-                        <div class="gallery-image-title">{{ image.title }}</div>
-                        {% endif %}
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-            {% endif %}
 
             <!-- Booking Section -->
             <div class="booking-section">
@@ -810,6 +922,46 @@
         font-size: 2rem;
     }
 
+    /* Gallery Mobile Adjustments */
+    .hero-gallery-nav {
+        bottom: 15px;
+        right: 15px;
+        gap: 10px;
+    }
+
+    .nav-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 0.9rem;
+    }
+
+    .hero-gallery-thumbs {
+        bottom: 15px;
+        left: 15px;
+        max-width: calc(100% - 120px);
+        gap: 8px;
+    }
+
+    .thumb-item {
+        min-width: 60px;
+        height: 45px;
+    }
+
+    .gallery-counter {
+        top: 15px;
+        right: 15px;
+        padding: 6px 12px;
+        font-size: 0.8rem;
+    }
+
+    .fullscreen-btn {
+        top: 15px;
+        left: 15px;
+        width: 35px;
+        height: 35px;
+        font-size: 0.8rem;
+    }
+
     .hall-info-card {
         padding: 1.5rem;
     }
@@ -840,15 +992,70 @@
         align-self: center;
         margin-bottom: 1rem;
     }
+
+    /* Fullscreen Modal Mobile */
+    .fullscreen-nav {
+        bottom: 20px;
+        gap: 15px;
+    }
+
+    .fullscreen-nav-btn {
+        width: 40px;
+        height: 40px;
+    }
 }
 
 @media (max-width: 576px) {
+    .hall-hero {
+        height: 35vh;
+    }
+
     .hall-hero-overlay {
-        padding: 2rem;
+        padding: 1.5rem;
     }
 
     .hall-hero-content h1 {
         font-size: 1.5rem;
+    }
+
+    /* Gallery Ultra Mobile */
+    .hero-gallery-nav {
+        bottom: 10px;
+        right: 10px;
+        gap: 8px;
+    }
+
+    .nav-btn {
+        width: 35px;
+        height: 35px;
+        font-size: 0.8rem;
+    }
+
+    .hero-gallery-thumbs {
+        bottom: 10px;
+        left: 10px;
+        max-width: calc(100% - 100px);
+        gap: 6px;
+    }
+
+    .thumb-item {
+        min-width: 50px;
+        height: 35px;
+    }
+
+    .gallery-counter {
+        top: 10px;
+        right: 10px;
+        padding: 4px 8px;
+        font-size: 0.7rem;
+    }
+
+    .fullscreen-btn {
+        top: 10px;
+        left: 10px;
+        width: 30px;
+        height: 30px;
+        font-size: 0.7rem;
     }
 
     .hall-info-header {
@@ -860,11 +1067,128 @@
         width: 100%;
         justify-content: center;
     }
+
+    /* Hide thumbnails on very small screens if too many */
+    .hero-gallery-thumbs {
+        max-height: 35px;
+        overflow-y: hidden;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    .hero-gallery-thumbs::-webkit-scrollbar {
+        display: none;
+    }
 }
 </style>
 
 <script>
-// دالة عرض الصورة بحجم كامل
+// متغيرات المعرض
+let currentImageIndex = 0;
+let galleryImages = [];
+
+// تحضير الصور عند تحميل الصفحة
+document.addEventListener('DOMContentLoaded', function() {
+    // جمع معلومات الصور
+    const heroImages = document.querySelectorAll('.thumb-item');
+    galleryImages = Array.from(heroImages).map(thumb => {
+        const img = thumb.querySelector('img');
+        return {
+            src: img.src,
+            alt: img.alt,
+            index: parseInt(thumb.dataset.index)
+        };
+    });
+    
+    // إضافة أحداث لوحة المفاتيح
+    document.addEventListener('keydown', handleKeydown);
+});
+
+// التنقل باستخدام لوحة المفاتيح
+function handleKeydown(e) {
+    if (e.key === 'Escape') {
+        closeImageModal();
+    } else if (e.key === 'ArrowLeft') {
+        changeHeroImage(1);
+    } else if (e.key === 'ArrowRight') {
+        changeHeroImage(-1);
+    }
+}
+
+// تغيير الصورة الرئيسية
+function changeHeroImage(direction) {
+    if (galleryImages.length <= 1) return;
+    
+    currentImageIndex += direction;
+    
+    // التعامل مع الحدود
+    if (currentImageIndex >= galleryImages.length) {
+        currentImageIndex = 0;
+    } else if (currentImageIndex < 0) {
+        currentImageIndex = galleryImages.length - 1;
+    }
+    
+    updateHeroImage();
+}
+
+// اختيار صورة محددة
+function selectHeroImage(index) {
+    currentImageIndex = index;
+    updateHeroImage();
+}
+
+// تحديث الصورة الرئيسية
+function updateHeroImage() {
+    const mainImage = document.getElementById('hero-main-image');
+    const currentCounter = document.getElementById('current-image');
+    const fullscreenBtn = document.querySelector('.fullscreen-btn');
+    
+    if (mainImage && galleryImages[currentImageIndex]) {
+        // تحديث الصورة الرئيسية
+        mainImage.src = galleryImages[currentImageIndex].src;
+        mainImage.alt = galleryImages[currentImageIndex].alt;
+        
+        // تحديث العداد
+        if (currentCounter) {
+            currentCounter.textContent = currentImageIndex + 1;
+        }
+        
+        // تحديث زر العرض بحجم كامل
+        if (fullscreenBtn) {
+            fullscreenBtn.onclick = () => viewImageFullscreen(
+                galleryImages[currentImageIndex].src, 
+                galleryImages[currentImageIndex].alt
+            );
+        }
+        
+        // تحديث التصغيرات
+        updateThumbnails();
+        
+        // تحديث أزرار التنقل
+        updateNavigationButtons();
+    }
+}
+
+// تحديث التصغيرات
+function updateThumbnails() {
+    const thumbs = document.querySelectorAll('.thumb-item');
+    thumbs.forEach((thumb, index) => {
+        thumb.classList.toggle('active', index === currentImageIndex);
+    });
+}
+
+// تحديث أزرار التنقل
+function updateNavigationButtons() {
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    
+    if (prevBtn && nextBtn) {
+        prevBtn.disabled = false;
+        nextBtn.disabled = false;
+    }
+}
+
+// عرض الصورة بحجم كامل
 function viewImageFullscreen(imageUrl, title) {
     const modal = document.createElement('div');
     modal.className = 'image-fullscreen-modal';
@@ -880,6 +1204,16 @@ function viewImageFullscreen(imageUrl, title) {
                 <div class="fullscreen-image">
                     <img src="${imageUrl}" alt="${title}" />
                 </div>
+                ${galleryImages.length > 1 ? `
+                <div class="fullscreen-nav">
+                    <button class="fullscreen-nav-btn" onclick="navigateFullscreen(-1)">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button class="fullscreen-nav-btn" onclick="navigateFullscreen(1)">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+                ` : ''}
             </div>
         </div>
     `;
@@ -888,6 +1222,25 @@ function viewImageFullscreen(imageUrl, title) {
     setTimeout(() => modal.classList.add('show'), 10);
 }
 
+// التنقل في العرض بحجم كامل
+function navigateFullscreen(direction) {
+    changeHeroImage(direction);
+    const modal = document.querySelector('.image-fullscreen-modal');
+    if (modal) {
+        const img = modal.querySelector('.fullscreen-image img');
+        const title = modal.querySelector('.fullscreen-header h5');
+        
+        if (img && galleryImages[currentImageIndex]) {
+            img.src = galleryImages[currentImageIndex].src;
+            img.alt = galleryImages[currentImageIndex].alt;
+            if (title) {
+                title.textContent = galleryImages[currentImageIndex].alt || 'صورة القاعة';
+            }
+        }
+    }
+}
+
+// إغلاق النافذة المنبثقة
 function closeImageModal() {
     const modal = document.querySelector('.image-fullscreen-modal');
     if (modal) {
@@ -896,11 +1249,16 @@ function closeImageModal() {
     }
 }
 
-// إغلاق النافذة بالضغط على ESC
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        closeImageModal();
+// تشغيل العرض التلقائي (اختياري)
+function startAutoSlide() {
+    if (galleryImages.length > 1) {
+        setInterval(() => {
+            changeHeroImage(1);
+        }, 5000); // تغيير كل 5 ثوان
     }
-});
+}
+
+// يمكن تفعيل العرض التلقائي من خلال إلغاء التعليق على السطر التالي
+// startAutoSlide();
 </script>
 {% endblock %}
